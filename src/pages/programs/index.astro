@@ -1,0 +1,29 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import ProgramCard from "../../components/ProgramCard.astro";
+
+// Load all programs from YAML
+const programModules = import.meta.glob('../../content/programs/*.yaml', { eager: true });
+const allPrograms = Object.values(programModules).map((module: any) => module.default).sort((a, b) => a.name.localeCompare(b.name));
+---
+
+<Layout title="Alle Kurse" description="Entdecke alle unsere Programmierkurse">
+  <section style="padding: var(--sp-2xl) var(--sp-lg);">
+    <div class="container">
+      <h1 style="text-align: center; margin-bottom: var(--sp-xl);">Alle unsere Kurse</h1>
+      <div class="grid-3">
+        {allPrograms.map(program => (
+          <ProgramCard
+            name={program.name}
+            description={program.description}
+            ageGroup={program.ageGroupDe}
+            duration={program.durationDe}
+            price={program.price}
+            image={program.image}
+            slug={program.slug}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+</Layout>
