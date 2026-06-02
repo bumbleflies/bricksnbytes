@@ -14,6 +14,7 @@ on:
       - "astro.config.mjs"
       - "tsconfig.json"
       - "Dockerfile"
+      - "nginx.conf"
       - ".github/workflows/build-docker.yml"
   workflow_dispatch:
 
