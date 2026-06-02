@@ -1,0 +1,28 @@
+name: Eltern-Kind Programmierworkshop
+slug: eltern-kind
+description: Programmieren mit deinem Kind – Ein Abenteuer zusammen
+longDescription: In diesem Workshop programmieren Kinder gemeinsam mit ihren Eltern oder Großeltern. Nach einer kurzen Einführung starten wir mit einem gemeinsamen Projekt, das spielerisch an die Grundlagen heranführt. Eine tolle Gelegenheit, gemeinsam zu lernen!
+ageGroup: 8-12 years with parent/guardian
+ageGroupDe: 8-12 Jahre mit Eltern/Großeltern
+duration: 2 days
+durationDe: 2 Tage (Workshop)
+price: 150
+location: Munich
+locationDe: München
+instructor: Zara Martinetti
+image: https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop
+featured: true
+whatYouLearn:
+  - Gemeinsam programmieren lernen
+  - Erste Coding-Konzepte verstehen
+  - Roboter bauen und steuern
+  - Zusammenhalt und Teamwork
+requirements:
+  - Kind im Alter 8-12 Jahre
+  - Ein Elternteil oder Großeltern
+  - Keine Vorkenntnisse nötig
+whatIncluded:
+  - 2 ganztägige Workshop-Sessions
+  - Alle Materialien und Equipment
+  - Gemeinsames Mittagessen
+  - Urkunde für beide

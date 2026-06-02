@@ -1,0 +1,29 @@
+name: Robotik Advanced – Für Profis
+slug: robotik-advanced
+description: Robotik Advanced – Komplexe Projekte für erfahrene Tüftler
+longDescription: Du hast bereits Grundkenntnisse in Robotik und Programmierung? In unserem Advanced-Kurs baust du komplexe Roboter-Systeme und programmierst diese mit fortgeschrittenen Techniken. Perfekt für angehende Robotik-Profis!
+ageGroup: 10+ years experienced
+ageGroupDe: 10+ Jahre mit Erfahrung
+duration: 10 weeks
+durationDe: 10 Wochen
+price: 180
+location: Munich
+locationDe: München
+instructor: Zara Martinetti
+image: https://images.unsplash.com/photo-1535599810169-55523519b55a?w=600&h=400&fit=crop
+featured: false
+whatYouLearn:
+  - Fortgeschrittene Roboter-Konstruktion
+  - Mehrsprachige Programmierung (Python + Blockly)
+  - Sensoren und KI-Grundlagen
+  - Wettkampfvorbereitung
+  - Projektmanagement
+requirements:
+  - Alter 10+ Jahre
+  - Vorherige Robotik-Erfahrung erforderlich
+  - Grundkenntnisse in Programmierung
+whatIncluded:
+  - 10 Präsenz-Sessions à 2,5 Stunden
+  - Professionelle LEGO-Sets
+  - Zugang zu Code-Bibliotheken
+  - Unterstützung bei Robotik-Wettbewerben

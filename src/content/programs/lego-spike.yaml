@@ -1,0 +1,27 @@
+name: LEGO Spike Programmieren
+slug: lego-spike
+description: LEGO Spike Programmieren – Roboter bauen und Code schreiben
+longDescription: In diesem actionreichen Kurs bauen und programmieren Kinder ihre eigenen LEGO Roboter. Spielerisch lernen sie Grundlagen der Programmierung, indem sie echte Maschinen zum Leben erwecken. Keine Vorkenntnisse nötig!
+ageGroup: 6-9 years
+ageGroupDe: 6-9 Jahre
+duration: 4 weeks
+durationDe: 4 Wochen
+price: 120
+location: Munich
+locationDe: München
+instructor: Zara Martinetti
+image: https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&h=400&fit=crop
+featured: true
+whatYouLearn:
+  - Roboter bauen und zusammensetzen
+  - Blockprogrammierung mit LEGO Software
+  - Sensoren und Motoren programmieren
+  - Logisches Denken trainieren
+requirements:
+  - Keine Vorkenntnisse nötig
+  - Alter 6-9 Jahre
+whatIncluded:
+  - 4 Kurs-Sessions à 90 Minuten
+  - Alle LEGO-Materialien
+  - Digitales Kursbuch
+  - Teilnahmezertifikat

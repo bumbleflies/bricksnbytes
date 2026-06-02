@@ -1,0 +1,28 @@
+name: Minecraft Education Programmieren
+slug: minecraft-edu
+description: Minecraft-Programmieren – Baue Welten, programmiere Automatisierungen
+longDescription: Lerne, in Minecraft Education Edition deine eigenen Welten zu programmieren. Schreibe Code für Redstone-Maschinen und automatisiere Abläufe. Ein Abenteuer mit Code für Kinder, die gerne kreativ spielen!
+ageGroup: 8-12 years
+ageGroupDe: 8-12 Jahre
+duration: 4 weeks
+durationDe: 4 Wochen
+price: 100
+location: Online & Munich
+locationDe: Online & München
+instructor: Zara Martinetti
+image: https://images.unsplash.com/photo-1556075798-4825dfaaf498?w=600&h=400&fit=crop
+featured: true
+whatYouLearn:
+  - Minecraft Education Edition bedienen
+  - Redstone-Logik verstehen
+  - Code-Befehle für Automatisierung
+  - Eigene kreative Projekte umsetzen
+requirements:
+  - Computer oder Laptop
+  - Alter 8-12 Jahre
+  - Minecraft-Grundkenntnisse hilfreich
+whatIncluded:
+  - 4 Online-Sessions à 2 Stunden
+  - Zugang zu Minecraft Education
+  - Beispiel-Welten und Ressourcen
+  - Support per Chat

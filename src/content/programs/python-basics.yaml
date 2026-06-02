@@ -1,0 +1,29 @@
+name: Python Programmierung für Anfänger
+slug: python-basics
+description: Python Basics – Erste Schritte in echte Programmiersprache
+longDescription: Python ist eine der beliebtesten Programmiersprachen. In diesem Kurs lernst du die Grundlagen von Python – Variablen, Schleifen, Funktionen. Perfekt als Einstieg in echte Text-Programmierung!
+ageGroup: 10+ years
+ageGroupDe: 10+ Jahre
+duration: 8 weeks
+durationDe: 8 Wochen
+price: 140
+location: Munich
+locationDe: München
+instructor: Zara Martinetti
+image: https://images.unsplash.com/photo-1633356122544-f134324ef6db?w=600&h=400&fit=crop
+featured: true
+whatYouLearn:
+  - Python-Syntax verstehen
+  - Variablen und Datentypen
+  - Schleifen und Bedingungen
+  - Funktionen schreiben
+  - Fehlerbehandlung
+requirements:
+  - Alter 10+ Jahre
+  - Englisch-Grundkenntnisse
+  - Computer für Zuhause
+whatIncluded:
+  - 8 Präsenz-Sessions à 2 Stunden
+  - Python IDE einrichten
+  - Code-Beispiele und Aufgaben
+  - Mentoring während des Kurses

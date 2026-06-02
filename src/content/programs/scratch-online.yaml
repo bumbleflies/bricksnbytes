@@ -1,0 +1,28 @@
+name: Online Programmierkurs mit Scratch
+slug: scratch-online
+description: Scratch Online-Kurs – Erstelle deine erste App oder dein Spiel
+longDescription: In diesem Online-Kurs lernst du mit Scratch zu programmieren. Du baust dein erstes Spiel oder deine erste Anwendung. Blockprogrammierung macht Spaß und ist einfach – egal ob du noch nie programmiert hast!
+ageGroup: 7-10 years
+ageGroupDe: 7-10 Jahre
+duration: 6 weeks
+durationDe: 6 Wochen
+price: 80
+location: Online
+locationDe: Online
+instructor: Zara Martinetti
+image: https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&h=400&fit=crop
+featured: true
+whatYouLearn:
+  - Scratch-Plattform kennenlernen
+  - Spielfiguren (Sprites) animieren
+  - Programmierlogik verstehen
+  - Dein erstes Spiel programmieren
+requirements:
+  - Internetverbindung
+  - Computer mit Browser
+  - Alter 7-10 Jahre
+whatIncluded:
+  - 6 Online-Sessions à 1,5 Stunden
+  - Kostenlos Scratch verwenden
+  - Dokumentation aller Projekte
+  - Zertifikat beim Abschluss
