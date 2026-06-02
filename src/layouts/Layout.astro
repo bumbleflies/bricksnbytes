@@ -1,0 +1,42 @@
+---
+// Base layout for all pages
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "BricksnBytes - Professional training and workshops" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title} | BricksnBytes</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  </head>
+  <body>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  html {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #fff;
+    color: #333;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  main {
+    min-height: 100vh;
+  }
+</style>

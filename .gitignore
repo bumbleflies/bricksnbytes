@@ -1,0 +1,28 @@
+# Astro
+dist/
+.astro/
+
+# Node dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build output
+*.log
+*.tmp
+
+# Design backups (version controlled separately)
+.design-backups/
