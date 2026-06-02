@@ -1,5 +1,7 @@
 ---
-// Base layout for all pages
+import '../styles/design-system.css';
+import '../styles/layout.css';
+
 interface Props {
   title: string;
   description?: string;
@@ -9,34 +11,111 @@ const { title, description = "BricksnBytes - Professional training and workshops
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{title} | BricksnBytes</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
+    <header>
+      <slot name="header" />
+    </header>
     <main>
       <slot />
     </main>
+    <footer>
+      <slot name="footer" />
+    </footer>
+    <style is:global>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        font-family: var(--font-body);
+        background-color: var(--color-paper);
+        color: var(--color-ink);
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        font-size: var(--font-size-body);
+        line-height: var(--line-height-normal);
+      }
+
+      header {
+        flex-shrink: 0;
+      }
+
+      main {
+        flex: 1;
+      }
+
+      footer {
+        flex-shrink: 0;
+        background-color: var(--color-cream);
+        border-top: 1px solid var(--color-cream-2);
+        padding: var(--spacing-3xl) 0 var(--spacing-xl);
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-family: var(--font-display);
+        line-height: var(--line-height-tight);
+        margin: var(--spacing-lg) 0 var(--spacing-md) 0;
+      }
+
+      h1 {
+        font-size: var(--font-size-h1);
+        font-weight: 700;
+      }
+
+      h2 {
+        font-size: var(--font-size-h2);
+        font-weight: 600;
+      }
+
+      h3 {
+        font-size: var(--font-size-h3);
+        font-weight: 600;
+      }
+
+      h4 {
+        font-size: var(--font-size-h4);
+        font-weight: 600;
+      }
+
+      p {
+        margin: 0 0 var(--spacing-md) 0;
+      }
+
+      a {
+        color: var(--color-coral);
+        text-decoration: none;
+        transition: color var(--transition-fast);
+      }
+
+      a:hover {
+        color: var(--color-coral-deep);
+      }
+    </style>
   </body>
 </html>
-
-<style is:global>
-  html {
-    font-family: system-ui, -apple-system, sans-serif;
-    background: #fff;
-    color: #333;
-  }
-
-  body {
-    margin: 0;
-    padding: 0;
-  }
-
-  main {
-    min-height: 100vh;
-  }
-</style>
