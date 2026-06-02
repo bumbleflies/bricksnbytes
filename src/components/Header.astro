@@ -1,0 +1,148 @@
+---
+interface Props {
+  lang?: 'de' | 'en';
+}
+
+const { lang = 'de' } = Astro.props;
+
+const navItems = lang === 'de'
+  ? [
+      { label: 'Home', href: '/' },
+      { label: 'Kurse', href: '/kurse' },
+      { label: 'Über uns', href: '/uber-uns' },
+    ]
+  : [
+      { label: 'Home', href: '/' },
+      { label: 'Courses', href: '/courses' },
+      { label: 'About', href: '/about' },
+    ];
+
+const contactLabel = lang === 'de' ? 'Kontakt' : 'Contact';
+const contactHref = 'mailto:info@bricksnbytes.de';
+---
+
+<header class="header">
+  <div class="header-container">
+    <a href="/" class="logo">
+      <span class="logo-text">BricksnBytes</span>
+    </a>
+
+    <nav class="nav">
+      {navItems.map((item) => (
+        <a key={item.href} href={item.href} class="nav-link">
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
+    <a href={contactHref} class="nav-cta">
+      {contactLabel}
+    </a>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--color-paper);
+    border-bottom: 1px solid var(--color-cream-2);
+    padding: var(--spacing-md) 0;
+  }
+
+  .header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-lg);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-family: var(--font-display);
+    font-size: var(--font-size-h4);
+    font-weight: 700;
+    color: var(--color-coral);
+    transition: color var(--transition-fast);
+  }
+
+  .logo:hover .logo-text {
+    color: var(--color-coral-deep);
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    flex: 1;
+    justify-content: center;
+  }
+
+  .nav-link {
+    font-size: var(--font-size-body);
+    color: var(--color-ink);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition-fast);
+    white-space: nowrap;
+  }
+
+  .nav-link:hover {
+    color: var(--color-coral);
+  }
+
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-coral);
+    color: var(--color-paper);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .nav-cta:hover {
+    background-color: var(--color-coral-deep);
+    transform: translateY(-2px);
+  }
+
+  .nav-cta:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 768px) {
+    .header-container {
+      gap: var(--spacing-md);
+      padding: 0 var(--spacing-md);
+    }
+
+    .nav {
+      display: none;
+    }
+
+    .logo-text {
+      font-size: var(--font-size-h5);
+    }
+
+    .nav-cta {
+      padding: var(--spacing-xs) var(--spacing-md);
+      font-size: var(--font-size-small);
+    }
+  }
+</style>
