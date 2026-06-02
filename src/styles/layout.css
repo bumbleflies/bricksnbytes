@@ -1,0 +1,722 @@
+/* ============================================================================
+   Layout Utilities - Container, Grid, Spacing, and Components
+   ============================================================================ */
+
+/* ============================================================================
+   Container Utilities
+   ============================================================================ */
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.container-sm {
+  width: 100%;
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.container-lg {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+/* ============================================================================
+   Grid Layouts
+   ============================================================================ */
+
+.grid {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-lg);
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-lg);
+}
+
+/* ============================================================================
+   Flexbox Utilities
+   ============================================================================ */
+
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+
+.gap-md {
+  gap: var(--spacing-md);
+}
+
+.gap-lg {
+  gap: var(--spacing-lg);
+}
+
+.gap-xl {
+  gap: var(--spacing-xl);
+}
+
+/* ============================================================================
+   Section Spacing
+   ============================================================================ */
+
+.section {
+  padding: var(--spacing-3xl) 0;
+}
+
+.section-sm {
+  padding: var(--spacing-xl) 0;
+}
+
+.section-lg {
+  padding: var(--spacing-3xl) 0;
+}
+
+.section-xl {
+  padding: calc(var(--spacing-3xl) * 1.5) 0;
+}
+
+/* ============================================================================
+   Button Styles
+   ============================================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  font-family: var(--font-body);
+  white-space: nowrap;
+  line-height: var(--line-height-normal);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--color-coral), 0.5);
+}
+
+/* Primary Button */
+.btn-primary {
+  background-color: var(--color-coral);
+  color: var(--color-paper);
+  border-color: var(--color-coral);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-coral-deep);
+  border-color: var(--color-coral-deep);
+}
+
+.btn-primary:active {
+  opacity: 0.9;
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-coral);
+  border-color: var(--color-coral);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-coral-soft);
+  border-color: var(--color-coral-deep);
+  color: var(--color-coral-deep);
+}
+
+/* Tertiary Button (Ghost) */
+.btn-tertiary {
+  background-color: transparent;
+  color: var(--color-coral);
+  border-color: transparent;
+}
+
+.btn-tertiary:hover {
+  background-color: var(--color-coral-soft);
+  border-color: transparent;
+}
+
+/* Small Button */
+.btn-small {
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-small);
+  font-weight: 500;
+}
+
+/* Full Width Button */
+.btn-full {
+  width: 100%;
+}
+
+/* Disabled State */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn:disabled:hover {
+  background-color: inherit;
+  box-shadow: none;
+}
+
+/* ============================================================================
+   Text Utilities
+   ============================================================================ */
+
+.text-small {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-normal);
+}
+
+.text-xs {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-justify {
+  text-align: justify;
+}
+
+.text-accent {
+  color: var(--color-coral);
+  font-weight: 600;
+}
+
+.text-muted {
+  color: var(--color-ink-soft);
+}
+
+.text-subtle {
+  color: var(--color-ink-faint);
+}
+
+.text-bold {
+  font-weight: 700;
+}
+
+.text-italic {
+  font-style: italic;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.text-lowercase {
+  text-transform: lowercase;
+}
+
+.text-capitalize {
+  text-transform: capitalize;
+}
+
+/* ============================================================================
+   Margin Utilities
+   ============================================================================ */
+
+.mt-xs {
+  margin-top: var(--spacing-xs);
+}
+
+.mt-sm {
+  margin-top: var(--spacing-sm);
+}
+
+.mt-md {
+  margin-top: var(--spacing-md);
+}
+
+.mt-lg {
+  margin-top: var(--spacing-lg);
+}
+
+.mt-xl {
+  margin-top: var(--spacing-xl);
+}
+
+.mt-2xl {
+  margin-top: var(--spacing-2xl);
+}
+
+.mt-3xl {
+  margin-top: var(--spacing-3xl);
+}
+
+.mb-xs {
+  margin-bottom: var(--spacing-xs);
+}
+
+.mb-sm {
+  margin-bottom: var(--spacing-sm);
+}
+
+.mb-md {
+  margin-bottom: var(--spacing-md);
+}
+
+.mb-lg {
+  margin-bottom: var(--spacing-lg);
+}
+
+.mb-xl {
+  margin-bottom: var(--spacing-xl);
+}
+
+.mb-2xl {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.mb-3xl {
+  margin-bottom: var(--spacing-3xl);
+}
+
+.my-xs {
+  margin-top: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.my-sm {
+  margin-top: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.my-md {
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.my-lg {
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.my-xl {
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.my-2xl {
+  margin-top: var(--spacing-2xl);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.my-3xl {
+  margin-top: var(--spacing-3xl);
+  margin-bottom: var(--spacing-3xl);
+}
+
+/* ============================================================================
+   Padding Utilities
+   ============================================================================ */
+
+.p-xs {
+  padding: var(--spacing-xs);
+}
+
+.p-sm {
+  padding: var(--spacing-sm);
+}
+
+.p-md {
+  padding: var(--spacing-md);
+}
+
+.p-lg {
+  padding: var(--spacing-lg);
+}
+
+.p-xl {
+  padding: var(--spacing-xl);
+}
+
+.p-2xl {
+  padding: var(--spacing-2xl);
+}
+
+.p-3xl {
+  padding: var(--spacing-3xl);
+}
+
+.px-md {
+  padding-left: var(--spacing-md);
+  padding-right: var(--spacing-md);
+}
+
+.px-lg {
+  padding-left: var(--spacing-lg);
+  padding-right: var(--spacing-lg);
+}
+
+.py-md {
+  padding-top: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+}
+
+.py-lg {
+  padding-top: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
+}
+
+/* ============================================================================
+   Display & Visibility Utilities
+   ============================================================================ */
+
+.hidden {
+  display: none;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.block {
+  display: block;
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.inline {
+  display: inline;
+}
+
+/* ============================================================================
+   Border & Shadow Utilities
+   ============================================================================ */
+
+.rounded {
+  border-radius: var(--radius-md);
+}
+
+.rounded-sm {
+  border-radius: var(--radius-sm);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.shadow-none {
+  box-shadow: none;
+}
+
+/* ============================================================================
+   Background Color Utilities
+   ============================================================================ */
+
+.bg-primary {
+  background-color: var(--color-coral);
+}
+
+.bg-secondary {
+  background-color: var(--color-blue);
+}
+
+.bg-accent {
+  background-color: var(--color-teal);
+}
+
+.bg-paper {
+  background-color: var(--color-paper);
+}
+
+.bg-cream {
+  background-color: var(--color-cream);
+}
+
+.bg-cream-2 {
+  background-color: var(--color-cream-2);
+}
+
+/* ============================================================================
+   Responsive Media Queries - 768px Breakpoint
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--spacing-md);
+  }
+
+  .container-sm {
+    padding: 0 var(--spacing-md);
+  }
+
+  .container-lg {
+    padding: 0 var(--spacing-md);
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .section {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  .section-sm {
+    padding: var(--spacing-lg) 0;
+  }
+
+  .section-lg {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  .section-xl {
+    padding: var(--spacing-3xl) 0;
+  }
+
+  .hide-mobile {
+    display: none;
+  }
+
+  .show-mobile {
+    display: block;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  h2 {
+    font-size: 1.875rem;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+  }
+
+  .btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-small);
+  }
+
+  .btn-small {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+  }
+
+  .flex-mobile-column {
+    flex-direction: column;
+  }
+
+  .grid-mobile-full {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================================
+   Responsive Media Queries - Tablets & Larger (769px and up)
+   ============================================================================ */
+
+@media (min-width: 769px) {
+  .hide-desktop {
+    display: none;
+  }
+
+  .show-desktop {
+    display: block;
+  }
+}
+
+/* ============================================================================
+   Large Desktop Optimizations (1200px and up)
+   ============================================================================ */
+
+@media (min-width: 1200px) {
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ============================================================================
+   Utilities - Overflow & Word Break
+   ============================================================================ */
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-auto {
+  overflow: auto;
+}
+
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.break-words {
+  word-break: break-word;
+}
+
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   Opacity Utilities
+   ============================================================================ */
+
+.opacity-0 {
+  opacity: 0;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.opacity-100 {
+  opacity: 1;
+}
+
+/* ============================================================================
+   Transform & Animation Utilities
+   ============================================================================ */
+
+.scale-hover {
+  transition: transform var(--transition-normal);
+}
+
+.scale-hover:hover {
+  transform: scale(1.05);
+}
+
+.fade-in {
+  animation: fadeIn var(--transition-normal);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.slide-up {
+  animation: slideUp var(--transition-normal);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
