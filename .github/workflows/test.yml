@@ -4,18 +4,9 @@ on:
   push:
     branches:
       - "*"
-    paths:
-      - "src/**"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/test.yml"
   pull_request:
     branches:
       - "*"
-    paths:
-      - "src/**"
-      - "package.json"
-      - "package-lock.json"
 
 jobs:
   test:
