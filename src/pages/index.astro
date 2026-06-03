@@ -1,14 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import HeroSection from "../components/HeroSection.astro";
-import ProgramCard from "../components/ProgramCard.astro";
-import ValuePillar from "../components/ValuePillar.astro";
+import AgeGroupSection from "../components/AgeGroupSection.astro";
+import WhySection from "../components/WhySection.astro";
 import CTASection from "../components/CTASection.astro";
-
-// Load programs from YAML, filter for featured
-const programModules = import.meta.glob('../content/programs/*.yaml', { eager: true });
-const allPrograms = Object.values(programModules).map((module: any) => module.default);
-const featuredPrograms = allPrograms.filter(p => p.featured).slice(0, 4);
 ---
 
 <Layout title="Home">
@@ -17,7 +12,7 @@ const featuredPrograms = allPrograms.filter(p => p.featured).slice(0, 4);
     headline="Programmieren für Kinder — mit Spaß und Kreativität"
     subheading="Lass dein Kind die digitale Welt selbst gestalten, nicht nur nutzen"
     ctaText="Kurse Entdecken"
-    ctaHref="#featured-programs"
+    ctaHref="#age-groups"
     chips={[
       { label: "LEGO Spike", color: "coral" },
       { label: "Minecraft", color: "blue" },
@@ -25,67 +20,17 @@ const featuredPrograms = allPrograms.filter(p => p.featured).slice(0, 4);
     ]}
   />
 
-  <!-- Featured Programs Section -->
-  <section id="featured-programs" class="container" style="padding: var(--sp-2xl) var(--sp-lg);">
-    <div style="text-align: center; margin-bottom: var(--sp-xl);">
-      <h2>Unsere Top-Kurse</h2>
-      <p style="color: var(--ink-soft); margin-top: var(--sp-md);">
-        Wähle den perfekten Kurs für dein Kind
-      </p>
-    </div>
-    <div class="grid-3">
-      {featuredPrograms.map(program => (
-        <ProgramCard
-          name={program.name}
-          description={program.description}
-          ageGroup={program.ageGroupDe}
-          duration={program.durationDe}
-          price={program.price}
-          image={program.image}
-          slug={program.slug}
-        />
-      ))}
-    </div>
-  </section>
+  <!-- Age-Group Section -->
+  <AgeGroupSection />
 
-  <!-- Why Choose Us Section -->
-  <section class="alt" style="padding: var(--sp-2xl) var(--sp-lg);">
-    <div class="container">
-      <div style="text-align: center; margin-bottom: var(--sp-xl);">
-        <h2>Warum BricksnBytes?</h2>
-      </div>
-      <div class="grid-3">
-        <ValuePillar
-          icon="✨"
-          title="Spielerisch Lernen"
-          description="Lernen durch Spiel, Kreativität und gemeinsames Bauen — nicht trockene Theorie"
-        />
-        <ValuePillar
-          icon="🎯"
-          title="Echte Mentorship"
-          description="Lerne von einer erfahrenen Softwareentwicklerin und Mama"
-        />
-        <ValuePillar
-          icon="🚀"
-          title="Gestaltung statt Konsum"
-          description="Dein Kind kreiert mit Technik statt sie nur zu nutzen"
-        />
-      </div>
-    </div>
-  </section>
+  <!-- Why BricksnBytes Section -->
+  <WhySection />
 
   <!-- CTA Section -->
   <CTASection
-    headline="Bereit, die Programmierwelt zu entdecken?"
-    subheading="Schreib uns und finde den passenden Kurs für dein Kind"
-    buttonText="Kontakt aufnehmen"
+    headline="Bereit loszulegen?"
+    subheading="Schreib uns an — wir finden den richtigen Kurs für dein Kind."
+    buttonText="Jetzt Kontakt aufnehmen"
     buttonHref="mailto:info@bricksnbytes.de"
-    accentColor="blue"
   />
 </Layout>
-
-<style>
-  .alt {
-    background: var(--cream);
-  }
-</style>

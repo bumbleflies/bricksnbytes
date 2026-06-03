@@ -25,6 +25,16 @@ const chipColors = {
 ---
 
 <section class="hero">
+  <!-- Background blob shapes -->
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+
+  <!-- Floating deco elements -->
+  <div class="deco deco-oval deco-h1" style="width:18px;height:24px;background:var(--coral);top:30px;right:38%;"></div>
+  <div class="deco deco-dot deco-h2" style="width:14px;height:14px;background:#2196f3;top:60px;left:44%;"></div>
+  <div class="deco deco-oval deco-h3" style="width:22px;height:14px;background:var(--yellow);bottom:40px;right:42%;"></div>
+  <div class="deco deco-dash deco-h4" style="width:30px;height:9px;background:#26a6a1;top:24px;left:52%;"></div>
+
   <div class="hero-grid">
     <!-- Left column: text content -->
     <div class="hero-left">
@@ -56,6 +66,55 @@ const chipColors = {
     position: relative;
     z-index: 2;
     padding: 40px clamp(20px, 4vw, 48px) 38px;
+    overflow: hidden;
+  }
+
+  /* Background blob shapes */
+  .hero-blob {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .hero-blob-1 {
+    width: 420px;
+    height: 340px;
+    background: var(--coral-soft);
+    border-radius: 62% 38% 44% 56% / 52% 48% 52% 48%;
+    top: -60px;
+    right: -80px;
+    opacity: 0.7;
+  }
+
+  .hero-blob-2 {
+    width: 260px;
+    height: 200px;
+    background: var(--yellow-soft);
+    border-radius: 44% 56% 62% 38% / 48% 52% 48% 52%;
+    bottom: -40px;
+    left: -50px;
+    opacity: 0.6;
+  }
+
+  /* Floating deco elements */
+  .deco {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .deco-oval {
+    border-radius: 50%;
+    transform: rotate(-25deg);
+  }
+
+  .deco-dash {
+    border-radius: 99px;
+    transform: rotate(-35deg);
+  }
+
+  .deco-dot {
+    border-radius: 50%;
   }
 
   .hero-grid {
@@ -65,6 +124,8 @@ const chipColors = {
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
+    position: relative;
+    z-index: 2;
   }
 
   .chip-row {

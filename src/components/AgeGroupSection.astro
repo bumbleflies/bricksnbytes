@@ -1,0 +1,265 @@
+---
+import { getCollection } from 'astro:content';
+
+const ageGroups = await getCollection('ageGroups');
+const sortedGroups = ageGroups.sort((a, b) => {
+  const order = ['green', 'blue', 'orange', 'teal'];
+  return order.indexOf(a.data.color) - order.indexOf(b.data.color);
+});
+
+const colorMap = {
+  green: { blob: '#e8f5e9', age: '#4caf50', cta: '#4caf50', decos: ['left'] },
+  blue: { blob: '#e3f0fc', age: '#2196f3', cta: '#2196f3', decos: ['left'] },
+  orange: { blob: '#fff3e0', age: '#ff9800', cta: '#ff9800', decos: ['left'] },
+  teal: { blob: '#e0f5f4', age: '#26a6a1', cta: '#26a6a1', decos: ['left'] },
+};
+
+// Unique blob border-radius per card for organic feel
+const blobRadii = [
+  '52% 48% 44% 56% / 48% 56% 44% 52%',
+  '46% 54% 58% 42% / 54% 42% 58% 46%',
+  '60% 40% 45% 55% / 40% 55% 45% 60%',
+  '44% 56% 52% 48% / 56% 48% 52% 44%',
+];
+---
+
+<section class="age-group-section">
+  <!-- Floating deco elements -->
+  <div class="deco deco-oval deco-g1" style="width:22px;height:30px;background:#4caf50;top:28px;left:6%;"></div>
+  <div class="deco deco-dot deco-g2" style="width:18px;height:18px;background:#2196f3;top:18px;left:30%;"></div>
+  <div class="deco deco-oval deco-g3" style="width:20px;height:26px;background:#ff9800;top:26px;left:56%;"></div>
+  <div class="deco deco-oval deco-g4" style="width:18px;height:24px;background:#26a6a1;top:22px;right:6%;"></div>
+  <div class="deco deco-dash deco-g5" style="width:32px;height:10px;background:#ff9800;bottom:85px;left:7%;"></div>
+  <div class="deco deco-dash deco-g6" style="width:28px;height:10px;background:#2196f3;bottom:80px;right:9%;"></div>
+
+  <div class="section-tag">Unsere Kurse</div>
+  <h2 class="section-heading">Programmieren nach Altersgruppe</h2>
+
+  <div class="card-row">
+    {sortedGroups.map((group, idx) => {
+      const color = group.data.color;
+      const colors = colorMap[color];
+      const radius = blobRadii[idx];
+      return (
+        <div class="bcard">
+          <div class="bcard-blob" style={`background:${colors.blob};border-radius:${radius};`}></div>
+          <div class="bcard-photo">
+            <img src={group.data.image} alt={group.data.name} />
+          </div>
+          <div class="bcard-body">
+            <div class="bcard-title">{group.data.name}</div>
+            <div class="bcard-age" style={`color:${colors.age};`}>{group.data.ageRange}</div>
+            <div class="bcard-desc">{group.data.description}</div>
+          </div>
+          <a href={group.data.href} class="bcard-cta" style={`background:${colors.cta};`}>→</a>
+        </div>
+      );
+    })}
+  </div>
+
+  <!-- Coral wave at bottom -->
+  <div class="coral-wave"></div>
+</section>
+
+<style>
+  .age-group-section {
+    position: relative;
+    padding: 64px 32px 130px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .section-tag {
+    display: inline-block;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 3px 14px;
+    border-radius: 99px;
+    background: var(--coral-soft);
+    color: oklch(0.62 0.170 35);
+    margin-bottom: 12px;
+  }
+
+  .section-heading {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--ink);
+    margin-bottom: 48px;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    max-width: 960px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+  }
+
+  .bcard {
+    position: relative;
+    flex: 1;
+    min-width: 190px;
+    max-width: 215px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .bcard-blob {
+    position: absolute;
+    inset: 44px 0 0 0;
+    z-index: 0;
+    transition: transform 0.3s ease;
+  }
+
+  .bcard:hover .bcard-blob {
+    transform: scale(1.04);
+  }
+
+  .bcard-photo {
+    position: relative;
+    z-index: 2;
+    width: 84%;
+    aspect-ratio: 4/3;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.13);
+    margin-bottom: -6px;
+  }
+
+  .bcard-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .bcard-body {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 16px 10px 58px;
+    width: 100%;
+  }
+
+  .bcard-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  .bcard-age {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .bcard-desc {
+    font-size: 0.8rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  .bcard-cta {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    transition: transform 0.2s;
+    text-decoration: none;
+  }
+
+  .bcard-cta:hover {
+    transform: translateX(-50%) scale(1.12);
+  }
+
+  /* Floating decorative elements */
+  .deco {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .deco-oval {
+    border-radius: 50%;
+    transform: rotate(-25deg);
+  }
+
+  .deco-dash {
+    border-radius: 99px;
+    transform: rotate(-35deg);
+  }
+
+  .deco-dot {
+    border-radius: 50%;
+  }
+
+  /* Coral wave at bottom */
+  .coral-wave {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110%;
+    height: 100px;
+    background: var(--coral);
+    border-radius: 50% 50% 0 0 / 80% 80% 0 0;
+    z-index: 1;
+  }
+
+  /* Mobile: stack cards in 2x2 grid */
+  @media (max-width: 768px) {
+    .card-row {
+      gap: 16px;
+    }
+
+    .bcard {
+      min-width: calc(50% - 8px);
+      max-width: calc(50% - 8px);
+    }
+
+    .section-heading {
+      font-size: 1.4rem;
+    }
+
+    .age-group-section {
+      padding: 48px 20px 110px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .card-row {
+      gap: 12px;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .bcard {
+      min-width: 160px;
+      max-width: 160px;
+    }
+
+    .age-group-section {
+      padding: 40px 16px 90px;
+    }
+  }
+</style>

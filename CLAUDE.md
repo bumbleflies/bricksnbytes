@@ -4,13 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-BricksnBytes Redesign is an Astro-based static site rebuild of [bricksnbytes.de](https://bricksnbytes.de/). This is a ground-up redesign following the new visual design created with Claude Design and shares the same architectural approach as `bumbleflies.github.io/beta`.
+BricksnBytes Redesign is an Astro-based static site rebuild of [bricksnbytes.de](https://bricksnbytes.de/). This is a ground-up redesign following the new visual design created with Claude Design.
 
 **Key Info:**
 - **Stack**: Astro 6.4.2, TypeScript, React (optional), Vitest for testing
 - **Output**: Static HTML (no server-side rendering)
 - **Target Deployment**: Docker container (multi-stage build to Nginx Alpine)
-- **Design Reference**: See `.design-backups/design-*` for Claude Design outputs (navigation alternatives, design explorations)
+- **Design Reference**: See `.design-backups/design-20260602/` for Claude Design outputs
+- **Status**: Phase 1 complete (foundation, home page, programs listing, floating pill navigation with mega-menu & mobile drawer)
 
 ## Development Commands
 
@@ -41,15 +42,17 @@ npm run preview
 ### Testing
 
 ```bash
-# Run tests with Vitest
+# Run all tests once
 npm run test
 
-# Run tests in watch mode
+# Run tests in watch mode (TDD workflow)
 npm run test -- --watch
 
 # Run a specific test file
-npm run test -- src/components/MyComponent.test.ts
+npm run test -- src/layouts/Layout.test.ts
 ```
+
+**Note**: Vitest uses default configuration from `package.json`. No explicit `vitest.config.ts` is needed.
 
 ### Code Quality
 
@@ -84,13 +87,33 @@ bricksnbytes/
 
 ## Architecture & Key Concepts
 
+### YAML Loader Plugin
+
+The project uses a custom Vite plugin (in `astro.config.mjs`) to import YAML files as JavaScript objects. This enables importing program data directly:
+
+```astro
+---
+// Import single YAML file
+import programData from '../content/programs/python-101.yaml';
+
+// Import all YAML files as a glob
+const programModules = import.meta.glob('../content/programs/*.yaml', { eager: true });
+const programs = Object.values(programModules).map((m: any) => m.default);
+---
+```
+
+**Key Details:**
+- Relative paths (`.yaml`, `../yaml`) are resolved from the importer's directory
+- Absolute paths are resolved from project root (`__dirname`)
+- Returns parsed YAML as a JavaScript object (no further JSON parsing needed)
+
 ### File-Based Routing (Astro)
 
 Files in `src/pages/` automatically become routes:
 - `src/pages/index.astro` → `/`
 - `src/pages/about.astro` → `/about`
-- `src/pages/services/index.astro` → `/services`
-- `src/pages/services/[id].astro` → `/services/:id` (dynamic route)
+- `src/pages/programs/index.astro` → `/programs`
+- `src/pages/programs/[slug].astro` → `/programs/:slug` (dynamic route)
 
 ### Components
 
@@ -101,9 +124,32 @@ Files in `src/pages/` automatically become routes:
   <MyReactComponent client:load />
   ```
 
+### Content Collections
+
+The project uses Astro Content Collections for structured data (see `src/content.config.ts`). Program data is stored as YAML files in `src/content/programs/` and loaded via the YAML loader plugin.
+
+### Language Support
+
+Components support i18n via a `lang` prop (default: 'de'):
+
+```astro
+---
+interface Props {
+  lang?: 'de' | 'en';
+}
+const { lang = 'de' } = Astro.props;
+
+const navItems = lang === 'de'
+  ? [{ label: 'Über uns', href: '/uber-uns' }, ...]
+  : [{ label: 'About', href: '/about' }, ...];
+---
+```
+
+Use this pattern in Header and other components where multilingual support is needed. Global content files (e.g., navigation labels) should be stored in YAML with both `de` and `en` keys.
+
 ### Layouts
 
-All pages should use a layout (e.g., `Layout.astro`) for consistent header, footer, and meta tags. The base `src/layouts/Layout.astro` accepts `title` and optional `description` props.
+All pages should use the base `src/layouts/Layout.astro` for consistent header, footer, and meta tags. The layout accepts `title` and optional `description` props.
 
 ```astro
 ---
@@ -114,6 +160,21 @@ import Layout from "../layouts/Layout.astro";
   <section>Page content here</section>
 </Layout>
 ```
+
+### Design Tokens
+
+Design tokens (colors, spacing, typography) are defined in `src/styles/design-system.css` as CSS custom properties and referenced throughout components:
+
+```css
+:root {
+  --color-coral: #ff6b35;
+  --color-coral-soft: rgba(255, 107, 53, 0.1);
+  --spacing-unit: 8px;
+  --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+```
+
+Use these variables in component styles via `var(--color-coral)`, etc.
 
 ### Static Output
 
@@ -148,25 +209,29 @@ When implementing a design:
 
 ### Test Setup
 
-- **Framework**: Vitest (configured in package.json)
+- **Framework**: Vitest (npm script in package.json, uses defaults)
 - **Test Files**: Place in `src/**/*.test.ts` or `src/**/*.test.tsx`
 - **Test Utilities**: Testing Library DOM/React available
 
 ### Example Test
 
 ```typescript
-// src/components/Button.test.ts
+// src/layouts/Layout.test.ts
 import { describe, it, expect } from 'vitest';
-import { render } from '@testing-library/dom';
 
-describe('Button', () => {
-  it('renders button with text', () => {
-    const html = '<button>Click me</button>';
-    const { container } = render(html);
-    expect(container.querySelector('button')).toHaveTextContent('Click me');
+describe('Layout component', () => {
+  it('should define a layout component', () => {
+    expect(true).toBe(true);
+  });
+
+  it('should have required props', () => {
+    const requiredProps = ['title'];
+    expect(requiredProps).toContain('title');
   });
 });
 ```
+
+Write tests that verify component behavior. For components that accept props (like `Header` with `lang` prop), test different prop combinations. Use Vitest's `describe` and `it` for organization.
 
 ## Styling
 
@@ -175,16 +240,32 @@ describe('Button', () => {
 - Place in `src/styles/` and import in layouts:
   ```astro
   import '../styles/global.css';
+  import '../styles/design-system.css';
   ```
 
 ### Component Styles
 
 - Use `<style>` blocks within `.astro` or `.tsx` components for scoped styling
 - Scoped styles are automatically prefixed and won't leak to other components
+- Example:
+  ```astro
+  <div class="header-wrapper">Header content</div>
+  
+  <style>
+    .header-wrapper {
+      background: var(--color-coral);
+      padding: var(--spacing-unit);
+    }
+  </style>
+  ```
 
 ### CSS Variables & Design Tokens
 
-To be implemented: Create `src/styles/tokens.css` with design tokens (colors, spacing, typography) referenced throughout components.
+Design tokens are defined in `src/styles/design-system.css` and include:
+- Color palette (coral, neutral shades)
+- Spacing units (multiples of 8px)
+- Typography (font families, sizes)
+- Animation keyframes (e.g., `bbpop` for pop-in effect)
 
 ## Deployment & Docker
 
@@ -217,14 +298,14 @@ Reference: `bumbleflies.github.io/.github/workflows/` for workflow patterns.
 
 ### Adding a New Page
 
-1. Create file in `src/pages/` (e.g., `src/pages/services.astro`)
+1. Create file in `src/pages/` (e.g., `src/pages/about.astro`)
 2. Import and use a layout:
    ```astro
    ---
    import Layout from "../layouts/Layout.astro";
    ---
-   <Layout title="Services">
-     <h1>Our Services</h1>
+   <Layout title="About Us" description="Learn about BricksnBytes">
+     <h1>About Us</h1>
    </Layout>
    ```
 3. Run `npm run dev` to test locally
@@ -239,14 +320,20 @@ Reference: `bumbleflies.github.io/.github/workflows/` for workflow patterns.
    interface Props {
      title: string;
      items: string[];
+     lang?: 'de' | 'en';
    }
-   const { title, items } = Astro.props;
+   const { title, items, lang = 'de' } = Astro.props;
    ---
+   <div class="component">{title}</div>
+   
+   <style>
+     .component { /* scoped styles */ }
+   </style>
    ```
 3. Import and use in pages/layouts:
    ```astro
    import MyComponent from '../components/MyComponent.astro';
-   <MyComponent title="Example" items={["a", "b"]} />
+   <MyComponent title="Example" items={["a", "b"]} lang="de" />
    ```
 
 ### Adding Interactivity (React)
@@ -269,31 +356,35 @@ npm run test -- --watch
 npm run test
 ```
 
+### Documenting Completed Features
+
+When a significant feature is complete, create a summary in `history/YYYY-MM-DD_feature-name.md` documenting:
+- Problem statement
+- Solution overview
+- Files modified
+- Testing results
+- Any breaking changes or deployment notes
+- Verification commands
+
+See `history/2026-06-03_floating-pill-navigation.md` for the pattern.
+
 ## Troubleshooting
 
 **Port 3000 already in use**: Change with `npm run dev -- --port 3001`
 
 **TypeScript errors in IDE**: Run `npx astro check` to see all errors, then fix or use `@ts-ignore` sparingly
 
-**Styles not updating**: Hard refresh browser or clear `.astro/` cache: `rm -rf .astro`
+**Styles not updating**: Hard refresh browser (Ctrl+Shift+R or Cmd+Shift+R) or clear `.astro/` cache: `rm -rf .astro && npm run dev`
+
+**YAML imports not working**: Ensure the `astro.config.mjs` YAML loader plugin is properly configured. Check that the file path uses `.yaml` or `.yml` extension.
 
 **Build fails with missing dependencies**: `rm -rf node_modules package-lock.json && npm install`
 
-**Docker build fails**: Ensure Node 20+ is available; check Dockerfile for build stage errors
-
-## Next Steps
-
-- [ ] Configure GitHub Actions workflows (build, test, Docker push)
-- [ ] Set up content collections for dynamic pages (if needed)
-- [ ] Implement design tokens CSS (colors, spacing, typography)
-- [ ] Create navigation and footer components
-- [ ] Migrate content from `.design-backups/` design reference
-- [ ] Configure Docker deployment and staging/production environments
-- [ ] Set up Watchtower auto-deployment (see bumbleflies/beta CLAUDE.md for pattern)
+**Docker build fails**: Ensure Node 20+ is available. Check Dockerfile for build stage errors. Verify the `dist/` folder is created after `npm run build`.
 
 ## Reference
 
 - **Astro Docs**: https://docs.astro.build
 - **Vitest Docs**: https://vitest.dev
 - **Design Files**: `.design-backups/design-20260602/`
-- **Sister Project**: `/home/cda/dev/infrastructure/bumbleflies/bumbleflies.github.io/beta` (reference architecture)
+- **Feature History**: `history/` directory contains documented completion reports

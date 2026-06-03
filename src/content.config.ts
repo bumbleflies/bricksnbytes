@@ -24,4 +24,16 @@ const programs = defineCollection({
   }),
 });
 
-export const collections = { programs };
+const ageGroups = defineCollection({
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/age-groups' }),
+  schema: z.object({
+    name: z.string(),
+    ageRange: z.string(),
+    description: z.string(),
+    image: z.string(),
+    color: z.enum(['green', 'blue', 'orange', 'teal']),
+    href: z.string(),
+  }),
+});
+
+export const collections = { programs, ageGroups };

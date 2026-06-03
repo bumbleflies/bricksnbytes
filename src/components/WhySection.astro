@@ -1,0 +1,256 @@
+---
+// Why BricksnBytes section — hardcoded 3 pillars with photo
+const pillars = [
+  {
+    num: '01',
+    emoji: '✨',
+    title: 'Spielerisch Lernen',
+    desc: 'Kinder merken gar nicht, wie viel sie lernen — Spaß steht immer im Mittelpunkt.',
+  },
+  {
+    num: '02',
+    emoji: '🎯',
+    title: 'Echte Mentorship',
+    desc: 'Kleine Gruppen, persönliche Betreuung — jedes Kind wird abgeholt, wo es steht.',
+  },
+  {
+    num: '03',
+    emoji: '🚀',
+    title: 'Gestalten statt Konsum',
+    desc: 'Kinder erschaffen eigene Spiele und Projekte — aktiv statt passiv.',
+  },
+];
+
+const colors = ['var(--coral)', '#2196f3', '#26a6a1'];
+---
+
+<section class="why-section">
+  <!-- Background blob -->
+  <div class="pillars-bg-blob"></div>
+
+  <div class="pillars-inner">
+    <div class="inner-grid">
+      <!-- Photo column -->
+      <div class="photo-column">
+        <div class="photo-wrap">
+          <img src="/images/age-groups/why-photo.png" alt="BricksnBytes children coding" />
+          <div class="photo-leaf"></div>
+          <div class="photo-dot"></div>
+        </div>
+      </div>
+
+      <!-- Content column -->
+      <div class="content-column">
+        <h2 class="section-heading">Was uns besonders macht</h2>
+        <div class="pillars-list">
+          {pillars.map((pillar, idx) => (
+            <div class="pillar-item">
+              <div class="pillar-num" style={`background:${colors[idx]};`}>{pillar.num}</div>
+              <div class="pillar-text">
+                <h3>{pillar.title}</h3>
+                <p>{pillar.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .why-section {
+    position: relative;
+    padding: 70px 40px;
+    background: var(--cream);
+    overflow: hidden;
+  }
+
+  .pillars-bg-blob {
+    position: absolute;
+    width: 500px;
+    height: 380px;
+    background: white;
+    border-radius: 60% 40% 50% 50% / 50% 45% 55% 50%;
+    top: 50%;
+    right: -80px;
+    transform: translateY(-50%);
+    opacity: 0.65;
+    z-index: 0;
+  }
+
+  .pillars-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .inner-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  .photo-column {
+    position: relative;
+  }
+
+  .photo-wrap {
+    position: relative;
+  }
+
+  .photo-wrap img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    border-radius: 28px;
+    transform: rotate(-2deg);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+    display: block;
+  }
+
+  /* Decorative overlay elements on photo */
+  .photo-leaf {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    border-radius: 0 70% 0 70%;
+    background: #26a6a1;
+    opacity: 0.7;
+    top: -18px;
+    right: -14px;
+    transform: rotate(45deg);
+    z-index: 2;
+  }
+
+  .photo-dot {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: oklch(0.86 0.140 92);
+    bottom: -10px;
+    left: 20px;
+    z-index: 2;
+  }
+
+  .content-column {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-heading {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 32px;
+  }
+
+  .pillars-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .pillar-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .pillar-num {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .pillar-text h3 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+    margin: 0 0 4px 0;
+  }
+
+  .pillar-text p {
+    font-size: 0.82rem;
+    color: #6b7280;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  /* Mobile: stack photo above list */
+  @media (max-width: 768px) {
+    .inner-grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    .section-heading {
+      font-size: 1.3rem;
+      margin-bottom: 24px;
+    }
+
+    .photo-leaf {
+      width: 50px;
+      height: 50px;
+      top: -10px;
+      right: -8px;
+    }
+
+    .pillars-bg-blob {
+      width: 300px;
+      height: 250px;
+      right: -100px;
+      opacity: 0.4;
+    }
+
+    .why-section {
+      padding: 48px 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .inner-grid {
+      gap: 20px;
+    }
+
+    .section-heading {
+      font-size: 1.1rem;
+    }
+
+    .pillars-list {
+      gap: 14px;
+    }
+
+    .pillar-item {
+      gap: 12px;
+    }
+
+    .pillar-num {
+      width: 36px;
+      height: 36px;
+      font-size: 0.9rem;
+    }
+
+    .pillar-text p {
+      font-size: 0.75rem;
+    }
+
+    .why-section {
+      padding: 40px 16px;
+    }
+  }
+</style>
