@@ -25,7 +25,7 @@ COPY --from=builder /build/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=5 \
   CMD wget --quiet --tries=1 --spider --user-agent="Docker-HealthCheck-AstroBeta" http://localhost:3000/health || exit 1
 
 EXPOSE 3000
