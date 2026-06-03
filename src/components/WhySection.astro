@@ -28,30 +28,33 @@ const colors = ['var(--coral)', '#2196f3', '#26a6a1'];
   <!-- Background blob -->
   <div class="pillars-bg-blob"></div>
 
-  <div class="pillars-inner">
-    <div class="inner-grid">
-      <!-- Photo column -->
-      <div class="photo-column">
-        <div class="photo-wrap">
-          <img src="/images/age-groups/why-photo.png" alt="BricksnBytes children coding" />
-          <div class="photo-leaf"></div>
-          <div class="photo-dot"></div>
+  <!-- Container wraps all content -->
+  <div class="container">
+    <div class="pillars-inner">
+      <div class="inner-grid">
+        <!-- Photo column -->
+        <div class="photo-column">
+          <div class="photo-wrap">
+            <img src="/images/age-groups/why-photo.png" alt="BricksnBytes children coding" />
+            <div class="photo-leaf"></div>
+            <div class="photo-dot"></div>
+          </div>
         </div>
-      </div>
 
-      <!-- Content column -->
-      <div class="content-column">
-        <h2 class="section-heading">Was uns besonders macht</h2>
-        <div class="pillars-list">
-          {pillars.map((pillar, idx) => (
-            <div class="pillar-item">
-              <div class="pillar-num" style={`background:${colors[idx]};`}>{pillar.num}</div>
-              <div class="pillar-text">
-                <h3>{pillar.title}</h3>
-                <p>{pillar.desc}</p>
+        <!-- Content column -->
+        <div class="content-column">
+          <h2 class="section-heading">Was uns besonders macht</h2>
+          <div class="pillars-list">
+            {pillars.map((pillar, idx) => (
+              <div class="pillar-item">
+                <div class="pillar-num" style={`background:${colors[idx]};`}>{pillar.num}</div>
+                <div class="pillar-text">
+                  <h3>{pillar.title}</h3>
+                  <p>{pillar.desc}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -77,6 +80,14 @@ const colors = ['var(--coral)', '#2196f3', '#26a6a1'];
     transform: translateY(-50%);
     opacity: 0.65;
     z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
   }
 
   .pillars-inner {
@@ -193,6 +204,10 @@ const colors = ['var(--coral)', '#2196f3', '#26a6a1'];
 
   /* Mobile: stack photo above list */
   @media (max-width: 768px) {
+    .container {
+      padding: 0 20px;
+    }
+
     .inner-grid {
       grid-template-columns: 1fr;
       gap: 32px;
@@ -223,6 +238,10 @@ const colors = ['var(--coral)', '#2196f3', '#26a6a1'];
   }
 
   @media (max-width: 480px) {
+    .container {
+      padding: 0 16px;
+    }
+
     .inner-grid {
       gap: 20px;
     }
