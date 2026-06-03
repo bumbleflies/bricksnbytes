@@ -35,27 +35,29 @@ const chipColors = {
   <div class="deco deco-oval deco-h3" style="width:22px;height:14px;background:var(--yellow);bottom:40px;right:42%;"></div>
   <div class="deco deco-dash deco-h4" style="width:30px;height:9px;background:#26a6a1;top:24px;left:52%;"></div>
 
-  <div class="hero-grid">
-    <!-- Left column: text content -->
-    <div class="hero-left">
-      {chips.length > 0 && (
-        <div class="chip-row">
-          {chips.map((chip) => (
-            <span class="chip" style={`background: ${chipColors[chip.color]}`}>
-              {chip.label}
-            </span>
-          ))}
-        </div>
-      )}
-      <h1 class="hero-h1">{headline}</h1>
-      <p class="hero-subheading">{subheading}</p>
-      <a href={ctaHref} class="cta">{ctaText}</a>
-    </div>
+  <div class="container">
+    <div class="hero-grid">
+      <!-- Left column: text content -->
+      <div class="hero-left">
+        {chips.length > 0 && (
+          <div class="chip-row">
+            {chips.map((chip) => (
+              <span class="chip" style={`background: ${chipColors[chip.color]}`}>
+                {chip.label}
+              </span>
+            ))}
+          </div>
+        )}
+        <h1 class="hero-h1">{headline}</h1>
+        <p class="hero-subheading">{subheading}</p>
+        <a href={ctaHref} class="cta">{ctaText}</a>
+      </div>
 
-    <!-- Right column: image -->
-    <div class="hero-right">
-      <div class="hero-image">
-        <img src={imageSrc} alt="Hero" />
+      <!-- Right column: image -->
+      <div class="hero-right">
+        <div class="hero-image">
+          <img src={imageSrc} alt="Hero" />
+        </div>
       </div>
     </div>
   </div>
@@ -122,8 +124,6 @@ const chipColors = {
     grid-template-columns: 1.1fr 0.9fr;
     gap: 24px;
     align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
     position: relative;
     z-index: 2;
   }
