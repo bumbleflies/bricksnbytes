@@ -32,29 +32,31 @@ const blobRadii = [
   <div class="deco deco-dash deco-g5" style="width:32px;height:10px;background:#ff9800;bottom:85px;left:7%;"></div>
   <div class="deco deco-dash deco-g6" style="width:28px;height:10px;background:#2196f3;bottom:80px;right:9%;"></div>
 
-  <div class="section-tag">Unsere Kurse</div>
-  <h2 class="section-heading">Programmieren nach Altersgruppe</h2>
+  <div class="container">
+    <div class="section-tag">Unsere Kurse</div>
+    <h2 class="section-heading">Programmieren nach Altersgruppe</h2>
 
-  <div class="card-row">
-    {sortedGroups.map((group, idx) => {
-      const color = group.data.color;
-      const colors = colorMap[color];
-      const radius = blobRadii[idx];
-      return (
-        <div class="bcard">
-          <div class="bcard-blob" style={`background:${colors.blob};border-radius:${radius};`}></div>
-          <div class="bcard-photo">
-            <img src={group.data.image} alt={group.data.name} />
+    <div class="card-row">
+      {sortedGroups.map((group, idx) => {
+        const color = group.data.color;
+        const colors = colorMap[color];
+        const radius = blobRadii[idx];
+        return (
+          <div class="bcard">
+            <div class="bcard-blob" style={`background:${colors.blob};border-radius:${radius};`}></div>
+            <div class="bcard-photo">
+              <img src={group.data.image} alt={group.data.name} />
+            </div>
+            <div class="bcard-body">
+              <div class="bcard-title">{group.data.name}</div>
+              <div class="bcard-age" style={`color:${colors.age};`}>{group.data.ageRange}</div>
+              <div class="bcard-desc">{group.data.description}</div>
+            </div>
+            <a href={group.data.href} class="bcard-cta" style={`background:${colors.cta};`}>→</a>
           </div>
-          <div class="bcard-body">
-            <div class="bcard-title">{group.data.name}</div>
-            <div class="bcard-age" style={`color:${colors.age};`}>{group.data.ageRange}</div>
-            <div class="bcard-desc">{group.data.description}</div>
-          </div>
-          <a href={group.data.href} class="bcard-cta" style={`background:${colors.cta};`}>→</a>
-        </div>
-      );
-    })}
+        );
+      })}
+    </div>
   </div>
 
   <!-- Coral wave at bottom -->
@@ -67,6 +69,12 @@ const blobRadii = [
     padding: 64px 32px 130px;
     background: #fff;
     overflow: hidden;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
   }
 
   .section-tag {
