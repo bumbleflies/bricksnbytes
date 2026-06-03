@@ -26,3 +26,6 @@ Thumbs.db
 
 # Design backups (version controlled separately)
 .design-backups/
+
+# Git worktrees
+.worktrees/
