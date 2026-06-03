@@ -48,8 +48,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    outputs:
-      artifact_name: ${{ steps.artifact.outputs.name }}
 
     steps:
       - name: Checkout repository
@@ -98,7 +96,7 @@ jobs:
       - name: Download Docker image artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.build.outputs.artifact_name }}
+          name: docker-image-bnb
           path: /tmp
 
       - name: Load Docker image
