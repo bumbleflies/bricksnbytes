@@ -26,8 +26,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Health check
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=5 \
-  CMD wget --quiet --tries=1 --spider --user-agent="Docker-HealthCheck-AstroBeta" http://localhost:3000/health || exit 1
+  CMD wget --quiet --tries=1 --spider --user-agent="Docker-HealthCheck-AstroBeta" http://localhost/health || exit 1
 
-EXPOSE 3000
+EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
