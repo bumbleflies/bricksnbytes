@@ -19,11 +19,13 @@ const { headline, subheading, buttonText, buttonHref } = Astro.props;
   <div class="cta-deco cta-dot-1"></div>
   <div class="cta-deco cta-dot-2"></div>
 
-  <!-- CTA content inside blob -->
-  <div class="cta-inner">
-    <h2>{headline}</h2>
-    {subheading && <p>{subheading}</p>}
-    <a href={buttonHref} class="cta-btn">{buttonText}</a>
+  <!-- Container wraps content -->
+  <div class="container">
+    <div class="cta-inner">
+      <h2>{headline}</h2>
+      {subheading && <p>{subheading}</p>}
+      <a href={buttonHref} class="cta-btn">{buttonText}</a>
+    </div>
   </div>
 </section>
 
