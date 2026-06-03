@@ -7,142 +7,714 @@ const { lang = 'de' } = Astro.props;
 
 const navItems = lang === 'de'
   ? [
-      { label: 'Home', href: '/' },
-      { label: 'Kurse', href: '/kurse' },
       { label: 'Über uns', href: '/uber-uns' },
+      { label: 'Kurse', href: '/kurse', isKurse: true },
+      { label: 'Coding Blog', href: '/blog' },
+      { label: 'Kontakt', href: 'mailto:info@bricksnbytes.de' },
+      { label: 'FAQ', href: '/faq' },
     ]
   : [
-      { label: 'Home', href: '/' },
-      { label: 'Courses', href: '/courses' },
       { label: 'About', href: '/about' },
+      { label: 'Courses', href: '/courses', isKurse: true },
+      { label: 'Blog', href: '/blog' },
+      { label: 'Contact', href: 'mailto:info@bricksnbytes.de' },
+      { label: 'FAQ', href: '/faq' },
     ];
 
-const contactLabel = lang === 'de' ? 'Kontakt' : 'Contact';
-const contactHref = 'mailto:info@bricksnbytes.de';
+// Load programs for mega-menu
+const programModules = import.meta.glob('../content/programs/*.yaml', { eager: true });
+const programs = Object.values(programModules)
+  .map((m: any) => m.default)
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const ctaLabel = lang === 'de' ? 'Kurs buchen' : 'Book Course';
+const phoneLabel = lang === 'de' ? 'Anrufen' : 'Call';
+const phoneHref = 'tel:+49123456789';
+
+// Detect current page for active state
+const currentPath = new URL(Astro.request.url).pathname;
 ---
 
-<header class="header">
-  <div class="header-container">
+<div class="nav-outer">
+  <nav class="nav-pill" aria-label="Hauptmenü">
     <a href="/" class="logo">
-      <span class="logo-text">BricksnBytes</span>
+      <div class="logo-mark"></div>
+      <span class="logo-word">Bricksn<b>Bytes</b></span>
     </a>
 
-    <nav class="nav">
-      {navItems.map((item) => (
-        <a key={item.href} href={item.href} class="nav-link">
-          {item.label}
-        </a>
-      ))}
-    </nav>
+    <div class="nav-links">
+      {navItems.map((item) => {
+        const isActive = currentPath === item.href;
+        return item.isKurse ? (
+          <a
+            key={item.href}
+            href={item.href}
+            class={`nav-link ${isActive ? 'active' : ''}`}
+            data-kurse
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-controls="kurse-mega"
+            {...(isActive && { 'aria-current': 'page' })}
+          >
+            {item.label}
+            <span class="chev" aria-hidden="true"></span>
+          </a>
+        ) : (
+          <a
+            key={item.href}
+            href={item.href}
+            class={`nav-link ${isActive ? 'active' : ''}`}
+            {...(isActive && { 'aria-current': 'page' })}
+          >
+            {item.label}
+          </a>
+        );
+      })}
+    </div>
 
-    <a href={contactHref} class="nav-cta">
-      {contactLabel}
-    </a>
+    <div class="nav-right">
+      <a href={phoneHref} class="cta-ghost">
+        {phoneLabel}
+      </a>
+      <a href="#booking" class="cta">
+        {ctaLabel}
+      </a>
+    </div>
+
+    <!-- Hamburger button (mobile only) -->
+    <button class="burger" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobile-drawer">
+      <i></i><i></i><i></i>
+    </button>
+  </nav>
+
+  <!-- Kurse mega-menu -->
+  <div class="mega-wrap" id="kurse-mega" role="region" aria-label="Kursübersicht" hidden>
+    <div class="mega">
+      <div class="mega-head">
+        <span class="mega-title">Unsere Kurse</span>
+        <a href="/programs" class="mega-all">Alle Kurse ansehen →</a>
+      </div>
+      <div class="mega-grid">
+        {programs.map((p: any) => (
+          <a href={`/programs/${p.slug}`} class="mcard">
+            <div class="mthumb ph" style="background-color: var(--coral-soft)"></div>
+            <div>
+              <div class="mt">{p.name}</div>
+              <div class="md">{p.description.substring(0, 60)}…</div>
+              <span class="age" style="background: var(--coral-soft); color: var(--coral-deep)">
+                {p.ageGroupDe}
+              </span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
   </div>
-</header>
+
+  <!-- Full-page mobile drawer -->
+  <div class="mob-drawer" id="mobile-drawer" aria-hidden="true">
+    <div class="mob-inner">
+      <nav class="mob-nav">
+        <a class="mob-link" href="/uber-uns">Über uns</a>
+
+        <!-- Kurse as accordion -->
+        <button class="mob-link mob-kurse" aria-expanded="false">
+          Kurse <span class="chev"></span>
+        </button>
+        <div class="mob-sub" hidden>
+          {programs.slice(0, 5).map((p: any) => (
+            <a href={`/programs/${p.slug}`} class="mob-sub-link">
+              <span class="sub-dot" style="background: var(--coral-soft)"></span>
+              <span>{p.name}</span>
+              <span class="age" style="background: var(--coral-soft); color: var(--coral-deep)">{p.ageGroupDe}</span>
+            </a>
+          ))}
+          <a href="/programs" class="mob-sub-all">Alle Kurse ansehen →</a>
+        </div>
+
+        <a class="mob-link" href="/blog">Coding Blog</a>
+        <a class="mob-link" href="mailto:info@bricksnbytes.de">Kontakt</a>
+        <a class="mob-link" href="/faq">FAQ</a>
+      </nav>
+    </div>
+
+    <!-- Sticky CTA strip at bottom -->
+    <div class="mob-cta-strip">
+      <a class="cta mob-cta" href="#booking">Kurs buchen</a>
+    </div>
+  </div>
+</div>
 
 <style>
-  .header {
+  /* Floating pill nav — Direction B */
+  .nav-outer {
     position: sticky;
-    top: 0;
+    top: 20px;
     z-index: 100;
-    background-color: var(--color-paper);
-    border-bottom: 1px solid var(--color-cream-2);
-    padding: var(--spacing-md) 0;
+    padding: 0 clamp(16px, 4vw, 48px);
+    pointer-events: none;
+    padding-top: 20px;
+    transition: padding-top 180ms ease;
   }
 
-  .header-container {
+  .nav-pill {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--spacing-lg);
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 var(--spacing-lg);
+    gap: 22px;
+    padding: 10px 12px 10px 18px;
+    background: oklch(1 0 0 / .82);
+    backdrop-filter: blur(10px);
+    border: 1px solid oklch(1 0 0 / .9);
+    border-radius: var(--r-pill);
+    box-shadow: var(--shadow-md);
+    pointer-events: auto;
+    transition: padding var(--transition-fast), box-shadow var(--transition-fast);
   }
 
+  .nav-pill.scrolled {
+    padding: 6px 10px 6px 14px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Logo mark with studs */
   .logo {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: 10px;
     text-decoration: none;
     flex-shrink: 0;
   }
 
-  .logo-text {
+  .logo-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--coral), var(--coral-deep));
+    flex-shrink: 0;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .logo-mark::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    right: 8px;
+    height: 5px;
+    border-radius: 5px;
+    background: radial-gradient(circle at 4px 50%, oklch(1 0 0/.85) 0 2px, transparent 2.5px),
+                radial-gradient(circle at 14px 50%, oklch(1 0 0/.85) 0 2px, transparent 2.5px),
+                radial-gradient(circle at 24px 50%, oklch(1 0 0/.85) 0 2px, transparent 2.5px);
+  }
+
+  .logo-word {
     font-family: var(--font-display);
-    font-size: var(--font-size-h4);
-    font-weight: 700;
-    color: var(--color-coral);
-    transition: color var(--transition-fast);
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -0.01em;
   }
 
-  .logo:hover .logo-text {
-    color: var(--color-coral-deep);
+  .logo-word b {
+    color: var(--coral);
+    font-weight: 600;
   }
 
-  .nav {
+  /* Nav links */
+  .nav-links {
     display: flex;
     align-items: center;
-    gap: var(--spacing-lg);
-    flex: 1;
-    justify-content: center;
+    gap: 6px;
+    margin-left: 6px;
   }
 
   .nav-link {
-    font-size: var(--font-size-body);
-    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 14.5px;
+    color: var(--ink);
     text-decoration: none;
-    font-weight: 500;
-    transition: color var(--transition-fast);
+    padding: 9px 15px;
+    border-radius: var(--r-pill);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background var(--transition-fast), color var(--transition-fast);
     white-space: nowrap;
   }
 
   .nav-link:hover {
-    color: var(--color-coral);
+    background: oklch(1 0 0 / .75);
+    color: var(--ink);
+    box-shadow: var(--shadow-sm);
   }
 
-  .nav-cta {
-    display: inline-flex;
+  .nav-link:active {
+    background: var(--coral-soft);
+    color: var(--coral-deep);
+  }
+
+  .nav-link.active {
+    background: var(--coral-soft);
+    color: var(--coral-deep);
+  }
+
+  .nav-link:focus-visible {
+    outline: 3px solid var(--coral);
+    outline-offset: 2px;
+  }
+
+  /* Chevron */
+  .chev {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    display: inline-block;
+    margin-bottom: 2px;
+    transition: transform 0.2s;
+  }
+
+  .chev.open {
+    transform: rotate(225deg);
+    margin-bottom: -2px;
+  }
+
+  /* Right action buttons */
+  .nav-right {
+    margin-left: auto;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    background-color: var(--color-coral);
-    color: var(--color-paper);
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    text-decoration: none;
-    transition: all var(--transition-fast);
-    white-space: nowrap;
+    gap: 10px;
     flex-shrink: 0;
   }
 
-  .nav-cta:hover {
-    background-color: var(--color-coral-deep);
-    transform: translateY(-2px);
+  .cta, .cta-ghost {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    padding: 11px 20px;
+    border-radius: var(--r-pill);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
   }
 
-  .nav-cta:active {
-    transform: translateY(0);
+  .cta {
+    background: var(--coral);
+    color: #fff;
+    box-shadow: 0 6px 16px -6px var(--coral-deep);
+  }
+
+  .cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px -6px var(--coral-deep);
+  }
+
+  .cta-ghost {
+    background: transparent;
+    color: var(--ink);
+    box-shadow: none;
+    border: 1.5px solid var(--line);
+  }
+
+  .cta-ghost:hover {
+    background: oklch(1 0 0 / .75);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Mega-menu */
+  .mega-wrap {
+    position: absolute;
+    top: 10px;
+    left: 120px;
+    z-index: 99;
+    animation: bbpop 0.16s ease-out;
+  }
+
+  .mega-wrap[hidden] {
+    display: none;
+  }
+
+  @keyframes bbpop {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .mega {
+    background: #fff;
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--line);
+    padding: 18px;
+    width: 680px;
+  }
+
+  .mega-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 2px 6px 14px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 14px;
+  }
+
+  .mega-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--ink);
+  }
+
+  .mega-all {
+    color: var(--coral-deep);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    transition: opacity 0.15s;
+  }
+
+  .mega-all:hover {
+    opacity: 0.7;
+  }
+
+  .mega-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .mcard {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    border-radius: var(--r-md);
+    text-decoration: none;
+    transition: background 0.15s;
+    align-items: center;
+  }
+
+  .mcard:hover {
+    background: var(--cream);
+  }
+
+  .mthumb {
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    flex: none;
+    overflow: hidden;
+  }
+
+  .mt {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 14.5px;
+    color: var(--ink);
+    line-height: 1.15;
+  }
+
+  .md {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: 3px;
+  }
+
+  .age {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    display: inline-block;
+    margin-top: 4px;
+  }
+
+  /* Hamburger button */
+  .burger {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: #fff;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    margin-left: auto;
+    pointer-events: auto;
+  }
+
+  .burger i {
+    display: block;
+    width: 18px;
+    height: 2.4px;
+    background: var(--ink);
+    border-radius: 2px;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+
+  .burger.open i:nth-child(1) {
+    transform: rotate(45deg) translate(1px, 3px);
+  }
+
+  .burger.open i:nth-child(2) {
+    opacity: 0;
+  }
+
+  .burger.open i:nth-child(3) {
+    transform: rotate(-45deg) translate(1px, -3px);
+  }
+
+  /* Mobile drawer overlay */
+  .mob-drawer {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--paper);
+    flex-direction: column;
+  }
+
+  .mob-drawer.open {
+    display: flex;
+    animation: bbpop 0.16s ease-out;
+  }
+
+  .mob-inner {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--cream);
+  }
+
+  .mob-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .mob-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 20px;
+    padding: 15px 16px;
+    background: #fff;
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+  }
+
+  .mob-link.active {
+    background: var(--coral-soft);
+    color: var(--coral-deep);
+  }
+
+  /* Accordion sub-list */
+  .mob-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 4px 0 4px 8px;
+  }
+
+  .mob-sub[hidden] {
+    display: none;
+  }
+
+  .mob-sub-link {
+    text-decoration: none;
+    color: var(--ink-soft);
+    font-weight: 700;
+    font-size: 14.5px;
+    padding: 11px 14px;
+    background: oklch(1 0 0 / 0.7);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mob-sub-all {
+    color: var(--coral-deep);
+    font-weight: 800;
+  }
+
+  .sub-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex: none;
+  }
+
+  /* Sticky CTA strip */
+  .mob-cta-strip {
+    padding: 14px;
+    background: #fff;
+    border-top: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+
+  .mob-cta {
+    justify-content: center;
+    padding: 15px;
+    font-size: 17px;
+    width: 100%;
   }
 
   @media (max-width: 768px) {
-    .header-container {
-      gap: var(--spacing-md);
-      padding: 0 var(--spacing-md);
+    .burger {
+      display: flex;
     }
 
-    .nav {
+    .nav-links {
       display: none;
     }
 
-    .logo-text {
-      font-size: var(--font-size-h5);
+    .nav-right {
+      display: none;
     }
 
-    .nav-cta {
-      padding: var(--spacing-xs) var(--spacing-md);
-      font-size: var(--font-size-small);
+    .cta, .cta-ghost {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+
+    .logo-word {
+      font-size: 16px;
+    }
+
+    .mega-wrap {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-pill,
+    .nav-outer,
+    .mega-wrap,
+    .mob-drawer,
+    .chev,
+    .cta,
+    .nav-link {
+      transition: none;
+      animation: none;
     }
   }
 </style>
+
+<script>
+  // Scroll behavior for nav shrink
+  const navPill = document.querySelector('.nav-pill');
+  const navOuter = document.querySelector('.nav-outer');
+
+  if (navPill) {
+    const handleScroll = () => {
+      const scrolled = window.scrollY > 24;
+      navPill.classList.toggle('scrolled', scrolled);
+      if (navOuter) {
+        navOuter.style.paddingTop = scrolled ? '12px' : '20px';
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+  }
+
+  // Mega-menu
+  const kursLink = document.querySelector('[data-kurse]');
+  const mega = document.getElementById('kurse-mega');
+  const chev = kursLink?.querySelector('.chev');
+
+  function openMega() {
+    mega.hidden = false;
+    kursLink.classList.add('active');
+    chev?.classList.add('open');
+    kursLink.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeMega() {
+    mega.hidden = true;
+    kursLink.classList.remove('active');
+    chev?.classList.remove('open');
+    kursLink.setAttribute('aria-expanded', 'false');
+  }
+
+  navOuter?.addEventListener('mouseleave', closeMega);
+  kursLink?.addEventListener('mouseenter', openMega);
+  kursLink?.addEventListener('click', (e) => {
+    if (mega.hidden) {
+      e.preventDefault();
+      openMega();
+    } else {
+      closeMega();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeMega();
+    }
+  });
+
+  // Mobile drawer
+  const burger = document.querySelector('.burger');
+  const mobDrawer = document.getElementById('mobile-drawer');
+  const mobKurse = document.querySelector('.mob-kurse');
+  const mobSub = document.querySelector('.mob-sub');
+  const mobChev = mobKurse?.querySelector('.chev');
+
+  function toggleDrawer() {
+    const opening = !mobDrawer.classList.contains('open');
+    mobDrawer.classList.toggle('open');
+    burger.classList.toggle('open');
+    burger.setAttribute('aria-expanded', String(opening));
+    mobDrawer.setAttribute('aria-hidden', String(!opening));
+    document.body.style.overflow = opening ? 'hidden' : '';
+  }
+
+  burger?.addEventListener('click', toggleDrawer);
+
+  mobKurse?.addEventListener('click', () => {
+    const open = !mobSub.hidden;
+    mobSub.hidden = open;
+    mobKurse.setAttribute('aria-expanded', String(!open));
+    mobChev?.classList.toggle('open', !open);
+    mobKurse.classList.toggle('active', !open);
+  });
+
+  // Close drawer on link click
+  mobDrawer?.querySelectorAll('a').forEach(a =>
+    a.addEventListener('click', () => {
+      mobDrawer.classList.remove('open');
+      burger.classList.remove('open');
+      document.body.style.overflow = '';
+    })
+  );
+</script>

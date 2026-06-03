@@ -18,7 +18,11 @@ const featuredPrograms = allPrograms.filter(p => p.featured).slice(0, 4);
     subheading="Lass dein Kind die digitale Welt selbst gestalten, nicht nur nutzen"
     ctaText="Kurse Entdecken"
     ctaHref="#featured-programs"
-    bgColor="coral"
+    chips={[
+      { label: "LEGO Spike", color: "coral" },
+      { label: "Minecraft", color: "blue" },
+      { label: "Scratch", color: "teal" },
+    ]}
   />
 
   <!-- Featured Programs Section -->
