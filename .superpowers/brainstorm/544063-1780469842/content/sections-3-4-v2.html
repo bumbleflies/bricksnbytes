@@ -1,0 +1,460 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --coral: oklch(0.70 0.165 38);
+    --coral-deep: oklch(0.62 0.170 35);
+    --coral-soft: oklch(0.93 0.045 45);
+    --blue: #2196f3; --blue-soft: #e3f0fc;
+    --teal: #26a6a1; --teal-soft: #e0f5f4;
+    --yellow: oklch(0.86 0.140 92); --yellow-soft: oklch(0.95 0.050 92);
+    --green: #4caf50; --green-soft: #e8f5e9;
+    --violet: #7b68ee; --violet-soft: #eeebff;
+    --ink: #0B2038; --cream: oklch(0.972 0.018 80);
+  }
+  body { font-family: 'Nunito', sans-serif; background: #f0ede8; }
+
+  .page-label {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.1rem;
+    color: #888;
+    text-align: center;
+    padding: 20px 0 4px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     OPTION PILLS — let user pick approach per section
+  ═══════════════════════════════════════════════════════ */
+  .options-bar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 20px 20px;
+    flex-wrap: wrap;
+  }
+  .opt-pill {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.9rem;
+    padding: 6px 18px;
+    border-radius: 99px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .opt-pill:hover { transform: translateY(-1px); }
+  .opt-pill.selected { border-color: var(--coral); background: var(--coral-soft); color: var(--coral-deep); }
+
+  /* ─────────────────────────────────────────────────────
+     SECTION 3 — OPTION A: "Tilted blob pillar cards"
+     Same blob-card language as age groups, 3 cards
+  ───────────────────────────────────────────────────── */
+  .pillars-a {
+    position: relative;
+    padding: 70px 40px 80px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .pillars-a .bg-wave-top {
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 110%; height: 80px;
+    background: var(--coral);
+    border-radius: 0 0 50% 50% / 0 0 80% 80%;
+  }
+  .pillars-a .section-head {
+    position: relative; z-index: 2;
+    text-align: center;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.6rem; font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 40px;
+    margin-top: 20px;
+  }
+  .pcard-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    position: relative; z-index: 2;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+  .pcard {
+    flex: 1; max-width: 230px;
+    position: relative;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .pcard-blob {
+    position: absolute;
+    inset: 50px 0 0 0;
+    z-index: 0;
+  }
+  .pcard:nth-child(1) .pcard-blob { border-radius: 52% 48% 44% 56% / 48% 56% 44% 52%; background: var(--coral-soft); }
+  .pcard:nth-child(2) .pcard-blob { border-radius: 46% 54% 58% 42% / 54% 42% 58% 46%; background: var(--blue-soft); }
+  .pcard:nth-child(3) .pcard-blob { border-radius: 60% 40% 45% 55% / 40% 55% 45% 60%; background: var(--teal-soft); }
+
+  .pcard-icon {
+    position: relative; z-index: 2;
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.8rem;
+    margin-bottom: -6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+  .pcard:nth-child(1) .pcard-icon { background: linear-gradient(135deg, oklch(0.93 0.045 45), white); }
+  .pcard:nth-child(2) .pcard-icon { background: linear-gradient(135deg, #e3f0fc, white); }
+  .pcard:nth-child(3) .pcard-icon { background: linear-gradient(135deg, #e0f5f4, white); }
+
+  .pcard-body {
+    position: relative; z-index: 2;
+    text-align: center;
+    padding: 18px 14px 28px;
+  }
+  .pcard-title { font-family:'Fredoka',sans-serif; font-size:1.1rem; font-weight:700; color:var(--ink); margin-bottom:8px; }
+  .pcard-desc  { font-size:0.82rem; color:#6b7280; line-height:1.6; }
+
+  /* floating decos for A */
+  .deco { position:absolute; pointer-events:none; z-index:5; }
+  .deco.oval { border-radius:50%; transform:rotate(-25deg); }
+  .deco.dash { border-radius:99px; transform:rotate(-35deg); }
+  .deco.dot  { border-radius:50%; }
+
+  /* ─────────────────────────────────────────────────────
+     SECTION 3 — OPTION B: "Illustrated split row"
+     Left: large playful illustration/photo; right: 3 pillar bullets
+  ───────────────────────────────────────────────────── */
+  .pillars-b {
+    position: relative;
+    padding: 64px 40px;
+    background: var(--cream);
+    overflow: hidden;
+  }
+  .pillars-b-blob {
+    position: absolute;
+    width: 500px; height: 380px;
+    background: white;
+    border-radius: 60% 40% 50% 50% / 50% 45% 55% 50%;
+    top: 50%; right: -80px;
+    transform: translateY(-50%);
+    opacity: 0.65;
+  }
+  .pillars-b-inner {
+    position: relative; z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .pillars-b-photo {
+    position: relative;
+  }
+  .pillars-b-photo img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    border-radius: 28px;
+    transform: rotate(-2deg);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.14);
+    display: block;
+  }
+  /* leaf deco overlay */
+  .photo-leaf {
+    position: absolute;
+    width: 70px; height: 70px;
+    border-radius: 0 70% 0 70%;
+    background: var(--teal);
+    opacity: 0.7;
+    top: -18px; right: -14px;
+    transform: rotate(45deg);
+  }
+  .photo-dot {
+    position: absolute;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--yellow);
+    bottom: -10px; left: 20px;
+  }
+
+  .pillars-b-list { display: flex; flex-direction: column; gap: 20px; }
+  .pb-item { display: flex; gap: 16px; align-items: flex-start; }
+  .pb-num {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items:center; justify-content:center;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.1rem; font-weight: 700;
+    color: white;
+  }
+  .pb-item:nth-child(1) .pb-num { background: var(--coral); }
+  .pb-item:nth-child(2) .pb-num { background: var(--blue); }
+  .pb-item:nth-child(3) .pb-num { background: var(--teal); }
+  .pb-text h3 { font-family:'Fredoka',sans-serif; font-size:1rem; font-weight:700; color:var(--ink); margin-bottom:4px; }
+  .pb-text p  { font-size:0.82rem; color:#6b7280; line-height:1.55; }
+  .pillars-b .section-head { font-family:'Fredoka',sans-serif; font-size:1.6rem; font-weight:700; color:var(--ink); margin-bottom:20px; }
+
+
+  /* ─────────────────────────────────────────────────────
+     SECTION 4 — OPTION A: "Coral blob CTA"
+     CTA sits inside a big organic coral blob, not a rectangle
+  ───────────────────────────────────────────────────── */
+  .cta-a {
+    position: relative;
+    padding: 80px 40px 100px;
+    background: #fff;
+    overflow: hidden;
+    text-align: center;
+  }
+  .cta-a-blob {
+    position: absolute;
+    width: 800px; height: 500px;
+    background: var(--coral);
+    border-radius: 55% 45% 50% 50% / 50% 48% 52% 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  /* floating shapes outside the blob */
+  .cta-a-star1 { position:absolute; font-size:2rem; top:20px; left:12%; z-index:3; color:var(--yellow); opacity:0.85; animation: spin1 8s linear infinite; }
+  .cta-a-star2 { position:absolute; font-size:1.4rem; bottom:24px; right:14%; z-index:3; color:var(--blue); opacity:0.7; animation: spin1 12s linear infinite reverse; }
+  .cta-a-dot1  { position:absolute; width:24px;height:24px;border-radius:50%; background:var(--teal); top:30px; right:20%; z-index:3; }
+  .cta-a-dot2  { position:absolute; width:18px;height:18px;border-radius:50%; background:var(--yellow); bottom:30px; left:18%; z-index:3; }
+  @keyframes spin1 { from { transform: rotate(0deg);} to { transform: rotate(360deg); } }
+
+  .cta-a-inner {
+    position: relative; z-index: 2;
+  }
+  .cta-a-inner h2 { font-family:'Fredoka',sans-serif; font-size:2rem; font-weight:700; color:white; margin-bottom:12px; }
+  .cta-a-inner p  { font-size:0.95rem; color:rgba(255,255,255,0.85); margin-bottom:28px; max-width:480px; margin-left:auto; margin-right:auto; }
+  .cta-a-btn {
+    display:inline-block; background:white; color:var(--coral-deep);
+    font-family:'Fredoka',sans-serif; font-size:1.05rem; font-weight:700;
+    padding:13px 36px; border-radius:99px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    text-decoration:none;
+  }
+
+  /* ─────────────────────────────────────────────────────
+     SECTION 4 — OPTION B: "Wave sandwich CTA"
+     Coral wave top + bottom frames the content, with large floating shapes
+  ───────────────────────────────────────────────────── */
+  .cta-b {
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+  }
+  .cta-b-wave-top {
+    width: 110%; height: 80px;
+    background: var(--coral);
+    border-radius: 0 0 50% 50% / 0 0 100% 100%;
+    transform: translateX(-5%);
+  }
+  .cta-b-main {
+    background: var(--coral);
+    padding: 40px 40px 50px;
+    position: relative;
+  }
+  .cta-b-wave-bot {
+    width: 110%; height: 80px;
+    background: var(--coral);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    transform: translateX(-5%);
+  }
+  .cta-b-floating {
+    position: absolute;
+    font-size: 3rem;
+    opacity: 0.18;
+    pointer-events: none;
+  }
+  .cta-b-main h2 { font-family:'Fredoka',sans-serif; font-size:2rem; font-weight:700; color:white; margin-bottom:12px; position:relative;z-index:2; }
+  .cta-b-main p  { font-size:0.95rem; color:rgba(255,255,255,0.85); margin-bottom:28px; max-width:480px; margin-left:auto; margin-right:auto; position:relative;z-index:2; }
+  .cta-b-btn {
+    display:inline-block; background:white; color:var(--coral-deep);
+    font-family:'Fredoka',sans-serif; font-size:1.05rem; font-weight:700;
+    padding:13px 36px; border-radius:99px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    text-decoration:none; position:relative;z-index:2;
+  }
+  .cta-b-tag-row {
+    display:flex; gap:10px; justify-content:center; margin-bottom:20px;
+    position:relative;z-index:2;
+  }
+  .cta-b-tag {
+    background:rgba(255,255,255,0.22);
+    color:white;
+    font-family:'Fredoka',sans-serif;
+    font-size:0.85rem; font-weight:600;
+    padding:4px 16px; border-radius:99px;
+  }
+
+  /* divider labels */
+  .section-divider {
+    text-align: center;
+    padding: 28px 0 8px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.95rem;
+    color: #bbb;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .pick-label {
+    display: inline-block;
+    background: var(--coral-soft);
+    color: var(--coral-deep);
+    font-family:'Fredoka',sans-serif;
+    font-size:0.8rem; font-weight:600;
+    padding:3px 14px; border-radius:99px;
+    margin-bottom:8px;
+  }
+
+  .options-wrap {
+    border: 2px solid transparent;
+    border-radius: 20px;
+    margin: 0 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .options-wrap:hover { border-color: #ddd; }
+  .options-wrap.selected { border-color: var(--coral); box-shadow: 0 0 0 4px var(--coral-soft); }
+</style>
+
+<p class="page-label">Revised sections 3 & 4 — two options each, click to pick</p>
+
+<!-- ══════════════ SECTION 3 ══════════════ -->
+<div class="section-divider">Section 3 · Warum BricksnBytes?</div>
+
+<!-- S3 Option A -->
+<div style="text-align:center;margin-bottom:8px;"><span class="pick-label">Option A — Blob pillar cards</span></div>
+<div class="options-wrap" data-choice="s3-a" onclick="toggleSelect(this)">
+  <div class="pillars-a">
+    <div class="bg-wave-top"></div>
+    <!-- floating decos -->
+    <div class="deco oval" style="width:20px;height:28px;background:#4caf50;top:90px;left:6%;"></div>
+    <div class="deco dot"  style="width:14px;height:14px;background:#2196f3;top:96px;right:8%;"></div>
+    <div class="deco dash" style="width:28px;height:9px;background:var(--yellow);bottom:30px;left:8%;"></div>
+    <div class="deco dash" style="width:22px;height:9px;background:var(--teal);bottom:28px;right:9%;"></div>
+
+    <h2 class="section-head">Was uns besonders macht</h2>
+
+    <div class="pcard-row">
+      <div class="pcard">
+        <div class="pcard-blob"></div>
+        <div class="pcard-icon">✨</div>
+        <div class="pcard-body">
+          <div class="pcard-title">Spielerisch Lernen</div>
+          <div class="pcard-desc">Kinder merken gar nicht, wie viel sie lernen — Spaß steht immer im Mittelpunkt.</div>
+        </div>
+      </div>
+      <div class="pcard">
+        <div class="pcard-blob"></div>
+        <div class="pcard-icon">🎯</div>
+        <div class="pcard-body">
+          <div class="pcard-title">Echte Mentorship</div>
+          <div class="pcard-desc">Kleine Gruppen, persönliche Betreuung — jedes Kind wird abgeholt.</div>
+        </div>
+      </div>
+      <div class="pcard">
+        <div class="pcard-blob"></div>
+        <div class="pcard-icon">🚀</div>
+        <div class="pcard-body">
+          <div class="pcard-title">Gestalten statt Konsum</div>
+          <div class="pcard-desc">Kinder erschaffen echte Spiele und Projekte — aktiv in der digitalen Welt.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:16px 0 8px;color:#ccc;font-family:'Fredoka',sans-serif;">— or —</div>
+
+<!-- S3 Option B -->
+<div style="text-align:center;margin-bottom:8px;"><span class="pick-label">Option B — Photo + numbered list</span></div>
+<div class="options-wrap" data-choice="s3-b" onclick="toggleSelect(this)">
+  <div class="pillars-b">
+    <div class="pillars-b-blob"></div>
+    <div class="pillars-b-inner">
+      <div class="pillars-b-photo">
+        <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=500&h=380&fit=crop&auto=format" alt="Kids coding together" />
+        <div class="photo-leaf"></div>
+        <div class="photo-dot"></div>
+      </div>
+      <div>
+        <h2 class="section-head">Was uns besonders macht</h2>
+        <div class="pillars-b-list">
+          <div class="pb-item">
+            <div class="pb-num">01</div>
+            <div class="pb-text">
+              <h3>Spielerisch Lernen</h3>
+              <p>Kinder merken gar nicht, wie viel sie lernen — Spaß steht immer im Mittelpunkt.</p>
+            </div>
+          </div>
+          <div class="pb-item">
+            <div class="pb-num">02</div>
+            <div class="pb-text">
+              <h3>Echte Mentorship</h3>
+              <p>Kleine Gruppen, persönliche Betreuung — jedes Kind wird abgeholt, wo es steht.</p>
+            </div>
+          </div>
+          <div class="pb-item">
+            <div class="pb-num">03</div>
+            <div class="pb-text">
+              <h3>Gestalten statt Konsum</h3>
+              <p>Kinder erschaffen eigene Spiele und Projekte — aktiv statt passiv.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SECTION 4 ══════════════ -->
+<div class="section-divider" style="padding-top:36px;">Section 4 · CTA</div>
+
+<!-- CTA Option A -->
+<div style="text-align:center;margin-bottom:8px;"><span class="pick-label">Option A — Coral blob island</span></div>
+<div class="options-wrap" data-choice="cta-a" onclick="toggleSelect(this)">
+  <div class="cta-a">
+    <div class="cta-a-blob"></div>
+    <div class="cta-a-star1">✦</div>
+    <div class="cta-a-star2">★</div>
+    <div class="cta-a-dot1"></div>
+    <div class="cta-a-dot2"></div>
+    <div class="cta-a-inner">
+      <h2>Bereit loszulegen?</h2>
+      <p>Schreib uns an — wir finden den richtigen Kurs für dein Kind.</p>
+      <a class="cta-a-btn" href="#">Jetzt Kontakt aufnehmen</a>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:16px 0 8px;color:#ccc;font-family:'Fredoka',sans-serif;">— or —</div>
+
+<!-- CTA Option B -->
+<div style="text-align:center;margin-bottom:8px;"><span class="pick-label">Option B — Wave sandwich</span></div>
+<div class="options-wrap" data-choice="cta-b" onclick="toggleSelect(this)">
+  <div class="cta-b">
+    <div class="cta-b-wave-top"></div>
+    <div class="cta-b-main">
+      <div class="cta-b-floating" style="top:-10px;left:8%;">🌟</div>
+      <div class="cta-b-floating" style="top:-10px;right:10%;font-size:2.2rem;">💻</div>
+      <div class="cta-b-floating" style="bottom:-10px;left:15%;font-size:2.5rem;">🎮</div>
+      <div class="cta-b-floating" style="bottom:-10px;right:8%;">🚀</div>
+      <div class="cta-b-tag-row">
+        <span class="cta-b-tag">LEGO Spike</span>
+        <span class="cta-b-tag">Scratch</span>
+        <span class="cta-b-tag">Python</span>
+        <span class="cta-b-tag">Minecraft</span>
+      </div>
+      <h2>Bereit loszulegen?</h2>
+      <p>Schreib uns an — wir finden den richtigen Kurs für dein Kind.</p>
+      <a class="cta-b-btn" href="#">Jetzt Kontakt aufnehmen</a>
+    </div>
+    <div class="cta-b-wave-bot"></div>
+  </div>
+</div>
+
+<div style="height:40px;"></div>
