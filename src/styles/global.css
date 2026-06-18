@@ -1,0 +1,77 @@
+html {
+  scroll-behavior: smooth;
+  font-family: var(--font-body);
+  background:
+    radial-gradient(120% 90% at 88% -10%, var(--yellow-soft) 0%, transparent 45%),
+    radial-gradient(90% 80% at -5% 110%, var(--blue-soft) 0%, transparent 50%),
+    var(--cream);
+  color: var(--ink);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+}
+
+header {
+  flex-shrink: 0;
+}
+
+main {
+  flex: 1;
+}
+
+footer {
+  flex-shrink: 0;
+  background-color: var(--cream);
+  border-top: 1px solid var(--cream-2);
+  padding: var(--sp-3xl) 0 var(--sp-xl);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  line-height: var(--lh-tight);
+  margin: var(--sp-lg) 0 var(--sp-md) 0;
+}
+
+h1 {
+  font-size: var(--fs-h1);
+  font-weight: 700;
+}
+
+h2 {
+  font-size: var(--fs-h2);
+  font-weight: 600;
+}
+
+h3 {
+  font-size: var(--fs-h3);
+  font-weight: 600;
+}
+
+h4 {
+  font-size: var(--fs-h4);
+  font-weight: 600;
+}
+
+p {
+  margin: 0 0 var(--sp-md) 0;
+}
+
+a {
+  color: var(--coral);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--coral-deep);
+}
