@@ -1,0 +1,561 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --coral: oklch(0.70 0.165 38);
+    --coral-deep: oklch(0.62 0.170 35);
+    --coral-soft: oklch(0.93 0.045 45);
+    --blue: #2196f3;
+    --blue-soft: #e3f0fc;
+    --teal: #26a6a1;
+    --teal-soft: #e0f5f4;
+    --yellow: oklch(0.86 0.140 92);
+    --yellow-soft: oklch(0.95 0.050 92);
+    --green: #4caf50;
+    --green-soft: #e8f5e9;
+    --orange: #ff9800;
+    --orange-soft: #fff3e0;
+    --ink: #0B2038;
+    --cream: oklch(0.972 0.018 80);
+  }
+
+  body { font-family: 'Nunito', sans-serif; background: #fff; overflow-x: hidden; }
+
+  /* ── Floating deco helper ── */
+  .deco {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .oval { border-radius: 50%; transform: rotate(-25deg); }
+  .dash { border-radius: 99px; transform: rotate(-35deg); }
+  .dot  { border-radius: 50%; }
+
+  /* ══════════════════════════════════════
+     SECTION 1: HERO
+  ══════════════════════════════════════ */
+  .hero-section {
+    position: relative;
+    padding: 48px 40px 56px;
+    background: var(--cream);
+    overflow: hidden;
+  }
+
+  /* Background blobs */
+  .hero-blob-1 {
+    position: absolute;
+    width: 420px; height: 340px;
+    background: var(--coral-soft);
+    border-radius: 62% 38% 44% 56% / 52% 48% 52% 48%;
+    top: -60px; right: -80px;
+    z-index: 0; opacity: 0.7;
+  }
+  .hero-blob-2 {
+    position: absolute;
+    width: 260px; height: 200px;
+    background: var(--yellow-soft);
+    border-radius: 44% 56% 62% 38% / 48% 52% 48% 52%;
+    bottom: -40px; left: -50px;
+    z-index: 0; opacity: 0.6;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 40px;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .chip-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .chip {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.8rem;
+    padding: 4px 14px;
+    border-radius: 99px;
+    font-weight: 500;
+  }
+  .chip-coral { background: var(--coral-soft); color: oklch(0.62 0.170 35); }
+  .chip-blue  { background: var(--blue-soft);  color: var(--blue); }
+  .chip-teal  { background: var(--teal-soft);  color: var(--teal); }
+
+  .hero-h1 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 14px;
+  }
+  .hero-h1 .u {
+    position: relative;
+    display: inline-block;
+  }
+  .hero-h1 .u::after {
+    content: '';
+    position: absolute;
+    left: -2px; right: -2px;
+    bottom: 0px;
+    height: 12px;
+    background: var(--yellow);
+    border-radius: 4px;
+    z-index: -1;
+  }
+
+  .hero-sub {
+    font-size: 0.95rem;
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    max-width: 28em;
+  }
+
+  .hero-cta {
+    display: inline-block;
+    background: var(--coral);
+    color: white;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 99px;
+    text-decoration: none;
+    box-shadow: 0 6px 16px -4px oklch(0.62 0.170 35);
+  }
+
+  .hero-image {
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: 24px;
+    overflow: hidden;
+    transform: rotate(1.5deg);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+  }
+  .hero-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* Hero floating decos */
+  .hero-dot-1 { width:18px; height:24px; background:var(--coral); top:30px; right:38%; }
+  .hero-dot-2 { width:14px; height:14px; background:var(--blue); top:60px; left:44%; }
+  .hero-dot-3 { width:22px; height:14px; background:var(--yellow); bottom:40px; right:42%; }
+  .hero-dash-1 { width:30px; height:9px; background:var(--teal); top:24px; left:52%; }
+
+  /* ══════════════════════════════════════
+     SECTION 2: AGE-GROUP BLOB CARDS
+  ══════════════════════════════════════ */
+  .programs-section {
+    position: relative;
+    padding: 64px 32px 130px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .section-heading {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--ink);
+    margin-bottom: 48px;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .bcard {
+    position: relative;
+    flex: 1;
+    min-width: 190px;
+    max-width: 215px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .bcard-blob {
+    position: absolute;
+    inset: 44px 0 0 0;
+    z-index: 0;
+    transition: transform 0.3s ease;
+  }
+  .bcard:hover .bcard-blob { transform: scale(1.04); }
+
+  .bcard:nth-child(1) .bcard-blob { border-radius: 52% 48% 44% 56% / 48% 56% 44% 52%; background: var(--green-soft); }
+  .bcard:nth-child(2) .bcard-blob { border-radius: 46% 54% 58% 42% / 54% 42% 58% 46%; background: var(--blue-soft); }
+  .bcard:nth-child(3) .bcard-blob { border-radius: 60% 40% 45% 55% / 40% 55% 45% 60%; background: var(--orange-soft); }
+  .bcard:nth-child(4) .bcard-blob { border-radius: 44% 56% 52% 48% / 56% 48% 52% 44%; background: var(--teal-soft); }
+
+  .bcard-photo {
+    position: relative;
+    z-index: 2;
+    width: 84%;
+    aspect-ratio: 4/3;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.13);
+    margin-bottom: -6px;
+  }
+  .bcard-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+
+  .bcard-body {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 16px 10px 58px;
+    width: 100%;
+  }
+  .bcard-title { font-family:'Fredoka',sans-serif; font-size:1.1rem; font-weight:700; color:var(--ink); margin-bottom:3px; }
+  .bcard-age   { font-family:'Fredoka',sans-serif; font-size:0.85rem; font-weight:600; margin-bottom:6px; }
+  .bcard-desc  { font-size:0.8rem; color:#6b7280; line-height:1.5; }
+
+  .bcard:nth-child(1) .bcard-age { color: var(--green); }
+  .bcard:nth-child(2) .bcard-age { color: var(--blue); }
+  .bcard:nth-child(3) .bcard-age { color: var(--orange); }
+  .bcard:nth-child(4) .bcard-age { color: var(--teal); }
+
+  .bcard-cta {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-size: 1rem;
+    display: flex; align-items:center; justify-content:center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    transition: transform 0.2s;
+  }
+  .bcard-cta:hover { transform: translateX(-50%) scale(1.12); }
+  .bcard:nth-child(1) .bcard-cta { background: var(--green); }
+  .bcard:nth-child(2) .bcard-cta { background: var(--blue); }
+  .bcard:nth-child(3) .bcard-cta { background: var(--orange); }
+  .bcard:nth-child(4) .bcard-cta { background: var(--teal); }
+
+  /* Floating dots around cards */
+  .pg-dot-1 { width:22px;height:30px; background:var(--green);  top:28px; left:6%;  }
+  .pg-dot-2 { width:18px;height:18px; background:var(--blue);   top:18px; left:30%; }
+  .pg-dot-3 { width:20px;height:26px; background:var(--orange); top:26px; left:56%; }
+  .pg-dot-4 { width:18px;height:24px; background:var(--teal);   top:22px; right:6%; }
+  .pg-dash-1 { width:32px;height:10px; background:var(--orange); bottom:85px; left:7%;  }
+  .pg-dash-2 { width:28px;height:10px; background:var(--blue);   bottom:80px; right:9%; }
+
+  .coral-wave {
+    position: absolute;
+    bottom: 0; left:50%;
+    transform: translateX(-50%);
+    width: 110%;
+    height: 100px;
+    background: var(--coral);
+    border-radius: 50% 50% 0 0 / 80% 80% 0 0;
+  }
+
+  /* ══════════════════════════════════════
+     SECTION 3: VALUE PILLARS
+  ══════════════════════════════════════ */
+  .pillars-section {
+    position: relative;
+    padding: 70px 40px 70px;
+    background: var(--cream);
+    overflow: hidden;
+  }
+
+  /* Big background blob behind whole section */
+  .pillars-bg-blob {
+    position: absolute;
+    width: 700px; height: 480px;
+    background: white;
+    border-radius: 55% 45% 48% 52% / 50% 52% 48% 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    opacity: 0.7;
+  }
+
+  .pillars-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 40px;
+  }
+
+  .pillar-tile {
+    background: white;
+    border-radius: 22px;
+    padding: 28px 20px 24px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .pillar-tile:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.12); }
+
+  .pillar-icon-wrap {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    display: flex; align-items:center; justify-content:center;
+    font-size: 1.8rem;
+  }
+  .pillar-tile:nth-child(1) .pillar-icon-wrap { background: var(--coral-soft); }
+  .pillar-tile:nth-child(2) .pillar-icon-wrap { background: var(--blue-soft); }
+  .pillar-tile:nth-child(3) .pillar-icon-wrap { background: var(--teal-soft); }
+
+  .pillar-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .pillar-desc { font-size: 0.85rem; color: #6b7280; line-height: 1.6; }
+
+  /* Pillar floating decos */
+  .pl-dot-1 { width:16px;height:22px; background:var(--coral); top:30px; left:5%; }
+  .pl-dot-2 { width:14px;height:14px; background:var(--blue);   top:40px; right:8%; }
+  .pl-dash-1 { width:26px;height:9px; background:var(--teal);  bottom:30px; left:8%; }
+  .pl-dash-2 { width:22px;height:9px; background:var(--yellow); bottom:38px; right:7%; }
+
+  /* ══════════════════════════════════════
+     SECTION 4: CTA
+  ══════════════════════════════════════ */
+  .cta-section {
+    position: relative;
+    padding: 64px 40px;
+    background: linear-gradient(135deg, var(--blue) 0%, oklch(0.50 0.14 245) 100%);
+    overflow: hidden;
+    text-align: center;
+  }
+
+  /* Decorative star/dot shapes in CTA */
+  .cta-shape {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .cta-star { font-size: 1.6rem; opacity: 0.25; }
+
+  .cta-inner { position: relative; z-index: 2; }
+
+  .cta-h2 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 12px;
+  }
+  .cta-sub { font-size: 0.95rem; color: rgba(255,255,255,0.82); margin-bottom: 28px; }
+  .cta-btn {
+    display: inline-block;
+    background: white;
+    color: var(--blue);
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 13px 32px;
+    border-radius: 99px;
+    text-decoration: none;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  }
+
+  /* Small blob decoratives in CTA */
+  .cta-blob-1 {
+    position: absolute;
+    width: 180px; height: 140px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 55% 45% 50% 50% / 50% 45% 55% 50%;
+    top: -30px; left: -40px;
+  }
+  .cta-blob-2 {
+    position: absolute;
+    width: 220px; height: 160px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 45% 55% 48% 52% / 52% 48% 52% 48%;
+    bottom: -50px; right: -50px;
+  }
+  .cta-blob-3 {
+    position: absolute;
+    width: 120px; height: 100px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 60% 40% 55% 45%;
+    top: 20px; right: 15%;
+  }
+
+  /* ── Section labels ── */
+  .section-tag {
+    display: inline-block;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 3px 14px;
+    border-radius: 99px;
+    background: var(--coral-soft);
+    color: oklch(0.62 0.170 35);
+    margin-bottom: 12px;
+  }
+</style>
+
+<h2 style="text-align:center;font-family:'Fredoka',sans-serif;font-size:1.4rem;color:#0B2038;padding:20px 0 6px;">Full page redesign preview</h2>
+<p style="text-align:center;color:#888;font-size:0.85rem;margin-bottom:0;padding-bottom:16px;">All 4 sections with the playful treatment — approve or ask to adjust any section</p>
+
+<!-- ══ HERO ══ -->
+<div class="hero-section">
+  <div class="hero-blob-1"></div>
+  <div class="hero-blob-2"></div>
+  <div class="deco oval hero-dot-1"></div>
+  <div class="deco dot hero-dot-2"></div>
+  <div class="deco oval hero-dot-3"></div>
+  <div class="deco dash hero-dash-1"></div>
+
+  <div class="hero-inner">
+    <div>
+      <div class="chip-row">
+        <span class="chip chip-coral">LEGO Spike</span>
+        <span class="chip chip-blue">Minecraft</span>
+        <span class="chip chip-teal">Scratch</span>
+      </div>
+      <h1 class="hero-h1">Programmieren für Kinder — mit <span class="u">Spaß</span> und Kreativität</h1>
+      <p class="hero-sub">Lass dein Kind die digitale Welt selbst gestalten, nicht nur nutzen</p>
+      <a class="hero-cta" href="#">Kurse Entdecken</a>
+    </div>
+    <div>
+      <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=500&h=380&fit=crop&auto=format" alt="Kids coding" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PROGRAMS / AGE-GROUP BLOB CARDS ══ -->
+<div class="programs-section">
+  <div class="deco oval pg-dot-1"></div>
+  <div class="deco dot pg-dot-2"></div>
+  <div class="deco oval pg-dot-3"></div>
+  <div class="deco oval pg-dot-4"></div>
+  <div class="deco dash pg-dash-1"></div>
+  <div class="deco dash pg-dash-2"></div>
+
+  <div class="section-tag">Unsere Kurse</div>
+  <h2 class="section-heading">Programmieren nach Altersgruppe</h2>
+
+  <div class="card-row">
+    <div class="bcard">
+      <div class="bcard-blob"></div>
+      <div class="bcard-photo">
+        <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=300&fit=crop&auto=format" alt="Vorschule" />
+      </div>
+      <div class="bcard-body">
+        <div class="bcard-title">Vorschule</div>
+        <div class="bcard-age">3–6 Jahre</div>
+        <div class="bcard-desc">Gemeinsam tüfteln, spielen und programmieren</div>
+      </div>
+      <button class="bcard-cta">→</button>
+    </div>
+    <div class="bcard">
+      <div class="bcard-blob"></div>
+      <div class="bcard-photo">
+        <img src="https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=400&h=300&fit=crop&auto=format" alt="Grundschule" />
+      </div>
+      <div class="bcard-body">
+        <div class="bcard-title">Grundschule</div>
+        <div class="bcard-age">6–10 Jahre</div>
+        <div class="bcard-desc">Basis von Blockprogrammierung</div>
+      </div>
+      <button class="bcard-cta">→</button>
+    </div>
+    <div class="bcard">
+      <div class="bcard-blob"></div>
+      <div class="bcard-photo">
+        <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&h=300&fit=crop&auto=format" alt="Mittelschule" />
+      </div>
+      <div class="bcard-body">
+        <div class="bcard-title">Mittelschule</div>
+        <div class="bcard-age">10–14 Jahre</div>
+        <div class="bcard-desc">Erste Schritte in Python</div>
+      </div>
+      <button class="bcard-cta">→</button>
+    </div>
+    <div class="bcard">
+      <div class="bcard-blob"></div>
+      <div class="bcard-photo">
+        <img src="https://images.unsplash.com/photo-1571260899304-425eee4c7efd?w=400&h=300&fit=crop&auto=format" alt="Jugendkurse" />
+      </div>
+      <div class="bcard-body">
+        <div class="bcard-title">Jugendkurse</div>
+        <div class="bcard-age">Ab 14 Jahre</div>
+        <div class="bcard-desc">HTML, Javascript</div>
+      </div>
+      <button class="bcard-cta">→</button>
+    </div>
+  </div>
+
+  <div class="coral-wave"></div>
+</div>
+
+<!-- ══ VALUE PILLARS ══ -->
+<div class="pillars-section">
+  <div class="pillars-bg-blob"></div>
+  <div class="deco oval pl-dot-1"></div>
+  <div class="deco dot pl-dot-2"></div>
+  <div class="deco dash pl-dash-1"></div>
+  <div class="deco dash pl-dash-2"></div>
+
+  <div class="pillars-inner">
+    <div style="text-align:center;">
+      <div class="section-tag">Warum BricksnBytes?</div>
+      <h2 class="section-heading" style="margin-bottom:0;">Was uns besonders macht</h2>
+    </div>
+
+    <div class="pillars-grid">
+      <div class="pillar-tile">
+        <div class="pillar-icon-wrap">✨</div>
+        <div class="pillar-title">Spielerisch Lernen</div>
+        <div class="pillar-desc">Wir verbinden Spielfreude mit echtem Programmierlernen — Kinder merken gar nicht, wie viel sie lernen.</div>
+      </div>
+      <div class="pillar-tile">
+        <div class="pillar-icon-wrap">🎯</div>
+        <div class="pillar-title">Echte Mentorship</div>
+        <div class="pillar-desc">Kleine Gruppen, persönliche Betreuung — jedes Kind wird dort abgeholt, wo es steht.</div>
+      </div>
+      <div class="pillar-tile">
+        <div class="pillar-icon-wrap">🚀</div>
+        <div class="pillar-title">Gestalten statt Konsumieren</div>
+        <div class="pillar-desc">Kinder erschaffen eigene Spiele und Projekte — aktiv statt passiv in der digitalen Welt.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CTA ══ -->
+<div class="cta-section">
+  <div class="cta-blob-1"></div>
+  <div class="cta-blob-2"></div>
+  <div class="cta-blob-3"></div>
+  <div class="cta-shape cta-star" style="top:16px;left:12%;">✦</div>
+  <div class="cta-shape cta-star" style="top:22px;right:14%;font-size:1rem;">★</div>
+  <div class="cta-shape cta-star" style="bottom:20px;left:18%;font-size:1.2rem;">✦</div>
+  <div class="cta-shape cta-star" style="bottom:14px;right:10%;font-size:0.9rem;">★</div>
+
+  <div class="cta-inner">
+    <h2 class="cta-h2">Bereit, die Programmierwelt zu entdecken?</h2>
+    <p class="cta-sub">Schreib uns an — wir finden den richtigen Kurs für dein Kind.</p>
+    <a class="cta-btn" href="#">Jetzt Kontakt aufnehmen</a>
+  </div>
+</div>

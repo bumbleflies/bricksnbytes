@@ -1,0 +1,302 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #fff;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* ── Section wrapper ── */
+  .blob-section {
+    position: relative;
+    padding: 60px 40px 120px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .section-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    color: #0B2038;
+    margin-bottom: 48px;
+  }
+
+  /* ── Card grid ── */
+  .card-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: nowrap;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  /* ── Individual blob card ── */
+  .bcard {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 230px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* The organic blob background shape */
+  .bcard-blob {
+    position: absolute;
+    inset: 48px 0 0 0; /* starts below the photo */
+    border-radius: 55% 45% 48% 52% / 45% 52% 48% 55%;
+    z-index: 0;
+    transition: transform 0.3s ease;
+  }
+  .bcard:hover .bcard-blob {
+    transform: scale(1.03);
+  }
+
+  /* Vary blob shape per card so they feel organic, not cloned */
+  .bcard:nth-child(1) .bcard-blob { border-radius: 52% 48% 44% 56% / 48% 56% 44% 52%; }
+  .bcard:nth-child(2) .bcard-blob { border-radius: 46% 54% 58% 42% / 54% 42% 58% 46%; }
+  .bcard:nth-child(3) .bcard-blob { border-radius: 60% 40% 45% 55% / 40% 55% 45% 60%; }
+  .bcard:nth-child(4) .bcard-blob { border-radius: 44% 56% 52% 48% / 56% 48% 52% 44%; }
+
+  /* Per-card blob colors (soft pastel) */
+  .bcard.green  .bcard-blob { background: #e8f5e9; }
+  .bcard.blue   .bcard-blob { background: #e3f0fc; }
+  .bcard.orange .bcard-blob { background: #fff3e0; }
+  .bcard.teal   .bcard-blob { background: #e0f5f4; }
+
+  /* ── Photo — sits on top of blob, partially above it ── */
+  .bcard-photo {
+    position: relative;
+    z-index: 2;
+    width: 86%;
+    aspect-ratio: 4/3;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+    margin-bottom: -8px; /* overlaps slightly into blob */
+  }
+  .bcard-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── Card body ── */
+  .bcard-body {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 18px 12px 60px;
+    width: 100%;
+  }
+
+  .bcard-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0B2038;
+    margin-bottom: 4px;
+  }
+
+  .bcard-age {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  /* Per-card accent color for age text */
+  .bcard.green  .bcard-age  { color: #4caf50; }
+  .bcard.blue   .bcard-age  { color: #2196f3; }
+  .bcard.orange .bcard-age  { color: #ff9800; }
+  .bcard.teal   .bcard-age  { color: #26a6a1; }
+
+  .bcard-desc {
+    font-size: 0.85rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  /* ── Circular arrow CTA button ── */
+  .bcard-cta {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .bcard-cta:hover {
+    transform: translateX(-50%) scale(1.1);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+  }
+
+  .bcard.green  .bcard-cta { background: #4caf50; }
+  .bcard.blue   .bcard-cta { background: #2196f3; }
+  .bcard.orange .bcard-cta { background: #ff9800; }
+  .bcard.teal   .bcard-cta { background: #26a6a1; }
+
+  /* ── Floating decorative dots ── */
+  .deco {
+    position: absolute;
+    border-radius: 50%;
+    z-index: 5;
+  }
+  .deco-oval {
+    position: absolute;
+    border-radius: 50%;
+    z-index: 5;
+    transform: rotate(-30deg);
+  }
+  .deco-dash {
+    position: absolute;
+    border-radius: 99px;
+    z-index: 5;
+    transform: rotate(-35deg);
+  }
+
+  /* Top floating dots above each card */
+  .dot-green  { width: 22px; height: 30px; background: #4caf50; top: 30px; left: 10%; }
+  .dot-blue   { width: 18px; height: 18px; background: #2196f3; top: 20px; left: 34%; }
+  .dot-orange { width: 20px; height: 26px; background: #ff9800; top: 28px; left: 58%; }
+  .dot-teal   { width: 18px; height: 24px; background: #26a6a1; top: 24px; right: 10%; }
+
+  /* Bottom decorative dashes */
+  .dash-orange { width: 32px; height: 10px; background: #ff9800; bottom: 90px; left: 8%; }
+  .dash-blue   { width: 28px; height: 10px; background: #2196f3; bottom: 85px; right: 12%; }
+
+  /* ── Big coral wave at bottom ── */
+  .coral-wave {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 100px;
+    background: oklch(0.70 0.165 38);
+    border-radius: 50% 50% 0 0 / 80% 80% 0 0;
+  }
+
+  /* ── Clickable wrapper for selection ── */
+  .section-wrapper {
+    cursor: pointer;
+    border: 3px solid transparent;
+    border-radius: 24px;
+    transition: border-color 0.2s;
+    padding: 4px;
+  }
+  .section-wrapper.selected {
+    border-color: oklch(0.70 0.165 38);
+  }
+
+  /* ── Comparison note ── */
+  .compare-note {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #999;
+    padding: 12px 20px 4px;
+  }
+  .compare-note strong { color: oklch(0.70 0.165 38); }
+</style>
+
+<h2 style="text-align:center; font-family:'Fredoka',sans-serif; font-size:1.5rem; color:#0B2038; margin-bottom:6px;">Blob-card section mockup</h2>
+<p class="compare-note">Flows shapes + real photos + per-card colors + floating dots + coral wave — like <strong>bricksnbytes.de</strong>. Click to select if this direction feels right.</p>
+
+<div class="section-wrapper" data-choice="blob-cards" onclick="toggleSelect(this)">
+  <div class="blob-section">
+
+    <!-- Floating decorative dots -->
+    <div class="deco deco-oval dot-green"></div>
+    <div class="deco deco-oval dot-blue"></div>
+    <div class="deco deco-oval dot-orange"></div>
+    <div class="deco deco-oval dot-teal"></div>
+    <div class="deco deco-dash dash-orange"></div>
+    <div class="deco deco-dash dash-blue"></div>
+
+    <h2 class="section-title">Unsere Kurse nach Altersgruppe</h2>
+
+    <div class="card-row">
+
+      <!-- Card 1: Vorschule / green -->
+      <div class="bcard green">
+        <div class="bcard-blob"></div>
+        <div class="bcard-photo">
+          <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=300&fit=crop&auto=format" alt="Vorschule" />
+        </div>
+        <div class="bcard-body">
+          <div class="bcard-title">Vorschule</div>
+          <div class="bcard-age">3–6 Jahre</div>
+          <div class="bcard-desc">Gemeinsam tüfteln, spielen und programmieren</div>
+        </div>
+        <button class="bcard-cta">→</button>
+      </div>
+
+      <!-- Card 2: Grundschule / blue -->
+      <div class="bcard blue">
+        <div class="bcard-blob"></div>
+        <div class="bcard-photo">
+          <img src="https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=400&h=300&fit=crop&auto=format" alt="Grundschule" />
+        </div>
+        <div class="bcard-body">
+          <div class="bcard-title">Grundschule</div>
+          <div class="bcard-age">6–10 Jahre</div>
+          <div class="bcard-desc">Basis von Blockprogrammierung</div>
+        </div>
+        <button class="bcard-cta">→</button>
+      </div>
+
+      <!-- Card 3: Mittelschule / orange -->
+      <div class="bcard orange">
+        <div class="bcard-blob"></div>
+        <div class="bcard-photo">
+          <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&h=300&fit=crop&auto=format" alt="Mittelschule" />
+        </div>
+        <div class="bcard-body">
+          <div class="bcard-title">Mittelschule</div>
+          <div class="bcard-age">10–14 Jahre</div>
+          <div class="bcard-desc">Erste Schritte in Python</div>
+        </div>
+        <button class="bcard-cta">→</button>
+      </div>
+
+      <!-- Card 4: Jugendkurse / teal -->
+      <div class="bcard teal">
+        <div class="bcard-blob"></div>
+        <div class="bcard-photo">
+          <img src="https://images.unsplash.com/photo-1571260899304-425eee4c7efd?w=400&h=300&fit=crop&auto=format" alt="Jugendkurse" />
+        </div>
+        <div class="bcard-body">
+          <div class="bcard-title">Jugendkurse</div>
+          <div class="bcard-age">Ab 14 Jahre</div>
+          <div class="bcard-desc">HTML, Javascript</div>
+        </div>
+        <button class="bcard-cta">→</button>
+      </div>
+
+    </div>
+
+    <!-- Big coral wave at bottom -->
+    <div class="coral-wave"></div>
+
+  </div>
+</div>

@@ -47,7 +47,6 @@ const currentPath = new URL(Astro.request.url).pathname;
         const isActive = currentPath === item.href;
         return item.isKurse ? (
           <a
-            key={item.href}
             href={item.href}
             class={`nav-link ${isActive ? 'active' : ''}`}
             data-kurse
@@ -61,7 +60,6 @@ const currentPath = new URL(Astro.request.url).pathname;
           </a>
         ) : (
           <a
-            key={item.href}
             href={item.href}
             class={`nav-link ${isActive ? 'active' : ''}`}
             {...(isActive && { 'aria-current': 'page' })}
@@ -640,7 +638,7 @@ const currentPath = new URL(Astro.request.url).pathname;
     const handleScroll = () => {
       const scrolled = window.scrollY > 24;
       navPill.classList.toggle('scrolled', scrolled);
-      if (navOuter) {
+      if (navOuter instanceof HTMLElement) {
         navOuter.style.paddingTop = scrolled ? '12px' : '20px';
       }
     };
@@ -653,23 +651,27 @@ const currentPath = new URL(Astro.request.url).pathname;
   const chev = kursLink?.querySelector('.chev');
 
   function openMega() {
-    mega.hidden = false;
-    kursLink.classList.add('active');
+    if (mega) mega.hidden = false;
+    if (kursLink) {
+      kursLink.classList.add('active');
+      kursLink.setAttribute('aria-expanded', 'true');
+    }
     chev?.classList.add('open');
-    kursLink.setAttribute('aria-expanded', 'true');
   }
 
   function closeMega() {
-    mega.hidden = true;
-    kursLink.classList.remove('active');
+    if (mega) mega.hidden = true;
+    if (kursLink) {
+      kursLink.classList.remove('active');
+      kursLink.setAttribute('aria-expanded', 'false');
+    }
     chev?.classList.remove('open');
-    kursLink.setAttribute('aria-expanded', 'false');
   }
 
   navOuter?.addEventListener('mouseleave', closeMega);
   kursLink?.addEventListener('mouseenter', openMega);
   kursLink?.addEventListener('click', (e) => {
-    if (mega.hidden) {
+    if (mega && mega.hidden) {
       e.preventDefault();
       openMega();
     } else {
@@ -691,6 +693,7 @@ const currentPath = new URL(Astro.request.url).pathname;
   const mobChev = mobKurse?.querySelector('.chev');
 
   function toggleDrawer() {
+    if (!mobDrawer || !burger) return;
     const opening = !mobDrawer.classList.contains('open');
     mobDrawer.classList.toggle('open');
     burger.classList.toggle('open');
@@ -702,8 +705,9 @@ const currentPath = new URL(Astro.request.url).pathname;
   burger?.addEventListener('click', toggleDrawer);
 
   mobKurse?.addEventListener('click', () => {
-    const open = !mobSub.hidden;
-    mobSub.hidden = open;
+    if (!mobSub || !mobKurse) return;
+    const open = !mobSub.classList.contains('hidden');
+    mobSub.classList.toggle('hidden');
     mobKurse.setAttribute('aria-expanded', String(!open));
     mobChev?.classList.toggle('open', !open);
     mobKurse.classList.toggle('active', !open);
@@ -712,9 +716,11 @@ const currentPath = new URL(Astro.request.url).pathname;
   // Close drawer on link click
   mobDrawer?.querySelectorAll('a').forEach(a =>
     a.addEventListener('click', () => {
-      mobDrawer.classList.remove('open');
-      burger.classList.remove('open');
-      document.body.style.overflow = '';
+      if (mobDrawer && burger) {
+        mobDrawer.classList.remove('open');
+        burger.classList.remove('open');
+        document.body.style.overflow = '';
+      }
     })
   );
 </script>
