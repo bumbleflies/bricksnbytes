@@ -2,36 +2,37 @@
 import Layout from "../../layouts/Layout.astro";
 import CTASection from "../../components/CTASection.astro";
 
-export async function getStaticPaths() {
-  // Get all programs for static path generation
-  const programModules = import.meta.glob('../../content/programs/*.yaml', { eager: true });
-  const allPrograms = Object.values(programModules).map((module: any) => module.default);
+import type { CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 
-  return allPrograms.map(program => ({
-    params: { slug: program.slug },
+export async function getStaticPaths() {
+  const programs = await getCollection('programs');
+
+  return programs.map(program => ({
+    params: { slug: program.data.slug },
     props: { program }
   }));
 }
 
 interface Props {
-  program: any;
+  program: CollectionEntry<'programs'>;
 }
 
 const { program } = Astro.props;
 ---
 
-<Layout title={program.name} description={program.description}>
+<Layout title={program.data.name} description={program.data.description}>
   <!-- Hero Section -->
   <section class="program-hero">
-    <img src={program.image} alt={program.name} class="hero-image" />
+    <img src={program.data.image} alt={program.data.name} class="hero-image" />
     <div class="hero-overlay">
       <div class="container">
-        <h1>{program.name}</h1>
+        <h1>{program.data.name}</h1>
         <div class="quick-info">
-          <span>📅 {program.ageGroupDe}</span>
-          <span>⏱️ {program.durationDe}</span>
-          <span>📍 {program.locationDe}</span>
-          <span class="price">{program.price}</span>
+          <span>📅 {program.data.ageGroupDe}</span>
+          <span>⏱️ {program.data.durationDe}</span>
+          <span>📍 {program.data.locationDe}</span>
+          <span class="price">{program.data.price}</span>
         </div>
       </div>
     </div>
@@ -41,13 +42,13 @@ const { program } = Astro.props;
   <section class="container" style="padding: var(--sp-2xl) var(--sp-lg);">
     <h2>Überblick</h2>
     <p style="max-width: 800px; margin: var(--sp-lg) 0; color: var(--ink-soft); line-height: var(--lh-body);">
-      {program.longDescription}
+      {program.data.longDescription}
     </p>
 
     <div style="margin-top: var(--sp-2xl);">
       <h3>Was lernen die Kinder?</h3>
       <ul class="learning-outcomes">
-        {program.whatYouLearn.map(outcome => (
+        {program.data.whatYouLearn?.map((outcome: string) => (
           <li>{outcome}</li>
         ))}
       </ul>
@@ -60,20 +61,20 @@ const { program } = Astro.props;
       <div class="grid-3">
         <div class="detail-box">
           <h4>Kursdetails</h4>
-          <p><strong>Dauer:</strong> {program.durationDe}</p>
-          <p><strong>Alter:</strong> {program.ageGroupDe}</p>
-          <p><strong>Ort:</strong> {program.locationDe}</p>
-          <p><strong>Leiter:</strong> {program.instructor}</p>
-          <p class="price"><strong>Preis:</strong> {program.price}</p>
+          <p><strong>Dauer:</strong> {program.data.durationDe}</p>
+          <p><strong>Alter:</strong> {program.data.ageGroupDe}</p>
+          <p><strong>Ort:</strong> {program.data.locationDe}</p>
+          <p><strong>Leiter:</strong> {program.data.instructor}</p>
+          <p class="price"><strong>Preis:</strong> {program.data.price}</p>
         </div>
         <div class="detail-box">
           <h4>Anforderungen</h4>
-          <p>{program.requirements}</p>
+          <p>{program.data.requirements}</p>
         </div>
         <div class="detail-box">
           <h4>Im Kurs inbegriffen</h4>
           <ul>
-            {program.whatIncluded.map(item => (
+            {program.data.whatIncluded?.map((item: string) => (
               <li>{item}</li>
             ))}
           </ul>
@@ -88,11 +89,11 @@ const { program } = Astro.props;
     <div class="instructor-intro">
       <img
         src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop"
-        alt={program.instructor}
+        alt={program.data.instructor}
         class="instructor-image"
       />
       <div class="instructor-text">
-        <h3>{program.instructor}</h3>
+        <h3>{program.data.instructor}</h3>
         <p class="instructor-title">Programmiertrainerin & Gründerin</p>
         <p>
           Zara ist eine erfahrene Softwareentwicklerin mit 20 Jahren Programmierpraxis. Sie liebt es, Kindern die Freude am Schaffen mit Technologie zu vermitteln — ohne Theorie, mit viel Spaß und realen Werkzeugen.
@@ -107,7 +108,6 @@ const { program } = Astro.props;
     subheading="Schreib uns eine Nachricht und reserviere deinen Platz"
     buttonText="Jetzt anmelden"
     buttonHref="mailto:info@bricksnbytes.de"
-    accentColor="coral"
   />
 </Layout>
 
