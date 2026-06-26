@@ -108,7 +108,7 @@ jobs:
         uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
+          username: dachrisch
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Push Docker image
