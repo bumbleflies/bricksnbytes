@@ -8,10 +8,10 @@ const allPrograms = Object.values(programModules).map((module: any) => module.de
 ---
 
 <Layout title="Alle Kurse" description="Entdecke alle unsere Programmierkurse">
-  <section style="padding: var(--sp-2xl) var(--sp-lg);">
+  <section class="programs-section">
     <div class="container">
       <h1 style="text-align: center; margin-bottom: var(--sp-xl);">Alle unsere Kurse</h1>
-      <div class="grid-3">
+      <div class="grid-3 program-grid">
         {allPrograms.map(program => (
           <ProgramCard
             name={program.name}
@@ -27,3 +27,21 @@ const allPrograms = Object.values(programModules).map((module: any) => module.de
     </div>
   </section>
 </Layout>
+
+<style>
+  .programs-section {
+    padding: var(--sp-2xl) var(--sp-lg);
+  }
+
+  /* Mobile: one card per row so the cards get the full width */
+  @media (max-width: 768px) {
+    .programs-section {
+      padding: var(--sp-xl) 0;
+    }
+
+    .program-grid {
+      grid-template-columns: 1fr;
+      gap: var(--sp-xl);
+    }
+  }
+</style>

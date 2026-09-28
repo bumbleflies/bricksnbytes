@@ -110,7 +110,16 @@ const { name, description, ageGroup, duration, price, image, slug } = Astro.prop
 
   @media (max-width: 768px) {
     .program-card-image {
-      height: 180px;
+      height: 240px;
+    }
+
+    .program-card-content h3 {
+      font-size: var(--fs-h4);
+    }
+
+    .description,
+    .program-meta {
+      font-size: var(--fs-body);
     }
 
     .program-footer {
