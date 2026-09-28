@@ -75,3 +75,39 @@ a {
 a:hover {
   color: var(--coral-deep);
 }
+
+/* Keep anchor targets clear of the sticky floating nav */
+[id] {
+  scroll-margin-top: 110px;
+}
+
+/* Legal pages (Impressum, Datenschutz) */
+.legal {
+  padding-top: var(--sp-2xl);
+  padding-bottom: var(--sp-3xl);
+}
+
+.legal h1 {
+  margin-bottom: var(--sp-lg);
+}
+
+.legal h2 {
+  font-size: var(--fs-h5);
+  margin: var(--sp-xl) 0 var(--sp-sm);
+}
+
+.legal p {
+  color: var(--ink-soft);
+  line-height: var(--lh-body);
+}
+
+.legal a {
+  color: var(--coral-deep);
+}
+
+.legal .todo {
+  background: var(--yellow-soft);
+  border-radius: var(--r-md);
+  padding: var(--sp-md);
+  font-weight: 600;
+}

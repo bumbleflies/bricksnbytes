@@ -1,0 +1,9 @@
+name: Schulprojekttage
+slug: schulprojekttage
+order: 2
+description: 1–3 Tage Programmieren für die ganze Klasse, direkt an eurer Schule
+audience: für Schulklassen
+image: /images/age-groups/jugendkurse.webp
+color: blue
+placeholders:
+  - Schulprojekttag

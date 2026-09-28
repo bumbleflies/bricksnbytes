@@ -1,11 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 
-const ageGroups = await getCollection('ageGroups');
-const sortedGroups = ageGroups.sort((a, b) => {
-  const order = ['green', 'blue', 'orange', 'teal'];
-  return order.indexOf(a.data.color) - order.indexOf(b.data.color);
-});
+const offers = (await getCollection('offers')).sort((a, b) => a.data.order - b.data.order);
 
 const colorMap = {
   green: { blob: '#e8f5e9', age: '#4caf50', cta: '#4caf50', decos: ['left'] },
@@ -23,7 +19,7 @@ const blobRadii = [
 ];
 ---
 
-<section class="age-group-section">
+<section class="offers-section" id="angebote">
   <!-- Floating deco elements -->
   <div class="deco deco-oval deco-g1" style="width:22px;height:30px;background:#4caf50;top:28px;left:6%;"></div>
   <div class="deco deco-dot deco-g2" style="width:18px;height:18px;background:#2196f3;top:18px;left:30%;"></div>
@@ -33,26 +29,30 @@ const blobRadii = [
   <div class="deco deco-dash deco-g6" style="width:28px;height:10px;background:#2196f3;bottom:80px;right:9%;"></div>
 
   <div class="container">
-    <div class="section-tag">Unsere Kurse</div>
-    <h2 class="section-heading">Programmieren nach Altersgruppe</h2>
+    <div class="section-tag">Kurse, Schule &amp; Party</div>
+    <h2 class="section-heading">Unsere Angebote</h2>
+    <p class="section-sub">Für jedes Alter und jeden Anlass das Passende</p>
 
     <div class="card-row">
-      {sortedGroups.map((group, idx) => {
-        const color = group.data.color;
+      {offers.map((offer, idx) => {
+        const color = offer.data.color;
+        const href = `/angebote/${offer.data.slug}`;
         const colors = colorMap[color];
         const radius = blobRadii[idx];
         return (
           <div class="bcard">
             <div class="bcard-blob" style={`background:${colors.blob};border-radius:${radius};`}></div>
             <div class="bcard-photo">
-              <img src={group.data.image} alt={group.data.name} />
+              <img src={offer.data.image} alt="" loading="lazy" />
             </div>
             <div class="bcard-body">
-              <div class="bcard-title">{group.data.name}</div>
-              <div class="bcard-age" style={`color:${colors.age};`}>{group.data.ageRange}</div>
-              <div class="bcard-desc">{group.data.description}</div>
+              <a href={href} class="bcard-title">{offer.data.name}</a>
+              {offer.data.audience && (
+                <div class="bcard-age" style={`color:${colors.age};`}>{offer.data.audience}</div>
+              )}
+              <div class="bcard-desc">{offer.data.description}</div>
             </div>
-            <a href={group.data.href} class="bcard-cta" style={`background:${colors.cta};`}>→</a>
+            <a href={href} class="bcard-cta" style={`background:${colors.cta};`} aria-label={`Mehr zu ${offer.data.name}`}>→</a>
           </div>
         );
       })}
@@ -64,7 +64,7 @@ const blobRadii = [
 </section>
 
 <style>
-  .age-group-section {
+  .offers-section {
     position: relative;
     padding: 64px 32px 130px;
     background: #fff;
@@ -95,7 +95,13 @@ const blobRadii = [
     font-weight: 700;
     text-align: center;
     color: var(--ink);
-    margin-bottom: 48px;
+    margin-bottom: 8px;
+  }
+
+  .section-sub {
+    text-align: center;
+    color: var(--ink-soft);
+    margin: 0 0 40px;
   }
 
   .card-row {
@@ -155,6 +161,8 @@ const blobRadii = [
   }
 
   .bcard-title {
+    display: block;
+    text-decoration: none;
     font-family: 'Fredoka', sans-serif;
     font-size: 1.1rem;
     font-weight: 700;
@@ -249,7 +257,7 @@ const blobRadii = [
       font-size: 1.4rem;
     }
 
-    .age-group-section {
+    .offers-section {
       padding: 48px 20px 110px;
     }
   }
@@ -262,11 +270,11 @@ const blobRadii = [
     }
 
     .bcard {
-      min-width: 160px;
-      max-width: 160px;
+      min-width: 100%;
+      max-width: 280px;
     }
 
-    .age-group-section {
+    .offers-section {
       padding: 40px 16px 90px;
     }
   }

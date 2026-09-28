@@ -1,0 +1,9 @@
+name: Vorschule & Hort
+slug: vorschule-hort
+order: 4
+description: Programmieren spielerisch entdecken – wir kommen in eure Einrichtung
+audience: ab 3 Jahren
+image: /images/age-groups/vorschule.webp
+color: teal
+placeholders:
+  - Programmieren in Kita & Hort

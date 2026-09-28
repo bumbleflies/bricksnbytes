@@ -1,9 +1,12 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import HeroSection from "../components/HeroSection.astro";
-import AgeGroupSection from "../components/AgeGroupSection.astro";
+import OffersSection from "../components/OffersSection.astro";
+import WhoWeAreSection from "../components/WhoWeAreSection.astro";
 import WhySection from "../components/WhySection.astro";
 import CTASection from "../components/CTASection.astro";
+import ContactForm from "../components/ContactForm.astro";
+import { EMAIL_HREF } from "../data/site";
 ---
 
 <Layout title="Home">
@@ -11,8 +14,8 @@ import CTASection from "../components/CTASection.astro";
   <HeroSection
     headline="Programmieren für Kinder — mit Spaß und Kreativität"
     subheading="Lass dein Kind die digitale Welt selbst gestalten, nicht nur nutzen"
-    ctaText="Kurse Entdecken"
-    ctaHref="#age-groups"
+    ctaText="Kurse entdecken"
+    ctaHref="#angebote"
     chips={[
       { label: "LEGO Spike", color: "coral" },
       { label: "Minecraft", color: "blue" },
@@ -22,8 +25,11 @@ import CTASection from "../components/CTASection.astro";
     ]}
   />
 
-  <!-- Age-Group Section -->
-  <AgeGroupSection />
+  <!-- Offers Section -->
+  <OffersSection />
+
+  <!-- Who We Are Section -->
+  <WhoWeAreSection />
 
   <!-- Why BricksnBytes Section -->
   <WhySection />
@@ -33,6 +39,9 @@ import CTASection from "../components/CTASection.astro";
     headline="Bereit loszulegen?"
     subheading="Schreib uns an — wir finden den richtigen Kurs für dein Kind."
     buttonText="Jetzt Kontakt aufnehmen"
-    buttonHref="mailto:info@bricksnbytes.de"
+    buttonHref={EMAIL_HREF}
   />
+
+  <!-- Contact Form -->
+  <ContactForm />
 </Layout>

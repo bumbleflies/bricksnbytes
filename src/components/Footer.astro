@@ -1,0 +1,100 @@
+---
+import { EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF } from '../data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="/" class="footer-logo">Bricksn<b>Bytes</b></a>
+      <p>Programmierkurse für Kinder in München</p>
+    </div>
+
+    <div class="footer-contact">
+      <a href={PHONE_HREF}>{PHONE_DISPLAY}</a>
+      <a href={EMAIL_HREF}>{EMAIL}</a>
+    </div>
+
+    <nav class="footer-links" aria-label="Rechtliches">
+      <a href="/impressum">Impressum</a>
+      <a href="/faq">FAQ</a>
+      <a href="/datenschutz">Datenschutz</a>
+    </nav>
+  </div>
+  <p class="footer-copy">© {year} BricksnBytes</p>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--ink);
+    color: oklch(1 0 0 / 0.8);
+    padding: 40px clamp(20px, 4vw, 48px) 24px;
+    font-size: 0.95rem;
+  }
+
+  .footer-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px 40px;
+  }
+
+  .footer-logo {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 20px;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .footer-logo b {
+    color: var(--coral);
+    font-weight: 600;
+  }
+
+  .footer-brand p {
+    margin: 6px 0 0;
+  }
+
+  .footer-contact,
+  .footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .site-footer a:not(.footer-logo) {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .site-footer a:not(.footer-logo):hover {
+    color: var(--coral);
+    text-decoration: underline;
+  }
+
+  .footer-copy {
+    max-width: 1100px;
+    margin: 32px auto 0;
+    padding-top: 16px;
+    border-top: 1px solid oklch(1 0 0 / 0.15);
+    font-size: 0.85rem;
+    color: oklch(1 0 0 / 0.6);
+  }
+
+  @media (max-width: 768px) {
+    .footer-inner {
+      flex-direction: column;
+    }
+
+    /* Larger tap targets on phones */
+    .footer-contact,
+    .footer-links {
+      gap: 14px;
+    }
+  }
+</style>

@@ -1,0 +1,142 @@
+---
+// "Wer wir sind" — founder intro, placed before "Was uns besonders macht"
+---
+
+<section class="who-section" id="wer-wir-sind">
+  <div class="container">
+    <div class="who-grid">
+      <div class="who-photo">
+        <img
+          src="/images/zara.webp"
+          alt="Zara Martinetti, Gründerin von BricksnBytes"
+          width="800"
+          height="1045"
+          loading="lazy"
+        />
+        <div class="photo-dot"></div>
+      </div>
+
+      <div class="who-text">
+        <h2 class="section-heading">Wer wir sind</h2>
+        <p>
+          Hallo, ich bin Zara – Programmiertrainerin aus München und Gründerin von BricksnBytes.
+          Seit Jahren begleite ich Kinder spielerisch in die Tech-Welt: Sie bauen Roboter mit LEGO SPIKE,
+          programmieren in Minecraft und Scratch und machen erste Schritte mit Python. Bei uns wird gebaut,
+          getüftelt und gefeiert, wenn etwas klappt – in kleinen Gruppen, ganz ohne Vorkenntnisse.
+        </p>
+        <a href="/uber-uns" class="who-link">Mehr über uns →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .who-section {
+    position: relative;
+    padding: 70px 40px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .who-grid {
+    max-width: 860px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  .who-photo {
+    position: relative;
+  }
+
+  .who-photo img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4/5;
+    object-fit: cover;
+    object-position: center top;
+    border-radius: 28px;
+    transform: rotate(2deg);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+    display: block;
+  }
+
+  .photo-dot {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--coral);
+    top: -8px;
+    left: 18px;
+  }
+
+  .section-heading {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 16px;
+  }
+
+  .who-text p {
+    color: var(--ink-soft);
+    line-height: 1.65;
+    margin: 0 0 16px;
+  }
+
+  .who-link {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--coral-deep);
+    text-decoration: none;
+  }
+
+  .who-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Mobile: photo above text */
+  @media (max-width: 768px) {
+    .who-section {
+      padding: 48px 20px;
+    }
+
+    .container {
+      padding: 0 20px;
+    }
+
+    .who-grid {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+
+    .who-photo {
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    .section-heading {
+      font-size: 1.3rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .who-section {
+      padding: 40px 16px;
+    }
+
+    .container {
+      padding: 0 16px;
+    }
+  }
+</style>
