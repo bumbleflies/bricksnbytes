@@ -1,0 +1,14 @@
+page: vorschule-hort
+name: Programmieren in eurer Einrichtung
+order: 1
+bullets:
+  - { icon: users, text: "Ab Vorschulalter" }
+  - { icon: clock, text: "Einzelne Workshops (2–3 Std.) oder regelmäßig" }
+  - { icon: blocks, text: "Intelino Smart Train, LEGO® SPIKE™ Essential, ScratchJr" }
+  - { icon: trophy, text: "Ergebnis: Jedes Kind hat etwas Eigenes geschaffen, Urkunde" }
+includes: Material, Technik, Konzeption, pädagogische Betreuung, individuell auf eure Gruppe abgestimmt
+requestSubject: Anfrage Vorschule & Hort
+preferredImage: /images/angebot-vorschule-hort
+image: /images/age-groups/vorschule.webp
+imageAlt: Kleine Kinder entdecken mit Erwachsenen spielerisch Roboter und Tablets
+color: teal

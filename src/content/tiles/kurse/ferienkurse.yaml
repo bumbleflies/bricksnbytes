@@ -1,0 +1,13 @@
+page: kurse
+name: Ferienkurse
+order: 4
+bullets:
+  - { icon: users, text: "6–14 Jahre" }
+  - { icon: clock, text: "Ein ganzer Ferientag" }
+  - { icon: blocks, text: "LEGO® SPIKE™, Minecraft Education, Python" }
+  - { icon: trophy, text: "Eigene Projekte mit drei Tools" }
+shopUrl: https://shop.bricksnbytes.de/73ps9/
+preferredImage: /images/kurse/kurs-ferienkurse
+image: /images/age-groups/jugendkurse.webp
+imageAlt: Kinder programmieren gemeinsam in einem Kursraum
+color: teal

@@ -1,0 +1,25 @@
+---
+import SubpageLayout from "../layouts/SubpageLayout.astro";
+import TileList from "../components/TileList.astro";
+---
+
+<SubpageLayout
+  title="Geburtstage"
+  intro="Die Party, bei der Roboter mitfeiern – für Kinder von 6 bis 14 Jahren."
+  ctaHeadline="Geburtstag anfragen"
+  ctaText="Schreibt mir Wunschtermin, Alter und Anzahl der Kinder – ich melde mich mit allen Details."
+  ctaMode="request"
+  requestSubject="Anfrage Geburtstag"
+  wide
+>
+  <TileList page="geburtstage" note="Jedes Kind bekommt eine Urkunde, auf Wunsch mit kleinem LEGO-Geschenk." />
+  <p class="tile-note-secondary">Material und Technik bringe ich komplett mit – ihr stellt nur den Raum. Am besten 4–6 Wochen im Voraus anfragen.</p>
+</SubpageLayout>
+
+<style>
+  .tile-note-secondary {
+    max-width: 60ch;
+    margin: 12px auto 0;
+    text-align: center;
+  }
+</style>

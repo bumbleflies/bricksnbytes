@@ -3,13 +3,7 @@ slug: programmierkurse
 order: 1
 description: Wöchentliche Kurse und Ferienkurse mit LEGO SPIKE, Minecraft, Scratch und Python
 audience: 6–16 Jahre
+href: /kurse/
 image: /images/age-groups/mittelschule.webp
 imageAlt: Kinder programmieren gemeinsam an Laptops
 color: green
-programs:
-  - lego-spike
-  - minecraft-edu
-  - scratch-online
-  - python-basics
-  - robotik-advanced
-  - eltern-kind

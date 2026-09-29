@@ -1,0 +1,14 @@
+---
+// Wraps BlobTiles in .tile-grid with the column variant that keeps every row full
+interface Props {
+  count: number;
+  class?: string;
+}
+
+const { count, class: className = '' } = Astro.props;
+const variant = count === 1 ? 'n1' : count === 2 ? 'n2' : count === 3 ? 'n3' : count === 4 ? 'n4' : 'n6';
+---
+
+<div class={`tile-grid tile-grid--${variant} ${className}`}>
+  <slot />
+</div>

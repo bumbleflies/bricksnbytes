@@ -1,8 +1,7 @@
 import { defineConfig } from 'astro/config';
 import yaml from 'yaml';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { readdirSync, readFileSync } from 'fs';
+import { dirname } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -34,20 +33,23 @@ const yamlLoaderPlugin = {
   }
 };
 
-// Old /programs pages now live on /kurse (nginx answers these with a 301 in production;
-// these static redirect pages cover dev, preview and any other static host)
-const programSlugs = readdirSync(join(__dirname, 'src/content/programs'))
-  .filter((f) => f.endsWith('.yaml'))
-  .map((f) => yaml.parse(readFileSync(join(__dirname, 'src/content/programs', f), 'utf-8')).slug);
-const programRedirects = Object.fromEntries([
-  ['/programs', '/kurse'],
-  ['/privacy-policy', '/datenschutz'],
-  ...programSlugs.map((slug) => [`/programs/${slug}`, '/kurse']),
+// Old URLs -> current pages. nginx answers these with a 301 in production (nginx.conf);
+// these static redirect pages cover dev, preview and any other static host.
+const legacyProgramSlugs = ['eltern-kind', 'lego-spike', 'minecraft-edu', 'python-basics', 'robotik-advanced', 'scratch-online'];
+const legacyRedirects = Object.fromEntries([
+  ['/programs', '/kurse/'],
+  ...legacyProgramSlugs.map((slug) => [`/programs/${slug}`, '/kurse/']),
+  ['/privacy-policy', '/datenschutz/'],
+  ['/angebote', '/'],
+  ['/angebote/programmierkurse', '/kurse/'],
+  ['/angebote/schulprojekttage', '/schulprojekttage/'],
+  ['/angebote/geburtstage', '/geburtstage/'],
+  ['/angebote/vorschule-hort', '/vorschule-hort/'],
 ]);
 
 export default defineConfig({
   output: 'static',
-  redirects: programRedirects,
+  redirects: legacyRedirects,
   outDir: 'dist',
   vite: {
     plugins: [yamlLoaderPlugin],

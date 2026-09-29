@@ -16,6 +16,9 @@ interface Props {
   ctaText?: string;
   // Hide the closing contact/booking block (e.g. legal pages)
   showCta?: boolean;
+  // 'booking': shop + e-mail; 'request': e-mail request + link to the contact form
+  ctaMode?: 'booking' | 'request';
+  requestSubject?: string;
 }
 
 const {
@@ -26,7 +29,11 @@ const {
   ctaHeadline = 'Fragen oder Lust auf einen Kurs?',
   ctaText = 'Buche direkt im Shop oder schreib uns – wir beraten dich gern.',
   showCta = true,
+  ctaMode = 'booking',
+  requestSubject = 'Anfrage',
 } = Astro.props;
+
+const requestHref = `${EMAIL_HREF}?subject=${encodeURIComponent(requestSubject)}`;
 ---
 
 <Layout title={title} description={description}>
@@ -41,7 +48,7 @@ const {
     <slot />
   </div>
 
-  {showCta && (
+  {showCta && ctaMode === 'booking' && (
     <CTASection
       headline={ctaHeadline}
       subheading={ctaText}
@@ -50,6 +57,16 @@ const {
       buttonExternal
       secondaryText="Kontakt aufnehmen"
       secondaryHref={EMAIL_HREF}
+    />
+  )}
+  {showCta && ctaMode === 'request' && (
+    <CTASection
+      headline={ctaHeadline}
+      subheading={ctaText}
+      buttonText="Anfrage senden"
+      buttonHref={requestHref}
+      secondaryText="Zum Kontaktformular"
+      secondaryHref="/#kontakt"
     />
   )}
 </Layout>

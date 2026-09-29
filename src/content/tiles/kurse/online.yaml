@@ -1,0 +1,13 @@
+page: kurse
+name: Online-Programmierkurse
+order: 2
+bullets:
+  - { icon: users, text: "Ab 12 Jahren" }
+  - { icon: clock, text: "4 Termine à 60 Min., live über Google Meet" }
+  - { icon: blocks, text: "PictoBlox" }
+  - { icon: trophy, text: "Eigenes Computerspiel, Urkunde" }
+shopUrl: https://shop.bricksnbytes.de/rynml/
+preferredImage: /images/kurse/kurs-online
+image: /images/age-groups/mittelschule.webp
+imageAlt: Jugendliche programmieren an Laptops
+color: blue

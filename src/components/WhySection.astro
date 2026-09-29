@@ -1,5 +1,9 @@
 ---
 // Why BricksnBytes section — hardcoded 3 pillars with photo
+import { pickImage } from '../data/pickImage';
+
+// public/images/besonders.webp replaces the old photo once uploaded
+const photo = pickImage(['/images/besonders.webp'], '/images/age-groups/why-photo.png');
 const pillars = [
   {
     num: '01',
@@ -35,7 +39,7 @@ const colors = ['var(--coral)', '#2196f3', '#26a6a1'];
         <!-- Photo column -->
         <div class="photo-column">
           <div class="photo-wrap">
-            <img src="/images/age-groups/why-photo.png" alt="BricksnBytes children coding" />
+            <img src={photo} alt="Kind baut und programmiert bei BricksnBytes" loading="lazy" />
             <div class="photo-leaf"></div>
             <div class="photo-dot"></div>
           </div>

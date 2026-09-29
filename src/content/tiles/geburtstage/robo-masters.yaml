@@ -1,0 +1,12 @@
+page: geburtstage
+name: Robo Masters
+order: 3
+bullets:
+  - { icon: clock, text: "3 Std." }
+  - { icon: blocks, text: "LEGO® SPIKE™ Prime/Essential oder Minecraft Education" }
+  - { icon: star, text: "Intensives Bauen und Programmieren (für Minecraft etwas mehr Platz für Laptops)" }
+requestSubject: "Anfrage Geburtstag: Robo Masters"
+preferredImage: /images/angebot-geburtstage
+image: /images/age-groups/grundschule.webp
+imageAlt: Kinder feiern Geburtstag und bauen Roboter
+color: teal

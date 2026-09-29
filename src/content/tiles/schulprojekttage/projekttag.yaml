@@ -1,0 +1,14 @@
+page: schulprojekttage
+name: Schulprojekttag
+order: 1
+bullets:
+  - { icon: users, text: "Vorschule und Grundschule" }
+  - { icon: clock, text: "1–3 Projekttage pro Klasse, Gruppen à max. 12 Kinder" }
+  - { icon: blocks, text: "LEGO® SPIKE™, Intelino Smart Train, Scratch" }
+  - { icon: trophy, text: "Ablauf: Logik-Einstieg, Roboter bauen und programmieren, Team-Challenge zum Abschluss, Urkunde für jedes Kind" }
+includes: Material, Technik, Konzeption, Auf- und Abbau, pädagogische Betreuung vor Ort
+requestSubject: Anfrage Schulprojekttag
+preferredImage: /images/angebot-schulprojekttage
+image: /images/age-groups/jugendkurse.webp
+imageAlt: Schulklasse programmiert mit Laptops und Robotik-Sets
+color: blue

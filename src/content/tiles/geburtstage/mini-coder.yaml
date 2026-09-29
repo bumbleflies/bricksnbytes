@@ -1,0 +1,12 @@
+page: geburtstage
+name: Mini Coder
+order: 1
+bullets:
+  - { icon: clock, text: "2 Std." }
+  - { icon: blocks, text: "Intelino Smart Train, ScratchJr oder LEGO® SPIKE™ Essential" }
+  - { icon: star, text: "Spielerischer Einstieg in Logik" }
+requestSubject: "Anfrage Geburtstag: Mini Coder"
+preferredImage: /images/angebot-geburtstage
+image: /images/age-groups/grundschule.webp
+imageAlt: Kinder feiern Geburtstag und bauen Roboter
+color: green

@@ -2,8 +2,7 @@ name: Geburtstage
 slug: geburtstage
 order: 3
 description: Die Party mit Robotern, Zügen oder Minecraft – für bis zu 8 Kinder
+href: /geburtstage/
 image: /images/age-groups/grundschule.webp
 imageAlt: Lachende Kinder bauen bei einer Geburtstagsfeier Roboter aus Bausteinen
 color: orange
-placeholders:
-  - Geburtstagsparty

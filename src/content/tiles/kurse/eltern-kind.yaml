@@ -1,0 +1,13 @@
+page: kurse
+name: Eltern-Kind-Workshop
+order: 5
+bullets:
+  - { icon: users, text: "Ab 4 Jahren mit einem Erwachsenen" }
+  - { icon: clock, text: "Einmalig, 2 Std." }
+  - { icon: blocks, text: "LEGO® SPIKE™" }
+  - { icon: trophy, text: "Gemeinsam gebauter und programmierter Roboter" }
+shopUrl: https://shop.bricksnbytes.de/u8amk/
+preferredImage: /images/kurse/kurs-eltern-kind
+image: /images/age-groups/vorschule.webp
+imageAlt: Eltern und Kinder programmieren gemeinsam Roboter mit Tablets
+color: green

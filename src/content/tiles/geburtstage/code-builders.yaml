@@ -1,0 +1,12 @@
+page: geburtstage
+name: Code Builders
+order: 2
+bullets:
+  - { icon: clock, text: "2,5 Std." }
+  - { icon: blocks, text: "LEGO® SPIKE™ Essential oder Scratch" }
+  - { icon: star, text: "Erstes eigenes Spiel oder Modell" }
+requestSubject: "Anfrage Geburtstag: Code Builders"
+preferredImage: /images/angebot-geburtstage
+image: /images/age-groups/grundschule.webp
+imageAlt: Kinder feiern Geburtstag und bauen Roboter
+color: orange

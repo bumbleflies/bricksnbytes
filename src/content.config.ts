@@ -1,29 +1,6 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
-const programs = defineCollection({
-  loader: glob({ pattern: '**/*.yaml', base: './src/content/programs' }),
-  schema: z.object({
-    name: z.string(),
-    slug: z.string(),
-    description: z.string(),
-    longDescription: z.string(),
-    ageGroup: z.string(),
-    ageGroupDe: z.string(),
-    duration: z.string(),
-    durationDe: z.string(),
-    price: z.number(),
-    location: z.string(),
-    locationDe: z.string(),
-    instructor: z.string(),
-    image: z.string(),
-    featured: z.boolean().default(false),
-    whatYouLearn: z.array(z.string()).optional(),
-    requirements: z.array(z.string()).optional(),
-    whatIncluded: z.array(z.string()).optional(),
-  }),
-});
-
 const offers = defineCollection({
   loader: glob({ pattern: '**/*.yaml', base: './src/content/offers' }),
   schema: z.object({
@@ -32,30 +9,41 @@ const offers = defineCollection({
     order: z.number(),
     description: z.string(),
     audience: z.string().optional(),
-    // Fallback image; public/images/angebote/angebot-<slug>.webp wins when present
-    image: z.string(),
-    imageAlt: z.string(),
-    color: z.enum(['green', 'blue', 'orange', 'teal']),
-    // Slugs of existing program pages shown as course tiles
-    programs: z.array(z.string()).default([]),
-    // Titles of "Beschreibung folgt" tiles until real courses exist
-    placeholders: z.array(z.string()).default([]),
-  }),
-});
-
-// Course tiles on /kurse; dates and prices live in the shop, not here
-const courses = defineCollection({
-  loader: glob({ pattern: '**/*.yaml', base: './src/content/courses' }),
-  schema: z.object({
-    name: z.string(),
-    order: z.number(),
-    age: z.string().optional(),
-    description: z.string(),
-    shopUrl: z.url(),
+    // Offer page the home tile links to
+    href: z.string(),
+    // Fallback image; public/images/angebot-<slug>.(webp|svg|…) wins when present
     image: z.string(),
     imageAlt: z.string(),
     color: z.enum(['green', 'blue', 'orange', 'teal']),
   }),
 });
 
-export const collections = { programs, offers, courses };
+const icon = z.enum(['users', 'clock', 'blocks', 'trophy', 'star', 'check']);
+
+// Tiles on /kurse and the request-only offer pages; dates and prices live in the shop
+const tiles = defineCollection({
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/tiles' }),
+  schema: z
+    .object({
+      page: z.enum(['kurse', 'schulprojekttage', 'geburtstage', 'vorschule-hort']),
+      name: z.string(),
+      order: z.number(),
+      bullets: z.array(z.object({ icon, text: z.string() })),
+      // Optional "Inklusive: …" line
+      includes: z.string().optional(),
+      // Booked in the shop …
+      shopUrl: z.url().optional(),
+      // … or requested by e-mail with this subject
+      requestSubject: z.string().optional(),
+      // New photo without extension (e.g. /images/kurse/kurs-online); `image` is the fallback
+      preferredImage: z.string().optional(),
+      image: z.string(),
+      imageAlt: z.string(),
+      color: z.enum(['green', 'blue', 'orange', 'teal']),
+    })
+    .refine((t) => Boolean(t.shopUrl) !== Boolean(t.requestSubject), {
+      message: 'A tile needs exactly one of shopUrl or requestSubject',
+    }),
+});
+
+export const collections = { offers, tiles };

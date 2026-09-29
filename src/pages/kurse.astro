@@ -1,40 +1,13 @@
 ---
 import SubpageLayout from "../layouts/SubpageLayout.astro";
-import BlobTile from "../components/BlobTile.astro";
-import { getCollection } from 'astro:content';
-
-// Tiles are maintained in src/content/courses/*.yaml
-const courses = (await getCollection('courses')).sort((a, b) => a.data.order - b.data.order);
+import TileList from "../components/TileList.astro";
 ---
 
 <SubpageLayout
   title="Kurse"
-  intro="Hier findest du alle aktuellen Kurse und Workshops. Termine, Preise und Anmeldung findest du direkt im Buchungsbereich."
+  intro="Alle aktuellen Kurse auf einen Blick. Termine, Preise und Anmeldung findet ihr im Shop."
   description="Alle aktuellen Programmierkurse und Workshops von BricksnBytes in München – Termine und Tickets im Shop."
   wide
 >
-  <div class="tile-row course-row">
-    {courses.map((course, idx) => (
-      <BlobTile
-        title={course.data.name}
-        age={course.data.age}
-        description={course.data.description}
-        image={course.data.image}
-        imageAlt={course.data.imageAlt}
-        color={course.data.color}
-        index={idx}
-        ctaLabel="Termine & Tickets"
-        ctaHref={course.data.shopUrl}
-      />
-    ))}
-  </div>
+  <TileList page="kurse" note="Alle Kurse: max. 8 Kinder, keine Vorkenntnisse nötig (außer Game Design)." />
 </SubpageLayout>
-
-<style>
-  /* Three tiles per row on desktop (3 + 3 instead of 4 + 2) */
-  .course-row {
-    max-width: 720px;
-    padding-top: 16px;
-    row-gap: 36px;
-  }
-</style>

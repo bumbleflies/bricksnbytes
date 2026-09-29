@@ -1,5 +1,6 @@
 ---
 import { SHOP_URL, PHONE_HREF } from '../data/site';
+import Icon from './Icon.astro';
 
 interface Props {
   lang?: 'de' | 'en';
@@ -7,15 +8,8 @@ interface Props {
 
 const { lang = 'de' } = Astro.props;
 
-const navItems = [
-  { label: lang === 'de' ? 'Kurse' : 'Courses', href: '/kurse' },
-];
-
 const ctaLabel = lang === 'de' ? 'Kurs buchen' : 'Book Course';
 const phoneLabel = lang === 'de' ? 'Anrufen' : 'Call';
-
-// Detect current page for active state
-const currentPath = new URL(Astro.request.url).pathname.replace(/\/$/, '') || '/';
 ---
 
 <div class="nav-outer">
@@ -25,37 +19,14 @@ const currentPath = new URL(Astro.request.url).pathname.replace(/\/$/, '') || '/
       <span class="logo-word">Bricksn<b>Bytes</b></span>
     </a>
 
-    <div class="nav-links">
-      {navItems.map((item) => {
-        const isActive = currentPath === item.href;
-        return (
-          <a
-            href={item.href}
-            class={`nav-link ${isActive ? 'active' : ''}`}
-            {...(isActive && { 'aria-current': 'page' })}
-          >
-            {item.label}
-          </a>
-        );
-      })}
-    </div>
-
     <!-- Text buttons on desktop, icon-only (Lucide) on mobile -->
     <div class="nav-right">
       <a href={PHONE_HREF} class="cta-ghost" aria-label={phoneLabel}>
-        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-        </svg>
+        <Icon name="phone" size={22} class="icon" />
         <span class="btn-label">{phoneLabel}</span>
       </a>
       <a href={SHOP_URL} target="_blank" rel="noopener noreferrer" class="cta" aria-label={ctaLabel}>
-        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M8 2v4" />
-          <path d="M16 2v4" />
-          <rect width="18" height="18" x="3" y="4" rx="2" />
-          <path d="M3 10h18" />
-          <path d="m9 16 2 2 4-4" />
-        </svg>
+        <Icon name="calendar-check" size={22} class="icon" />
         <span class="btn-label">{ctaLabel}</span>
       </a>
     </div>
@@ -139,42 +110,6 @@ const currentPath = new URL(Astro.request.url).pathname.replace(/\/$/, '') || '/
     font-weight: 600;
   }
 
-  /* Nav links */
-  .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: 6px;
-  }
-
-  .nav-link {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 14.5px;
-    color: var(--ink);
-    text-decoration: none;
-    padding: 9px 15px;
-    border-radius: var(--r-pill);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: background var(--transition-fast), color var(--transition-fast);
-    white-space: nowrap;
-  }
-
-  .nav-link:hover {
-    background: oklch(1 0 0 / .75);
-    color: var(--ink);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .nav-link:active,
-  .nav-link.active {
-    background: var(--coral-soft);
-    color: var(--coral-deep);
-  }
-
-  .nav-link:focus-visible,
   .cta:focus-visible,
   .cta-ghost:focus-visible {
     outline: 3px solid var(--coral);
@@ -230,7 +165,7 @@ const currentPath = new URL(Astro.request.url).pathname.replace(/\/$/, '') || '/
     box-shadow: var(--shadow-sm);
   }
 
-  .icon {
+  .nav-right :global(.icon) {
     display: none;
     flex-shrink: 0;
   }
@@ -239,16 +174,6 @@ const currentPath = new URL(Astro.request.url).pathname.replace(/\/$/, '') || '/
     .nav-pill {
       gap: 8px;
       padding: 8px 8px 8px 12px;
-    }
-
-    .nav-links {
-      margin-left: 0;
-    }
-
-    .nav-link {
-      padding: 10px 12px;
-      min-height: 44px;
-      box-sizing: border-box;
     }
 
     .nav-right {
@@ -263,7 +188,7 @@ const currentPath = new URL(Astro.request.url).pathname.replace(/\/$/, '') || '/
       box-sizing: border-box;
     }
 
-    .icon {
+    .nav-right :global(.icon) {
       display: block;
     }
 
@@ -286,8 +211,7 @@ const currentPath = new URL(Astro.request.url).pathname.replace(/\/$/, '') || '/
   @media (prefers-reduced-motion: reduce) {
     .nav-pill,
     .nav-outer,
-    .cta,
-    .nav-link {
+    .cta {
       transition: none;
       animation: none;
     }

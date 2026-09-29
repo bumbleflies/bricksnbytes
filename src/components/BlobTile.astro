@@ -1,21 +1,33 @@
 ---
-// Tile with photo on an organic colour blob — used for offers (home) and courses (/kurse)
+// Tile with photo on an organic colour blob — offers (home), courses (/kurse) and
+// request-only offer pages
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
+
 interface Props {
   title: string;
-  description: string;
   image: string;
   imageAlt: string;
   color: 'green' | 'blue' | 'orange' | 'teal';
   index?: number;
   age?: string;
+  description?: string;
+  // Short facts with a small icon each (replaces the description)
+  bullets?: { icon: IconName; text: string }[];
+  includes?: string;
   // Title link and round arrow button (offers)
   href?: string;
-  // Labelled button instead of the arrow (courses), opened in a new tab
+  // Labelled button instead of the arrow
   ctaLabel?: string;
   ctaHref?: string;
+  // Open the button in a new tab (shop links)
+  ctaExternal?: boolean;
 }
 
-const { title, description, image, imageAlt, color, index = 0, age, href, ctaLabel, ctaHref } = Astro.props;
+const {
+  title, image, imageAlt, color, index = 0, age, description, bullets, includes,
+  href, ctaLabel, ctaHref, ctaExternal = false,
+} = Astro.props;
 
 const colorMap = {
   green: { blob: '#e8f5e9', age: '#2e7d32', cta: '#4caf50' },
@@ -33,10 +45,13 @@ const blobRadii = [
 ];
 
 const colors = colorMap[color];
-const radius = blobRadii[index % blobRadii.length];
+// Bullet lists are left-aligned and taller, so they get a softer shape that keeps text inside
+const radius = bullets ? '36px 44px 40px 48px' : blobRadii[index % blobRadii.length];
+const external = ctaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+const ctaAria = `${ctaLabel}: ${title}${ctaExternal ? ' (öffnet in neuem Tab)' : ''}`;
 ---
 
-<div class="bcard">
+<div class={`bcard ${bullets ? 'has-bullets' : ''}`}>
   <div class="bcard-blob" style={`background:${colors.blob};border-radius:${radius};`}></div>
   <div class="bcard-photo">
     <img src={image} alt={imageAlt} loading="lazy" />
@@ -44,17 +59,23 @@ const radius = blobRadii[index % blobRadii.length];
   <div class={`bcard-body ${ctaLabel ? 'has-button' : ''}`}>
     {href ? <a href={href} class="bcard-title">{title}</a> : <h3 class="bcard-title">{title}</h3>}
     {age && <div class="bcard-age" style={`color:${colors.age};`}>{age}</div>}
-    <div class="bcard-desc">{description}</div>
+    {description && <div class="bcard-desc">{description}</div>}
+    {bullets && (
+      <ul class="bcard-bullets">
+        {bullets.map((b) => (
+          <li>
+            <span class="bullet-icon" style={`color:${colors.age};`}><Icon name={b.icon} size={16} /></span>
+            <span>{b.text}</span>
+          </li>
+        ))}
+      </ul>
+    )}
+    {includes && (
+      <p class="bcard-includes"><strong>Inklusive:</strong> {includes}</p>
+    )}
   </div>
   {ctaLabel && ctaHref ? (
-    <a
-      href={ctaHref}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="bcard-button"
-      style={`background:${colors.cta};`}
-      aria-label={`${ctaLabel}: ${title} (öffnet in neuem Tab)`}
-    >
+    <a href={ctaHref} class="bcard-button" style={`background:${colors.cta};`} aria-label={ctaAria} {...external}>
       {ctaLabel}
     </a>
   ) : href && (
@@ -65,9 +86,7 @@ const radius = blobRadii[index % blobRadii.length];
 <style>
   .bcard {
     position: relative;
-    flex: 1;
-    min-width: 190px;
-    max-width: 215px;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -188,5 +207,44 @@ const radius = blobRadii[index % blobRadii.length];
 
   .bcard-button:hover {
     transform: translateX(-50%) translateY(-2px);
+  }
+
+  .bcard-bullets {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0 6px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .bcard-bullets li {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    gap: 8px;
+    align-items: start;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+
+  .bullet-icon {
+    display: flex;
+    padding-top: 1px;
+  }
+
+  .bcard-includes {
+    margin: 12px 0 0;
+    padding: 0 6px;
+    text-align: left;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+
+  .has-bullets .bcard-body {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 </style>
