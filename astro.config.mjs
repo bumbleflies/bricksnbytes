@@ -41,6 +41,7 @@ const programSlugs = readdirSync(join(__dirname, 'src/content/programs'))
   .map((f) => yaml.parse(readFileSync(join(__dirname, 'src/content/programs', f), 'utf-8')).slug);
 const programRedirects = Object.fromEntries([
   ['/programs', '/kurse'],
+  ['/privacy-policy', '/datenschutz'],
   ...programSlugs.map((slug) => [`/programs/${slug}`, '/kurse']),
 ]);
 
