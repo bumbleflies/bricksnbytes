@@ -1,0 +1,316 @@
+---
+// Contact form — posts JSON to /api/contact (mailer/server.mjs behind nginx)
+import { EMAIL, EMAIL_HREF } from '../data/site';
+---
+
+<section class="contact-section" id="kontakt">
+  <div class="container">
+    <div class="contact-card">
+      <h2 class="section-heading">Schreib uns eine Nachricht</h2>
+      <p class="contact-intro">
+        Oder direkt per E-Mail an <a href={EMAIL_HREF}>{EMAIL}</a>.
+      </p>
+
+      <form class="contact-form" action="/api/contact" method="post" novalidate>
+        <div class="field">
+          <label for="cf-name">Name <span aria-hidden="true">*</span></label>
+          <input id="cf-name" name="name" type="text" autocomplete="name" maxlength="100" required aria-describedby="cf-name-err" />
+          <p class="field-error" id="cf-name-err" data-error-for="name"></p>
+        </div>
+
+        <div class="field">
+          <label for="cf-email">E-Mail <span aria-hidden="true">*</span></label>
+          <input id="cf-email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="cf-email-err" />
+          <p class="field-error" id="cf-email-err" data-error-for="email"></p>
+        </div>
+
+        <div class="field">
+          <label for="cf-message">Nachricht <span aria-hidden="true">*</span></label>
+          <textarea id="cf-message" name="message" rows="5" maxlength="5000" required aria-describedby="cf-message-err"></textarea>
+          <p class="field-error" id="cf-message-err" data-error-for="message"></p>
+        </div>
+
+        <!-- Honeypot: hidden from people, bots tend to fill it -->
+        <div class="hp" aria-hidden="true">
+          <label for="cf-website">Website</label>
+          <input id="cf-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <div class="field field-check">
+          <input id="cf-privacy" name="privacy" type="checkbox" required aria-describedby="cf-privacy-err" />
+          <label for="cf-privacy">
+            Ich habe die <a href="/datenschutz" target="_blank" rel="noopener">Datenschutzerklärung</a> gelesen. <span aria-hidden="true">*</span>
+          </label>
+          <p class="field-error" id="cf-privacy-err" data-error-for="privacy"></p>
+        </div>
+
+        <button type="submit" class="submit-btn">Nachricht senden</button>
+        <p class="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact-section {
+    padding: 0 40px 80px;
+    background: #fff;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .contact-card {
+    max-width: 620px;
+    margin: 0 auto;
+    background: var(--cream);
+    border-radius: 28px;
+    padding: 36px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .section-heading {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 8px;
+  }
+
+  .contact-intro {
+    color: var(--ink-soft);
+    margin: 0 0 24px;
+  }
+
+  .contact-intro a,
+  .field-check a {
+    color: var(--coral-deep);
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .field input[type="text"],
+  .field input[type="email"],
+  .field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    font: inherit;
+    font-size: 16px; /* avoids iOS zoom on focus */
+    padding: 12px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+    color: var(--ink);
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .field input:focus-visible,
+  .field textarea:focus-visible {
+    outline: 3px solid var(--coral-soft);
+    border-color: var(--coral);
+  }
+
+  .field input[aria-invalid="true"],
+  .field textarea[aria-invalid="true"] {
+    border-color: oklch(0.58 0.2 25);
+  }
+
+  .field-check {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 10px;
+    align-items: start;
+  }
+
+  .field-check input {
+    width: 20px;
+    height: 20px;
+    margin: 2px 0 0;
+    accent-color: var(--coral);
+  }
+
+  .field-check label {
+    font-family: inherit;
+    font-weight: 400;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .field-check .field-error {
+    grid-column: 2;
+  }
+
+  .field-error {
+    color: oklch(0.52 0.2 25);
+    font-size: 0.85rem;
+    margin: 4px 0 0;
+    min-height: 0;
+  }
+
+  .field-error:empty {
+    display: none;
+  }
+
+  .hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .submit-btn {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    background: var(--coral);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    padding: 13px 28px;
+    border-radius: var(--r-pill);
+    box-shadow: 0 6px 16px -6px var(--coral-deep);
+    margin-top: 8px;
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .form-status {
+    margin: 16px 0 0;
+    font-weight: 600;
+  }
+
+  .form-status:empty {
+    display: none;
+  }
+
+  .form-status.success {
+    color: oklch(0.5 0.12 150);
+  }
+
+  .form-status.error {
+    color: oklch(0.52 0.2 25);
+  }
+
+  @media (max-width: 768px) {
+    .contact-section {
+      padding: 0 16px 56px;
+    }
+
+    .contact-card {
+      padding: 24px 20px;
+      border-radius: 22px;
+    }
+
+    .section-heading {
+      font-size: 1.3rem;
+    }
+
+    .submit-btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('.contact-form');
+  const statusEl = form?.querySelector<HTMLElement>('.form-status');
+  const submitBtn = form?.querySelector<HTMLButtonElement>('.submit-btn');
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const messages: Record<string, string> = {
+    name: 'Bitte gib deinen Namen an.',
+    email: 'Bitte gib eine gültige E-Mail-Adresse an.',
+    message: 'Bitte schreib uns eine Nachricht.',
+    privacy: 'Bitte bestätige, dass du die Datenschutzerklärung gelesen hast.',
+  };
+
+  function setStatus(text: string, kind: 'success' | 'error' | '') {
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.className = `form-status ${kind}`;
+  }
+
+  function showErrors(errors: Record<string, string>) {
+    if (!form) return;
+    form.querySelectorAll<HTMLElement>('[data-error-for]').forEach((el) => {
+      const field = el.dataset.errorFor!;
+      el.textContent = errors[field] ?? '';
+      const input = form.elements.namedItem(field);
+      if (input instanceof HTMLElement) input.setAttribute('aria-invalid', String(Boolean(errors[field])));
+    });
+    const first = Object.keys(errors)[0];
+    if (first) (form.elements.namedItem(first) as HTMLElement | null)?.focus();
+  }
+
+  function validate(data: FormData): Record<string, string> {
+    const errors: Record<string, string> = {};
+    if (!String(data.get('name') ?? '').trim()) errors.name = messages.name;
+    if (!EMAIL_RE.test(String(data.get('email') ?? '').trim())) errors.email = messages.email;
+    if (!String(data.get('message') ?? '').trim()) errors.message = messages.message;
+    if (!data.get('privacy')) errors.privacy = messages.privacy;
+    return errors;
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const errors = validate(data);
+    showErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setStatus('', '');
+      return;
+    }
+
+    if (submitBtn) submitBtn.disabled = true;
+    setStatus('Wird gesendet …', '');
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          name: data.get('name'),
+          email: data.get('email'),
+          message: data.get('message'),
+          privacy: Boolean(data.get('privacy')),
+          website: data.get('website'),
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (res.ok && body?.ok) {
+        form.reset();
+        showErrors({});
+        setStatus('Danke! Deine Nachricht ist angekommen.', 'success');
+      } else {
+        if (body?.fields) showErrors(body.fields);
+        setStatus(
+          body?.error ?? 'Deine Nachricht konnte nicht gesendet werden. Bitte versuch es später noch einmal oder schreib an info@bricksnbytes.de.',
+          'error'
+        );
+      }
+    } catch {
+      setStatus('Keine Verbindung zum Server. Bitte prüfe deine Internetverbindung oder schreib an info@bricksnbytes.de.', 'error');
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+</script>

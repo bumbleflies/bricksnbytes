@@ -1,0 +1,8 @@
+name: Geburtstage
+slug: geburtstage
+order: 3
+description: Die Party mit Robotern, Zügen oder Minecraft – für bis zu 8 Kinder
+image: /images/age-groups/grundschule.webp
+color: orange
+placeholders:
+  - Geburtstagsparty

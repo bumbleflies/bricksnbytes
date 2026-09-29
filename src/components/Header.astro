@@ -1,35 +1,23 @@
 ---
+import { getCollection } from 'astro:content';
+import { SHOP_URL, PHONE_HREF } from '../data/site';
+
 interface Props {
   lang?: 'de' | 'en';
 }
 
 const { lang = 'de' } = Astro.props;
 
-const navItems = lang === 'de'
-  ? [
-      { label: 'Über uns', href: '/uber-uns' },
-      { label: 'Kurse', href: '/kurse', isKurse: true },
-      { label: 'Coding Blog', href: '/blog' },
-      { label: 'Kontakt', href: 'mailto:info@bricksnbytes.de' },
-      { label: 'FAQ', href: '/faq' },
-    ]
-  : [
-      { label: 'About', href: '/about' },
-      { label: 'Courses', href: '/courses', isKurse: true },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Contact', href: 'mailto:info@bricksnbytes.de' },
-      { label: 'FAQ', href: '/faq' },
-    ];
+const navItems = [
+  { label: lang === 'de' ? 'Kurse' : 'Courses', href: '/#angebote', isKurse: true },
+];
 
-// Load programs for mega-menu
-const programModules = import.meta.glob('../content/programs/*.yaml', { eager: true });
-const programs = Object.values(programModules)
-  .map((m: any) => m.default)
-  .sort((a, b) => a.name.localeCompare(b.name));
+// Offer categories for the mega-menu and mobile drawer
+const offers = (await getCollection('offers')).sort((a, b) => a.data.order - b.data.order);
 
 const ctaLabel = lang === 'de' ? 'Kurs buchen' : 'Book Course';
 const phoneLabel = lang === 'de' ? 'Anrufen' : 'Call';
-const phoneHref = 'tel:+49123456789';
+const shopAttrs = { href: SHOP_URL, target: '_blank', rel: 'noopener noreferrer' };
 
 // Detect current page for active state
 const currentPath = new URL(Astro.request.url).pathname;
@@ -71,10 +59,10 @@ const currentPath = new URL(Astro.request.url).pathname;
     </div>
 
     <div class="nav-right">
-      <a href={phoneHref} class="cta-ghost">
+      <a href={PHONE_HREF} class="cta-ghost">
         {phoneLabel}
       </a>
-      <a href="#booking" class="cta">
+      <a {...shopAttrs} class="cta">
         {ctaLabel}
       </a>
     </div>
@@ -89,19 +77,21 @@ const currentPath = new URL(Astro.request.url).pathname;
   <div class="mega-wrap" id="kurse-mega" role="region" aria-label="Kursübersicht" hidden>
     <div class="mega">
       <div class="mega-head">
-        <span class="mega-title">Unsere Kurse</span>
-        <a href="/programs" class="mega-all">Alle Kurse ansehen →</a>
+        <span class="mega-title">Unsere Angebote</span>
+        <a href="/#angebote" class="mega-all">Alle Angebote ansehen →</a>
       </div>
       <div class="mega-grid">
-        {programs.map((p: any) => (
-          <a href={`/programs/${p.slug}`} class="mcard">
-            <div class="mthumb ph" style="background-color: var(--coral-soft)"></div>
+        {offers.map((o) => (
+          <a href={`/angebote/${o.data.slug}`} class="mcard">
+            <div class="mthumb"><img src={o.data.image} alt="" loading="lazy" /></div>
             <div>
-              <div class="mt">{p.name}</div>
-              <div class="md">{p.description.substring(0, 60)}…</div>
-              <span class="age" style="background: var(--coral-soft); color: var(--coral-deep)">
-                {p.ageGroupDe}
-              </span>
+              <div class="mt">{o.data.name}</div>
+              <div class="md">{o.data.description}</div>
+              {o.data.audience && (
+                <span class="age" style="background: var(--coral-soft); color: var(--coral-deep)">
+                  {o.data.audience}
+                </span>
+              )}
             </div>
           </a>
         ))}
@@ -112,33 +102,30 @@ const currentPath = new URL(Astro.request.url).pathname;
   <!-- Full-page mobile drawer -->
   <div class="mob-drawer" id="mobile-drawer" aria-hidden="true">
     <div class="mob-inner">
-      <nav class="mob-nav">
-        <a class="mob-link" href="/uber-uns">Über uns</a>
-
+      <nav class="mob-nav" aria-label="Mobiles Menü">
         <!-- Kurse as accordion -->
-        <button class="mob-link mob-kurse" aria-expanded="false">
+        <button class="mob-link mob-kurse" aria-expanded="false" aria-controls="mob-sub">
           Kurse <span class="chev"></span>
         </button>
-        <div class="mob-sub" hidden>
-          {programs.slice(0, 5).map((p: any) => (
-            <a href={`/programs/${p.slug}`} class="mob-sub-link">
+        <div class="mob-sub" id="mob-sub" hidden>
+          {offers.map((o) => (
+            <a href={`/angebote/${o.data.slug}`} class="mob-sub-link">
               <span class="sub-dot" style="background: var(--coral-soft)"></span>
-              <span>{p.name}</span>
-              <span class="age" style="background: var(--coral-soft); color: var(--coral-deep)">{p.ageGroupDe}</span>
+              <span>{o.data.name}</span>
+              {o.data.audience && (
+                <span class="age" style="background: var(--coral-soft); color: var(--coral-deep)">{o.data.audience}</span>
+              )}
             </a>
           ))}
-          <a href="/programs" class="mob-sub-all">Alle Kurse ansehen →</a>
+          <a href="/#angebote" class="mob-sub-all">Alle Angebote ansehen →</a>
         </div>
-
-        <a class="mob-link" href="/blog">Coding Blog</a>
-        <a class="mob-link" href="mailto:info@bricksnbytes.de">Kontakt</a>
-        <a class="mob-link" href="/faq">FAQ</a>
       </nav>
+      <a class="mob-link mob-phone" href={PHONE_HREF}>{phoneLabel}</a>
     </div>
 
     <!-- Sticky CTA strip at bottom -->
     <div class="mob-cta-strip">
-      <a class="cta mob-cta" href="#booking">Kurs buchen</a>
+      <a class="cta mob-cta" {...shopAttrs}>{ctaLabel}</a>
     </div>
   </div>
 </div>
@@ -156,6 +143,9 @@ const currentPath = new URL(Astro.request.url).pathname;
   }
 
   .nav-pill {
+    /* Stays above the open mobile drawer so the burger can close it */
+    position: relative;
+    z-index: 201;
     display: flex;
     align-items: center;
     gap: 22px;
@@ -332,9 +322,11 @@ const currentPath = new URL(Astro.request.url).pathname;
   /* Mega-menu */
   .mega-wrap {
     position: absolute;
-    top: 10px;
+    top: 100%;
+    padding-top: 8px; /* hover bridge between pill and menu */
     left: 120px;
     z-index: 99;
+    pointer-events: auto; /* .nav-outer disables pointer events for its gaps */
     animation: bbpop 0.16s ease-out;
   }
 
@@ -417,6 +409,14 @@ const currentPath = new URL(Astro.request.url).pathname;
     border-radius: 12px;
     flex: none;
     overflow: hidden;
+    background: var(--coral-soft);
+  }
+
+  .mthumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .mt {
@@ -470,7 +470,7 @@ const currentPath = new URL(Astro.request.url).pathname;
   }
 
   .burger.open i:nth-child(1) {
-    transform: rotate(45deg) translate(1px, 3px);
+    transform: translateY(7.4px) rotate(45deg);
   }
 
   .burger.open i:nth-child(2) {
@@ -478,7 +478,7 @@ const currentPath = new URL(Astro.request.url).pathname;
   }
 
   .burger.open i:nth-child(3) {
-    transform: rotate(-45deg) translate(1px, -3px);
+    transform: translateY(-7.4px) rotate(-45deg);
   }
 
   /* Mobile drawer overlay */
@@ -489,6 +489,7 @@ const currentPath = new URL(Astro.request.url).pathname;
     z-index: 200;
     background: var(--paper);
     flex-direction: column;
+    pointer-events: auto; /* .nav-outer disables pointer events for its gaps */
   }
 
   .mob-drawer.open {
@@ -499,7 +500,7 @@ const currentPath = new URL(Astro.request.url).pathname;
   .mob-inner {
     flex: 1;
     overflow-y: auto;
-    padding: 18px;
+    padding: 110px 18px 18px; /* clear the floating nav pill */
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -698,6 +699,7 @@ const currentPath = new URL(Astro.request.url).pathname;
     mobDrawer.classList.toggle('open');
     burger.classList.toggle('open');
     burger.setAttribute('aria-expanded', String(opening));
+    burger.setAttribute('aria-label', opening ? 'Menü schließen' : 'Menü öffnen');
     mobDrawer.setAttribute('aria-hidden', String(!opening));
     document.body.style.overflow = opening ? 'hidden' : '';
   }
@@ -706,8 +708,8 @@ const currentPath = new URL(Astro.request.url).pathname;
 
   mobKurse?.addEventListener('click', () => {
     if (!mobSub || !mobKurse) return;
-    const open = !mobSub.classList.contains('hidden');
-    mobSub.classList.toggle('hidden');
+    const open = !(mobSub as HTMLElement).hidden;
+    (mobSub as HTMLElement).hidden = open;
     mobKurse.setAttribute('aria-expanded', String(!open));
     mobChev?.classList.toggle('open', !open);
     mobKurse.classList.toggle('active', !open);
@@ -716,11 +718,7 @@ const currentPath = new URL(Astro.request.url).pathname;
   // Close drawer on link click
   mobDrawer?.querySelectorAll('a').forEach(a =>
     a.addEventListener('click', () => {
-      if (mobDrawer && burger) {
-        mobDrawer.classList.remove('open');
-        burger.classList.remove('open');
-        document.body.style.overflow = '';
-      }
+      if (mobDrawer?.classList.contains('open')) toggleDrawer();
     })
   );
 </script>

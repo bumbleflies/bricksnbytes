@@ -38,6 +38,10 @@ export default defineConfig({
   outDir: 'dist',
   vite: {
     plugins: [yamlLoaderPlugin],
+    // `npm run dev`: forward the contact form to a local mailer (cd mailer && npm run dev)
+    server: {
+      proxy: { '/api/contact': 'http://127.0.0.1:3001' },
+    },
     ssr: {
       external: []
     }

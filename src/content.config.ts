@@ -24,16 +24,21 @@ const programs = defineCollection({
   }),
 });
 
-const ageGroups = defineCollection({
-  loader: glob({ pattern: '**/*.yaml', base: './src/content/age-groups' }),
+const offers = defineCollection({
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/offers' }),
   schema: z.object({
     name: z.string(),
-    ageRange: z.string(),
+    slug: z.string(),
+    order: z.number(),
     description: z.string(),
+    audience: z.string().optional(),
     image: z.string(),
     color: z.enum(['green', 'blue', 'orange', 'teal']),
-    href: z.string(),
+    // Slugs of existing program pages shown as course tiles
+    programs: z.array(z.string()).default([]),
+    // Titles of "Beschreibung folgt" tiles until real courses exist
+    placeholders: z.array(z.string()).default([]),
   }),
 });
 
-export const collections = { programs, ageGroups };
+export const collections = { programs, offers };

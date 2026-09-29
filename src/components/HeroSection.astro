@@ -6,6 +6,7 @@ interface Props {
   ctaHref: string;
   chips?: { label: string; color: "coral" | "blue" | "teal" | "yellow" }[];
   imageSrc?: string;
+  imageAlt?: string;
 }
 
 const {
@@ -14,7 +15,8 @@ const {
   ctaText,
   ctaHref,
   chips = [],
-  imageSrc = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&h=400&fit=crop'
+  imageSrc = '/images/hero-roboter.svg',
+  imageAlt = 'Freundlicher Roboter aus Bausteinen neben bunten Programmierblöcken'
 } = Astro.props;
 
 const chipColors = {
@@ -57,7 +59,7 @@ const chipColors = {
       <!-- Right column: image -->
       <div class="hero-right">
         <div class="hero-image">
-          <img src={imageSrc} alt="Hero" />
+          <img src={imageSrc} alt={imageAlt} />
         </div>
       </div>
     </div>

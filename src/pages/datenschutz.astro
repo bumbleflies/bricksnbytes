@@ -1,0 +1,38 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { EMAIL, EMAIL_HREF } from "../data/site";
+---
+
+<Layout title="Datenschutz" description="Datenschutzerklärung von BricksnBytes">
+  <article class="legal container-sm">
+    <h1>Datenschutzerklärung</h1>
+
+    <p class="todo">
+      Platzhalter – die vollständige Datenschutzerklärung folgt. Die Abschnitte unten sind eine
+      Gliederung dessen, was auf dieser Website tatsächlich passiert, und müssen ausformuliert werden.
+    </p>
+
+    <h2>1. Verantwortliche Stelle</h2>
+    <p>[Name und Anschrift wie im Impressum] – E-Mail: <a href={EMAIL_HREF}>{EMAIL}</a></p>
+
+    <h2>2. Hosting und Server-Logfiles</h2>
+    <p>[Hosting-Anbieter, Serverstandort, welche Logdaten gespeichert werden und wie lange]</p>
+
+    <h2>3. Kontaktformular und E-Mail</h2>
+    <p>
+      [Wenn du uns über das Kontaktformular schreibst, verarbeiten wir Name, E-Mail-Adresse und Nachricht,
+      um deine Anfrage zu beantworten (Art. 6 Abs. 1 lit. b bzw. f DSGVO). Die Nachricht wird per E-Mail über
+      [Mail-Anbieter] zugestellt. Speicherdauer: [...]]
+    </p>
+
+    <h2>4. Schriftarten (Google Fonts)</h2>
+    <p>[Die Seite lädt derzeit Schriften von Google-Servern – beschreiben oder die Schriften lokal einbinden]</p>
+
+    <h2>5. Online-Shop</h2>
+    <p>[Hinweis auf shop.bricksnbytes.de und dessen eigene Datenschutzerklärung]</p>
+
+    <h2>6. Deine Rechte</h2>
+    <p>[Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit, Widerspruch, Beschwerde bei einer Aufsichtsbehörde]</p>
+  </article>
+</Layout>
+

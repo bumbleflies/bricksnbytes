@@ -1,0 +1,13 @@
+{
+  "name": "bricksnbytes-mailer",
+  "private": true,
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "MAILER_DRY_RUN=1 node server.mjs"
+  },
+  "dependencies": {
+    "nodemailer": "^10.0.12"
+  }
+}

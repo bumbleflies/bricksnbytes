@@ -4,9 +4,14 @@ interface Props {
   subheading?: string;
   buttonText: string;
   buttonHref: string;
+  // Opens the primary button in a new tab (e.g. the shop)
+  buttonExternal?: boolean;
+  secondaryText?: string;
+  secondaryHref?: string;
 }
 
-const { headline, subheading, buttonText, buttonHref } = Astro.props;
+const { headline, subheading, buttonText, buttonHref, buttonExternal = false, secondaryText, secondaryHref } = Astro.props;
+const externalAttrs = buttonExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {};
 ---
 
 <section class="cta-section">
@@ -24,7 +29,12 @@ const { headline, subheading, buttonText, buttonHref } = Astro.props;
     <div class="cta-inner">
       <h2>{headline}</h2>
       {subheading && <p>{subheading}</p>}
-      <a href={buttonHref} class="cta-btn">{buttonText}</a>
+      <div class="cta-actions">
+        <a href={buttonHref} class="cta-btn" {...externalAttrs}>{buttonText}</a>
+        {secondaryText && secondaryHref && (
+          <a href={secondaryHref} class="cta-btn cta-btn-secondary">{secondaryText}</a>
+        )}
+      </div>
     </div>
   </div>
 </section>
@@ -127,6 +137,13 @@ const { headline, subheading, buttonText, buttonHref } = Astro.props;
     margin: 0 auto 28px;
   }
 
+  .cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
   .cta-btn {
     display: inline-block;
     background: white;
@@ -143,6 +160,12 @@ const { headline, subheading, buttonText, buttonHref } = Astro.props;
 
   .cta-btn:hover {
     transform: translateY(-2px);
+  }
+
+  .cta-btn-secondary {
+    background: transparent;
+    color: white;
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.85);
   }
 
   @media (max-width: 768px) {
