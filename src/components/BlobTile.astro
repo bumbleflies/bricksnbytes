@@ -1,0 +1,192 @@
+---
+// Tile with photo on an organic colour blob — used for offers (home) and courses (/kurse)
+interface Props {
+  title: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+  color: 'green' | 'blue' | 'orange' | 'teal';
+  index?: number;
+  age?: string;
+  // Title link and round arrow button (offers)
+  href?: string;
+  // Labelled button instead of the arrow (courses), opened in a new tab
+  ctaLabel?: string;
+  ctaHref?: string;
+}
+
+const { title, description, image, imageAlt, color, index = 0, age, href, ctaLabel, ctaHref } = Astro.props;
+
+const colorMap = {
+  green: { blob: '#e8f5e9', age: '#2e7d32', cta: '#4caf50' },
+  blue: { blob: '#e3f0fc', age: '#1565c0', cta: '#2196f3' },
+  orange: { blob: '#fff3e0', age: '#b45309', cta: '#ff9800' },
+  teal: { blob: '#e0f5f4', age: '#00796b', cta: '#26a6a1' },
+};
+
+// Unique blob border-radius per card for organic feel
+const blobRadii = [
+  '52% 48% 44% 56% / 48% 56% 44% 52%',
+  '46% 54% 58% 42% / 54% 42% 58% 46%',
+  '60% 40% 45% 55% / 40% 55% 45% 60%',
+  '44% 56% 52% 48% / 56% 48% 52% 44%',
+];
+
+const colors = colorMap[color];
+const radius = blobRadii[index % blobRadii.length];
+---
+
+<div class="bcard">
+  <div class="bcard-blob" style={`background:${colors.blob};border-radius:${radius};`}></div>
+  <div class="bcard-photo">
+    <img src={image} alt={imageAlt} loading="lazy" />
+  </div>
+  <div class={`bcard-body ${ctaLabel ? 'has-button' : ''}`}>
+    {href ? <a href={href} class="bcard-title">{title}</a> : <h3 class="bcard-title">{title}</h3>}
+    {age && <div class="bcard-age" style={`color:${colors.age};`}>{age}</div>}
+    <div class="bcard-desc">{description}</div>
+  </div>
+  {ctaLabel && ctaHref ? (
+    <a
+      href={ctaHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="bcard-button"
+      style={`background:${colors.cta};`}
+      aria-label={`${ctaLabel}: ${title} (öffnet in neuem Tab)`}
+    >
+      {ctaLabel}
+    </a>
+  ) : href && (
+    <a href={href} class="bcard-cta" style={`background:${colors.cta};`} aria-label={`Mehr zu ${title}`}>→</a>
+  )}
+</div>
+
+<style>
+  .bcard {
+    position: relative;
+    flex: 1;
+    min-width: 190px;
+    max-width: 215px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .bcard-blob {
+    position: absolute;
+    inset: 44px 0 0 0;
+    z-index: 0;
+    transition: transform 0.3s ease;
+  }
+
+  .bcard:hover .bcard-blob {
+    transform: scale(1.04);
+  }
+
+  .bcard-photo {
+    position: relative;
+    z-index: 2;
+    width: 84%;
+    aspect-ratio: 4/3;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.13);
+    margin-bottom: -6px;
+  }
+
+  .bcard-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .bcard-body {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 16px 10px 58px;
+    width: 100%;
+  }
+
+  .bcard-title {
+    display: block;
+    text-decoration: none;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  .bcard-age {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .bcard-desc {
+    font-size: 0.8rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  .bcard-cta {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    transition: transform 0.2s;
+    text-decoration: none;
+  }
+
+  .bcard-cta:hover {
+    transform: translateX(-50%) scale(1.12);
+  }
+
+  h3.bcard-title {
+    margin: 0 0 3px;
+  }
+
+  .bcard-body.has-button {
+    padding-bottom: 72px;
+  }
+
+  .bcard-button {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    white-space: nowrap;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 12px 18px;
+    border-radius: 99px;
+    color: white;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    transition: transform 0.2s;
+  }
+
+  .bcard-button:hover {
+    transform: translateX(-50%) translateY(-2px);
+  }
+</style>

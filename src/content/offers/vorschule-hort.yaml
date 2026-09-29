@@ -4,6 +4,7 @@ order: 4
 description: Programmieren spielerisch entdecken – wir kommen in eure Einrichtung
 audience: ab 3 Jahren
 image: /images/age-groups/vorschule.webp
+imageAlt: Kleine Kinder entdecken mit Erwachsenen spielerisch Roboter und Tablets
 color: teal
 placeholders:
   - Programmieren in Kita & Hort

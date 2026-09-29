@@ -1,0 +1,11 @@
+{
+  "name": "BricksnBytes",
+  "short_name": "BricksnBytes",
+  "icons": [
+    { "src": "/images/favicon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#0B2038",
+  "background_color": "#FFFFFF",
+  "display": "browser",
+  "start_url": "/"
+}

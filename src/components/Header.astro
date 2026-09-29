@@ -1,5 +1,4 @@
 ---
-import { getCollection } from 'astro:content';
 import { SHOP_URL, PHONE_HREF } from '../data/site';
 
 interface Props {
@@ -9,23 +8,19 @@ interface Props {
 const { lang = 'de' } = Astro.props;
 
 const navItems = [
-  { label: lang === 'de' ? 'Kurse' : 'Courses', href: '/#angebote', isKurse: true },
+  { label: lang === 'de' ? 'Kurse' : 'Courses', href: '/kurse' },
 ];
-
-// Offer categories for the mega-menu and mobile drawer
-const offers = (await getCollection('offers')).sort((a, b) => a.data.order - b.data.order);
 
 const ctaLabel = lang === 'de' ? 'Kurs buchen' : 'Book Course';
 const phoneLabel = lang === 'de' ? 'Anrufen' : 'Call';
-const shopAttrs = { href: SHOP_URL, target: '_blank', rel: 'noopener noreferrer' };
 
 // Detect current page for active state
-const currentPath = new URL(Astro.request.url).pathname;
+const currentPath = new URL(Astro.request.url).pathname.replace(/\/$/, '') || '/';
 ---
 
 <div class="nav-outer">
   <nav class="nav-pill" aria-label="Hauptmenü">
-    <a href="/" class="logo">
+    <a href="/" class="logo" aria-label="BricksnBytes Startseite">
       <div class="logo-mark"></div>
       <span class="logo-word">Bricksn<b>Bytes</b></span>
     </a>
@@ -33,20 +28,7 @@ const currentPath = new URL(Astro.request.url).pathname;
     <div class="nav-links">
       {navItems.map((item) => {
         const isActive = currentPath === item.href;
-        return item.isKurse ? (
-          <a
-            href={item.href}
-            class={`nav-link ${isActive ? 'active' : ''}`}
-            data-kurse
-            aria-haspopup="true"
-            aria-expanded="false"
-            aria-controls="kurse-mega"
-            {...(isActive && { 'aria-current': 'page' })}
-          >
-            {item.label}
-            <span class="chev" aria-hidden="true"></span>
-          </a>
-        ) : (
+        return (
           <a
             href={item.href}
             class={`nav-link ${isActive ? 'active' : ''}`}
@@ -58,76 +40,26 @@ const currentPath = new URL(Astro.request.url).pathname;
       })}
     </div>
 
+    <!-- Text buttons on desktop, icon-only (Lucide) on mobile -->
     <div class="nav-right">
-      <a href={PHONE_HREF} class="cta-ghost">
-        {phoneLabel}
+      <a href={PHONE_HREF} class="cta-ghost" aria-label={phoneLabel}>
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+        </svg>
+        <span class="btn-label">{phoneLabel}</span>
       </a>
-      <a {...shopAttrs} class="cta">
-        {ctaLabel}
+      <a href={SHOP_URL} target="_blank" rel="noopener noreferrer" class="cta" aria-label={ctaLabel}>
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 2v4" />
+          <path d="M16 2v4" />
+          <rect width="18" height="18" x="3" y="4" rx="2" />
+          <path d="M3 10h18" />
+          <path d="m9 16 2 2 4-4" />
+        </svg>
+        <span class="btn-label">{ctaLabel}</span>
       </a>
     </div>
-
-    <!-- Hamburger button (mobile only) -->
-    <button class="burger" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobile-drawer">
-      <i></i><i></i><i></i>
-    </button>
   </nav>
-
-  <!-- Kurse mega-menu -->
-  <div class="mega-wrap" id="kurse-mega" role="region" aria-label="Kursübersicht" hidden>
-    <div class="mega">
-      <div class="mega-head">
-        <span class="mega-title">Unsere Angebote</span>
-        <a href="/#angebote" class="mega-all">Alle Angebote ansehen →</a>
-      </div>
-      <div class="mega-grid">
-        {offers.map((o) => (
-          <a href={`/angebote/${o.data.slug}`} class="mcard">
-            <div class="mthumb"><img src={o.data.image} alt="" loading="lazy" /></div>
-            <div>
-              <div class="mt">{o.data.name}</div>
-              <div class="md">{o.data.description}</div>
-              {o.data.audience && (
-                <span class="age" style="background: var(--coral-soft); color: var(--coral-deep)">
-                  {o.data.audience}
-                </span>
-              )}
-            </div>
-          </a>
-        ))}
-      </div>
-    </div>
-  </div>
-
-  <!-- Full-page mobile drawer -->
-  <div class="mob-drawer" id="mobile-drawer" aria-hidden="true">
-    <div class="mob-inner">
-      <nav class="mob-nav" aria-label="Mobiles Menü">
-        <!-- Kurse as accordion -->
-        <button class="mob-link mob-kurse" aria-expanded="false" aria-controls="mob-sub">
-          Kurse <span class="chev"></span>
-        </button>
-        <div class="mob-sub" id="mob-sub" hidden>
-          {offers.map((o) => (
-            <a href={`/angebote/${o.data.slug}`} class="mob-sub-link">
-              <span class="sub-dot" style="background: var(--coral-soft)"></span>
-              <span>{o.data.name}</span>
-              {o.data.audience && (
-                <span class="age" style="background: var(--coral-soft); color: var(--coral-deep)">{o.data.audience}</span>
-              )}
-            </a>
-          ))}
-          <a href="/#angebote" class="mob-sub-all">Alle Angebote ansehen →</a>
-        </div>
-      </nav>
-      <a class="mob-link mob-phone" href={PHONE_HREF}>{phoneLabel}</a>
-    </div>
-
-    <!-- Sticky CTA strip at bottom -->
-    <div class="mob-cta-strip">
-      <a class="cta mob-cta" {...shopAttrs}>{ctaLabel}</a>
-    </div>
-  </div>
 </div>
 
 <style>
@@ -143,9 +75,6 @@ const currentPath = new URL(Astro.request.url).pathname;
   }
 
   .nav-pill {
-    /* Stays above the open mobile drawer so the burger can close it */
-    position: relative;
-    z-index: 201;
     display: flex;
     align-items: center;
     gap: 22px;
@@ -239,36 +168,17 @@ const currentPath = new URL(Astro.request.url).pathname;
     box-shadow: var(--shadow-sm);
   }
 
-  .nav-link:active {
-    background: var(--coral-soft);
-    color: var(--coral-deep);
-  }
-
+  .nav-link:active,
   .nav-link.active {
     background: var(--coral-soft);
     color: var(--coral-deep);
   }
 
-  .nav-link:focus-visible {
+  .nav-link:focus-visible,
+  .cta:focus-visible,
+  .cta-ghost:focus-visible {
     outline: 3px solid var(--coral);
     outline-offset: 2px;
-  }
-
-  /* Chevron */
-  .chev {
-    width: 8px;
-    height: 8px;
-    border-right: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    transform: rotate(45deg);
-    display: inline-block;
-    margin-bottom: 2px;
-    transition: transform 0.2s;
-  }
-
-  .chev.open {
-    transform: rotate(225deg);
-    margin-bottom: -2px;
   }
 
   /* Right action buttons */
@@ -291,6 +201,7 @@ const currentPath = new URL(Astro.request.url).pathname;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     white-space: nowrap;
     transition: transform var(--transition-fast), box-shadow var(--transition-fast);
@@ -319,299 +230,55 @@ const currentPath = new URL(Astro.request.url).pathname;
     box-shadow: var(--shadow-sm);
   }
 
-  /* Mega-menu */
-  .mega-wrap {
-    position: absolute;
-    top: 100%;
-    padding-top: 8px; /* hover bridge between pill and menu */
-    left: 120px;
-    z-index: 99;
-    pointer-events: auto; /* .nav-outer disables pointer events for its gaps */
-    animation: bbpop 0.16s ease-out;
-  }
-
-  .mega-wrap[hidden] {
+  .icon {
     display: none;
-  }
-
-  @keyframes bbpop {
-    from {
-      opacity: 0;
-      transform: translateY(-6px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .mega {
-    background: #fff;
-    border-radius: var(--r-lg);
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--line);
-    padding: 18px;
-    width: 680px;
-  }
-
-  .mega-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    padding: 2px 6px 14px;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 14px;
-  }
-
-  .mega-title {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 16px;
-    color: var(--ink);
-  }
-
-  .mega-all {
-    color: var(--coral-deep);
-    text-decoration: none;
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 13px;
-    transition: opacity 0.15s;
-  }
-
-  .mega-all:hover {
-    opacity: 0.7;
-  }
-
-  .mega-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .mcard {
-    display: flex;
-    gap: 12px;
-    padding: 10px;
-    border-radius: var(--r-md);
-    text-decoration: none;
-    transition: background 0.15s;
-    align-items: center;
-  }
-
-  .mcard:hover {
-    background: var(--cream);
-  }
-
-  .mthumb {
-    width: 54px;
-    height: 54px;
-    border-radius: 12px;
-    flex: none;
-    overflow: hidden;
-    background: var(--coral-soft);
-  }
-
-  .mthumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .mt {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 14.5px;
-    color: var(--ink);
-    line-height: 1.15;
-  }
-
-  .md {
-    font-size: 12.5px;
-    color: var(--ink-soft);
-    margin-top: 3px;
-  }
-
-  .age {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: var(--r-pill);
-    display: inline-block;
-    margin-top: 4px;
-  }
-
-  /* Hamburger button */
-  .burger {
-    display: none;
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    border: 1px solid var(--line);
-    background: #fff;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    cursor: pointer;
-    margin-left: auto;
-    pointer-events: auto;
-  }
-
-  .burger i {
-    display: block;
-    width: 18px;
-    height: 2.4px;
-    background: var(--ink);
-    border-radius: 2px;
-    transition: transform 0.2s, opacity 0.2s;
-  }
-
-  .burger.open i:nth-child(1) {
-    transform: translateY(7.4px) rotate(45deg);
-  }
-
-  .burger.open i:nth-child(2) {
-    opacity: 0;
-  }
-
-  .burger.open i:nth-child(3) {
-    transform: translateY(-7.4px) rotate(-45deg);
-  }
-
-  /* Mobile drawer overlay */
-  .mob-drawer {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    background: var(--paper);
-    flex-direction: column;
-    pointer-events: auto; /* .nav-outer disables pointer events for its gaps */
-  }
-
-  .mob-drawer.open {
-    display: flex;
-    animation: bbpop 0.16s ease-out;
-  }
-
-  .mob-inner {
-    flex: 1;
-    overflow-y: auto;
-    padding: 110px 18px 18px; /* clear the floating nav pill */
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    background: var(--cream);
-  }
-
-  .mob-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .mob-link {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    text-decoration: none;
-    color: var(--ink);
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 20px;
-    padding: 15px 16px;
-    background: #fff;
-    border-radius: var(--r-md);
-    box-shadow: var(--shadow-sm);
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-  }
-
-  .mob-link.active {
-    background: var(--coral-soft);
-    color: var(--coral-deep);
-  }
-
-  /* Accordion sub-list */
-  .mob-sub {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 4px 0 4px 8px;
-  }
-
-  .mob-sub[hidden] {
-    display: none;
-  }
-
-  .mob-sub-link {
-    text-decoration: none;
-    color: var(--ink-soft);
-    font-weight: 700;
-    font-size: 14.5px;
-    padding: 11px 14px;
-    background: oklch(1 0 0 / 0.7);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .mob-sub-all {
-    color: var(--coral-deep);
-    font-weight: 800;
-  }
-
-  .sub-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
-    flex: none;
-  }
-
-  /* Sticky CTA strip */
-  .mob-cta-strip {
-    padding: 14px;
-    background: #fff;
-    border-top: 1px solid var(--line);
     flex-shrink: 0;
   }
 
-  .mob-cta {
-    justify-content: center;
-    padding: 15px;
-    font-size: 17px;
-    width: 100%;
-  }
-
   @media (max-width: 768px) {
-    .burger {
-      display: flex;
+    .nav-pill {
+      gap: 8px;
+      padding: 8px 8px 8px 12px;
     }
 
     .nav-links {
-      display: none;
+      margin-left: 0;
+    }
+
+    .nav-link {
+      padding: 10px 12px;
+      min-height: 44px;
+      box-sizing: border-box;
     }
 
     .nav-right {
-      display: none;
+      gap: 8px;
     }
 
+    /* Icon-only buttons with a 44×44 tap area */
     .cta, .cta-ghost {
-      padding: 8px 14px;
-      font-size: 13px;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .icon {
+      display: block;
+    }
+
+    .btn-label {
+      display: none;
     }
 
     .logo-word {
       font-size: 16px;
     }
+  }
 
-    .mega-wrap {
+  /* Very narrow phones: keep logo mark, drop the word mark */
+  @media (max-width: 359px) {
+    .logo-word {
       display: none;
     }
   }
@@ -619,9 +286,6 @@ const currentPath = new URL(Astro.request.url).pathname;
   @media (prefers-reduced-motion: reduce) {
     .nav-pill,
     .nav-outer,
-    .mega-wrap,
-    .mob-drawer,
-    .chev,
     .cta,
     .nav-link {
       transition: none;
@@ -645,80 +309,4 @@ const currentPath = new URL(Astro.request.url).pathname;
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
   }
-
-  // Mega-menu
-  const kursLink = document.querySelector('[data-kurse]');
-  const mega = document.getElementById('kurse-mega');
-  const chev = kursLink?.querySelector('.chev');
-
-  function openMega() {
-    if (mega) mega.hidden = false;
-    if (kursLink) {
-      kursLink.classList.add('active');
-      kursLink.setAttribute('aria-expanded', 'true');
-    }
-    chev?.classList.add('open');
-  }
-
-  function closeMega() {
-    if (mega) mega.hidden = true;
-    if (kursLink) {
-      kursLink.classList.remove('active');
-      kursLink.setAttribute('aria-expanded', 'false');
-    }
-    chev?.classList.remove('open');
-  }
-
-  navOuter?.addEventListener('mouseleave', closeMega);
-  kursLink?.addEventListener('mouseenter', openMega);
-  kursLink?.addEventListener('click', (e) => {
-    if (mega && mega.hidden) {
-      e.preventDefault();
-      openMega();
-    } else {
-      closeMega();
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeMega();
-    }
-  });
-
-  // Mobile drawer
-  const burger = document.querySelector('.burger');
-  const mobDrawer = document.getElementById('mobile-drawer');
-  const mobKurse = document.querySelector('.mob-kurse');
-  const mobSub = document.querySelector('.mob-sub');
-  const mobChev = mobKurse?.querySelector('.chev');
-
-  function toggleDrawer() {
-    if (!mobDrawer || !burger) return;
-    const opening = !mobDrawer.classList.contains('open');
-    mobDrawer.classList.toggle('open');
-    burger.classList.toggle('open');
-    burger.setAttribute('aria-expanded', String(opening));
-    burger.setAttribute('aria-label', opening ? 'Menü schließen' : 'Menü öffnen');
-    mobDrawer.setAttribute('aria-hidden', String(!opening));
-    document.body.style.overflow = opening ? 'hidden' : '';
-  }
-
-  burger?.addEventListener('click', toggleDrawer);
-
-  mobKurse?.addEventListener('click', () => {
-    if (!mobSub || !mobKurse) return;
-    const open = !(mobSub as HTMLElement).hidden;
-    (mobSub as HTMLElement).hidden = open;
-    mobKurse.setAttribute('aria-expanded', String(!open));
-    mobChev?.classList.toggle('open', !open);
-    mobKurse.classList.toggle('active', !open);
-  });
-
-  // Close drawer on link click
-  mobDrawer?.querySelectorAll('a').forEach(a =>
-    a.addEventListener('click', () => {
-      if (mobDrawer?.classList.contains('open')) toggleDrawer();
-    })
-  );
 </script>

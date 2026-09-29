@@ -1,0 +1,123 @@
+---
+// Questions and answers taken 1:1 from bricksnbytes.de/faq/
+import SubpageLayout from "../layouts/SubpageLayout.astro";
+
+const faqs = [
+  {
+    q: 'Ab welchem Alter sind die Programmierkurse geeignet?',
+    a: [
+      'Unsere Kurse richten sich an Kinder ab ca. 5 Jahren. Es sind keine Vorkenntnisse nötig. Die Inhalte werden spielerisch, altersgerecht und mit viel Praxis vermittelt.',
+      'Eltern-Kind Kurse können bereits ab 4 Jahren besucht werden. Andere Kurse sind meistens ab 6 Jahren bis ca. 10 Jahren. Das ist aber nicht so genau zu nehmen, da oft Kinder schon etwas weiter sind.',
+    ],
+  },
+  {
+    q: 'Was lernen die Kinder in den Kursen konkret?',
+    a: ['Die Kinder lernen die Grundlagen des Programmierens wie logisches Denken, Reihenfolgen, Schleifen und einfache Bedingungen – zum Beispiel durch Blockprogrammierung, Roboter und kreative Aufgaben. Der Fokus liegt auf Verstehen, Ausprobieren und Spaß.'],
+  },
+  {
+    q: 'Braucht mein Kind Vorkenntnisse oder eigenes Material?',
+    a: ['Nein. Vorkenntnisse sind nicht erforderlich. Alle benötigten Materialien (z. B. LEGO Education Sets, Tablets/Laptops je nach Kursformat) werden von uns gestellt.'],
+  },
+  {
+    q: 'Wie groß sind die Gruppen?',
+    a: ['Wir arbeiten bewusst in kleinen Gruppen, damit jedes Kind individuell betreut werden kann. Je nach Kursformat sind auch Einzel- oder Zweierkurse möglich. Bei Ferienkursen kann es auch mal vorkommen dass wir 12 Kinder dabei haben.'],
+  },
+  {
+    q: 'Was bringt Programmieren meinem Kind im Alltag?',
+    a: ['Programmieren fördert Konzentration, Problemlösefähigkeit, Kreativität und Selbstvertrauen. Kinder lernen, Herausforderungen strukturiert anzugehen – Fähigkeiten, die ihnen weit über das Programmieren hinaus helfen.'],
+  },
+  {
+    q: 'Was ist der Medienführerschein und warum ist er für mein Kind wichtig?',
+    a: ['Im Kurs Medienführerschein lernen Kinder den sicheren, verantwortungsvollen und bewussten Umgang mit digitalen Medien. Themen sind unter anderem Datenschutz, altersgerechte Apps, Online-Regeln, Cybermobbing und Medienzeiten. Ziel ist es, Kinder zu stärken, damit sie sich selbstständig, kritisch und sicher in der digitalen Welt bewegen können.'],
+  },
+];
+---
+
+<SubpageLayout
+  title="FAQ"
+  intro="Meistgestellten Fragen und Antworten"
+  description="Häufige Fragen zu den Programmierkursen von BricksnBytes"
+>
+  <div class="faq-list">
+    {faqs.map((item) => (
+      <details class="faq-item">
+        <summary>{item.q}</summary>
+        <div class="faq-answer">
+          {item.a.map((para) => <p>{para}</p>)}
+        </div>
+      </details>
+    ))}
+  </div>
+</SubpageLayout>
+
+<style>
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .faq-item {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .faq-item summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    min-height: 44px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--ink);
+    border-radius: 18px;
+  }
+
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Plus/minus indicator */
+  .faq-item summary::after {
+    content: "+";
+    content: "+" / ""; /* decorative: not announced by screen readers */
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--coral-soft);
+    color: var(--coral-deep);
+    display: grid;
+    place-items: center;
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  .faq-item[open] summary::after {
+    content: "–";
+    content: "–" / "";
+  }
+
+  .faq-item summary:focus-visible {
+    outline: 3px solid var(--coral);
+    outline-offset: 2px;
+  }
+
+  .faq-answer {
+    padding: 0 20px 16px;
+  }
+
+  .faq-answer p {
+    margin: 0 0 0.75rem;
+  }
+
+  .faq-answer p:last-child {
+    margin-bottom: 0;
+  }
+</style>

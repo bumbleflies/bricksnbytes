@@ -1,7 +1,8 @@
 import { defineConfig } from 'astro/config';
 import yaml from 'yaml';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
+import { readdirSync, readFileSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -33,8 +34,19 @@ const yamlLoaderPlugin = {
   }
 };
 
+// Old /programs pages now live on /kurse (nginx answers these with a 301 in production;
+// these static redirect pages cover dev, preview and any other static host)
+const programSlugs = readdirSync(join(__dirname, 'src/content/programs'))
+  .filter((f) => f.endsWith('.yaml'))
+  .map((f) => yaml.parse(readFileSync(join(__dirname, 'src/content/programs', f), 'utf-8')).slug);
+const programRedirects = Object.fromEntries([
+  ['/programs', '/kurse'],
+  ...programSlugs.map((slug) => [`/programs/${slug}`, '/kurse']),
+]);
+
 export default defineConfig({
   output: 'static',
+  redirects: programRedirects,
   outDir: 'dist',
   vite: {
     plugins: [yamlLoaderPlugin],

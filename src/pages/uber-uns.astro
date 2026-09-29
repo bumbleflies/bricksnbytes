@@ -1,0 +1,88 @@
+---
+import SubpageLayout from "../layouts/SubpageLayout.astro";
+
+const blocks = [
+  {
+    title: 'Wer bin ich?',
+    text: 'Ich bin Zara Martinetti, Gründerin von BricksnBytes in München. Ich bringe Kindern spielerisch das Programmieren und die Robotik näher – persönlich, kontinuierlich und mit viel Herzblut.',
+  },
+  {
+    title: 'Persönlich',
+    text: 'Ich leite jeden Kurs selbst – keine Massenware, sondern echte Begeisterung für Technik. Der enge Kontakt zu Kindern und Familien ist mir wichtig; ich lebe in München und engagiere mich ehrenamtlich an einer Waldorfschule.',
+  },
+  {
+    title: 'Hintergrund',
+    text: 'Als Softwareentwicklerin bringe ich 5 Jahre Erfahrung aus der IT mit. Hauptberuflich arbeite ich als Consultant für Leadership, Organisationsentwicklung und Agilität – dieses Wissen über Didaktik und Gruppendynamik fließt direkt in meine Kurse ein.',
+  },
+  {
+    title: 'Vielseitig',
+    text: 'Scratch, Minecraft Education, LEGO® SPIKE™, Intelino und Python: Für jedes Alter gibt es das passende Format, von den ersten Programmierschritten bis zu eigenen Robotik-Projekten.',
+  },
+  {
+    title: 'Motivation',
+    text: 'Einst hat mich ein Lehrer für Technik begeistert – dieses Gefühl möchte ich weitergeben. Programmieren soll kein trockenes Fach sein, sondern kreatives Entdecken, jedes Kind in seinem eigenen Tempo.',
+  },
+  {
+    title: 'Ausblick',
+    text: 'Aktuell leite ich BricksnBytes noch allein. Mein Ziel ist, künftig auch Jugendliche als Kursleiter:innen einzubinden – wachsen, ohne das Persönliche zu verlieren.',
+  },
+];
+---
+
+<SubpageLayout
+  title="Über uns"
+  intro="Von Bricks zu Bytes – Programmieren lernen, das Spaß macht."
+  ctaHeadline="Lernen Sie mich und BricksnBytes gerne persönlich kennen."
+  ctaText=""
+>
+  <img
+    class="about-photo"
+    src="/images/zara.webp"
+    alt="Zara Martinetti, Gründerin von BricksnBytes"
+    width="800"
+    height="1045"
+  />
+
+  {blocks.map((block) => (
+    <section>
+      <h2>{block.title}</h2>
+      <p>{block.text}</p>
+    </section>
+  ))}
+
+  <blockquote class="about-quote">
+    <p>Am Ende zählt: Kinder, die mit leuchtenden Augen ihr erstes eigenes Programm zeigen.</p>
+  </blockquote>
+</SubpageLayout>
+
+<style>
+  .about-photo {
+    display: block;
+    width: min(100%, 320px);
+    height: auto;
+    aspect-ratio: 4/5;
+    object-fit: cover;
+    object-position: center top;
+    border-radius: 28px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+    transform: rotate(-1.5deg);
+    margin: 8px auto 16px;
+  }
+
+  .about-quote {
+    margin: 2.5rem 0 0;
+    padding: 20px 24px;
+    background: var(--coral-soft);
+    border-left: 5px solid var(--coral);
+    border-radius: 0 20px 20px 0;
+  }
+
+  blockquote.about-quote p {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0;
+  }
+</style>
