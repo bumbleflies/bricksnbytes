@@ -81,33 +81,36 @@ a:hover {
   scroll-margin-top: 110px;
 }
 
-/* Legal pages (Impressum, Datenschutz) */
-.legal {
-  padding-top: var(--sp-2xl);
-  padding-bottom: var(--sp-3xl);
+/* Row of BlobTile cards (home offers, /kurse) */
+.tile-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+  flex-wrap: wrap;
 }
 
-.legal h1 {
-  margin-bottom: var(--sp-lg);
+@media (max-width: 768px) {
+  .tile-row {
+    gap: 16px;
+  }
+
+  .tile-row > .bcard {
+    min-width: calc(50% - 8px);
+    max-width: calc(50% - 8px);
+  }
 }
 
-.legal h2 {
-  font-size: var(--fs-h5);
-  margin: var(--sp-xl) 0 var(--sp-sm);
-}
+@media (max-width: 480px) {
+  .tile-row {
+    gap: 12px;
+    flex-direction: column;
+    align-items: center;
+  }
 
-.legal p {
-  color: var(--ink-soft);
-  line-height: var(--lh-body);
-}
-
-.legal a {
-  color: var(--coral-deep);
-}
-
-.legal .todo {
-  background: var(--yellow-soft);
-  border-radius: var(--r-md);
-  padding: var(--sp-md);
-  font-weight: 600;
+  .tile-row > .bcard {
+    min-width: 100%;
+    max-width: 280px;
+  }
 }

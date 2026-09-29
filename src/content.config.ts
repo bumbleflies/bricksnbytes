@@ -32,7 +32,9 @@ const offers = defineCollection({
     order: z.number(),
     description: z.string(),
     audience: z.string().optional(),
+    // Fallback image; public/images/angebote/angebot-<slug>.webp wins when present
     image: z.string(),
+    imageAlt: z.string(),
     color: z.enum(['green', 'blue', 'orange', 'teal']),
     // Slugs of existing program pages shown as course tiles
     programs: z.array(z.string()).default([]),
@@ -41,4 +43,19 @@ const offers = defineCollection({
   }),
 });
 
-export const collections = { programs, offers };
+// Course tiles on /kurse; dates and prices live in the shop, not here
+const courses = defineCollection({
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/courses' }),
+  schema: z.object({
+    name: z.string(),
+    order: z.number(),
+    age: z.string().optional(),
+    description: z.string(),
+    shopUrl: z.url(),
+    image: z.string(),
+    imageAlt: z.string(),
+    color: z.enum(['green', 'blue', 'orange', 'teal']),
+  }),
+});
+
+export const collections = { programs, offers, courses };

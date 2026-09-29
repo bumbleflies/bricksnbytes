@@ -1,44 +1,24 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import { EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF } from "../data/site";
+// Text taken 1:1 from bricksnbytes.de/privacy-policy/ ("Impressum & Datenschutz"), formatting only
+import SubpageLayout from "../layouts/SubpageLayout.astro";
 ---
 
-<Layout title="Impressum" description="Impressum von BricksnBytes">
-  <article class="legal container-sm">
-    <h1>Impressum</h1>
+<SubpageLayout title="Impressum" description="Impressum von BricksnBytes" showCta={false}>
+  <h2>Angaben gemäß § 5 TMG:</h2>
+  <p>
+    Zara Martinetti<br />
+    Jörg-Hube-Straße<br />
+    81927 München, Deutschland
+  </p>
+  <p>
+    E-Mail: <a href="mailto:info@bricksnbytes.de">info@bricksnbytes.de</a><br />
+    Telefon: <a href="tel:+491792342370">01792342370</a>
+  </p>
 
-    <p class="todo">Platzhalter – bitte alle Angaben in [eckigen Klammern] ausfüllen.</p>
-
-    <h2>Angaben gemäß § 5 DDG</h2>
-    <p>
-      [Vor- und Nachname]<br />
-      BricksnBytes<br />
-      [Straße und Hausnummer]<br />
-      [PLZ] München
-    </p>
-
-    <h2>Kontakt</h2>
-    <p>
-      Telefon: <a href={PHONE_HREF}>{PHONE_DISPLAY}</a><br />
-      E-Mail: <a href={EMAIL_HREF}>{EMAIL}</a>
-    </p>
-
-    <h2>Umsatzsteuer-ID</h2>
-    <p>
-      Umsatzsteuer-Identifikationsnummer gemäß § 27a Umsatzsteuergesetz: [USt-IdNr., falls vorhanden – sonst Abschnitt entfernen]
-    </p>
-
-    <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
-    <p>
-      [Vor- und Nachname]<br />
-      [Anschrift wie oben]
-    </p>
-
-    <h2>Verbraucherstreitbeilegung</h2>
-    <p>
-      [Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer
-      Verbraucherschlichtungsstelle teilzunehmen. – bitte prüfen und anpassen]
-    </p>
-  </article>
-</Layout>
-
+  <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:</h2>
+  <p>
+    Zara Martinetti<br />
+    Jörg-Hube-Straße<br />
+    81927 München, Deutschland
+  </p>
+</SubpageLayout>

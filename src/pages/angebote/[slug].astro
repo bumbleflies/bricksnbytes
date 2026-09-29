@@ -1,8 +1,7 @@
 ---
-import Layout from "../../layouts/Layout.astro";
+import SubpageLayout from "../../layouts/SubpageLayout.astro";
 import ProgramCard from "../../components/ProgramCard.astro";
-import CTASection from "../../components/CTASection.astro";
-import { SHOP_URL } from "../../data/site";
+import { offerImage } from "../../data/offerImage";
 
 import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
@@ -30,115 +29,46 @@ interface Props {
 }
 
 const { offer, programs } = Astro.props;
+const image = offerImage(offer.data.slug, offer.data.image);
+const intro = offer.data.audience
+  ? `${offer.data.description} – ${offer.data.audience}.`
+  : `${offer.data.description}.`;
 ---
 
-<Layout title={offer.data.name} description={offer.data.description}>
-  <!-- Hero Section -->
-  <section class="offer-hero">
-    <img src={offer.data.image} alt="" class="hero-image" />
-    <div class="hero-overlay">
-      <div class="container">
-        <h1>{offer.data.name}</h1>
-        <p class="hero-desc">{offer.data.description}</p>
-        {offer.data.audience && <span class="hero-audience">{offer.data.audience}</span>}
+<SubpageLayout
+  title={offer.data.name}
+  intro={intro}
+  description={offer.data.description}
+  ctaHeadline="Lust bekommen?"
+  wide
+>
+  <h2>Unsere Kurse</h2>
+  <div class="grid-3 course-grid">
+    {programs.map(program => (
+      <ProgramCard
+        name={program.data.name}
+        description={program.data.description}
+        ageGroup={program.data.ageGroupDe}
+        duration={program.data.durationDe}
+        price={String(program.data.price)}
+        image={program.data.image}
+        href="/kurse"
+        ctaLabel="Termine ansehen"
+      />
+    ))}
+    {offer.data.placeholders.map(title => (
+      <div class="placeholder-card">
+        <img src={image} alt={offer.data.imageAlt} loading="lazy" />
+        <div class="placeholder-body">
+          <h3>{title}</h3>
+          <p>Beschreibung folgt</p>
+        </div>
       </div>
-    </div>
-  </section>
-
-  <!-- Course tiles -->
-  <section class="offer-courses">
-    <div class="container">
-      <h2>Unsere Kurse</h2>
-      <div class="grid-3 course-grid">
-        {programs.map(program => (
-          <ProgramCard
-            name={program.data.name}
-            description={program.data.description}
-            ageGroup={program.data.ageGroupDe}
-            duration={program.data.durationDe}
-            price={String(program.data.price)}
-            image={program.data.image}
-            slug={program.data.slug}
-          />
-        ))}
-        {offer.data.placeholders.map(title => (
-          <div class="placeholder-card">
-            <img src={offer.data.image} alt="" loading="lazy" />
-            <div class="placeholder-body">
-              <h3>{title}</h3>
-              <p>Beschreibung folgt</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <CTASection
-    headline="Lust bekommen?"
-    subheading="Buche direkt im Shop oder schreib uns – wir beraten dich gern."
-    buttonText="Kurs buchen"
-    buttonHref={SHOP_URL}
-    buttonExternal
-    secondaryText="Kontakt aufnehmen"
-    secondaryHref="/#kontakt"
-  />
-</Layout>
+    ))}
+  </div>
+</SubpageLayout>
 
 <style>
-  .offer-hero {
-    position: relative;
-    height: 400px;
-    overflow: hidden;
-  }
-
-  .hero-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.65) 100%);
-    display: flex;
-    align-items: flex-end;
-    color: white;
-    padding: var(--sp-2xl) var(--sp-lg);
-  }
-
-  .hero-overlay h1 {
-    color: white;
-    font-size: clamp(2rem, 8vw, var(--fs-h1));
-    overflow-wrap: break-word;
-    margin-bottom: var(--sp-sm);
-  }
-
-  .hero-desc {
-    color: white;
-    max-width: 640px;
-    font-size: 1.1rem;
-    margin-bottom: var(--sp-md);
-  }
-
-  .hero-audience {
-    display: inline-block;
-    font-family: var(--font-display);
-    font-weight: 600;
-    background: var(--coral);
-    padding: var(--sp-xs) var(--sp-md);
-    border-radius: var(--r-pill);
-  }
-
-  .offer-courses {
-    padding: var(--sp-2xl) var(--sp-lg);
-  }
-
-  .offer-courses h2 {
-    margin-bottom: var(--sp-xl);
-  }
-
   .placeholder-card {
     background: white;
     border-radius: var(--r-md);
@@ -161,33 +91,17 @@ const { offer, programs } = Astro.props;
   }
 
   .placeholder-body h3 {
-    margin-bottom: var(--sp-sm);
-    color: var(--ink);
+    margin: 0 0 var(--sp-sm);
   }
 
   .placeholder-body p {
     color: var(--ink-faint);
     font-style: italic;
+    margin: 0;
   }
 
+  /* One card per row on phones */
   @media (max-width: 768px) {
-    .offer-hero {
-      height: 320px;
-    }
-
-    .hero-overlay {
-      padding: var(--sp-xl) var(--sp-md);
-    }
-
-    .hero-desc {
-      font-size: 1rem;
-    }
-
-    .offer-courses {
-      padding: var(--sp-xl) 0;
-    }
-
-    /* One card per row on phones, like the course overview */
     .course-grid {
       grid-template-columns: 1fr;
       gap: var(--sp-xl);

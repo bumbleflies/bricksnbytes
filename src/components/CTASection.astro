@@ -197,9 +197,15 @@ const externalAttrs = buttonExternal ? { target: '_blank', rel: 'noopener norefe
       padding: 50px 20px 70px;
     }
 
+    /* Blob grows with the content so longer headlines stay inside it */
     .cta-blob {
-      width: 320px;
-      height: 280px;
+      width: 125%;
+      height: calc(100% - 30px);
+    }
+
+    .cta-inner {
+      max-width: 300px;
+      margin: 0 auto;
     }
 
     .cta-inner h2 {

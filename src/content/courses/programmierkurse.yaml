@@ -1,0 +1,8 @@
+name: Programmierkurse
+order: 1
+age: ab Vorschule bis 16 Jahre
+description: "Wöchentliche Termine, die aufeinander aufbauen: mit LEGO® SPIKE™, Minecraft Education, Scratch und mehr. Max. 8 Kinder, keine Vorkenntnisse nötig."
+shopUrl: https://shop.bricksnbytes.de/programierkurs/
+image: /images/age-groups/grundschule.webp
+imageAlt: Kinder bauen und programmieren gemeinsam Roboter
+color: green
