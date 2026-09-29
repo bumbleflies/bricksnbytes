@@ -1,0 +1,13 @@
+page: kurse
+name: Programmierkurse
+order: 1
+bullets:
+  - { icon: users, text: "6–10 Jahre" }
+  - { icon: clock, text: "4 Termine à 60 Min., bauen aufeinander auf" }
+  - { icon: blocks, text: "LEGO® SPIKE™ oder Minecraft Education" }
+  - { icon: trophy, text: "Eigene Roboter & Minecraft-Projekte, Code Card, Urkunde" }
+shopUrl: https://shop.bricksnbytes.de/programierkurs/
+preferredImage: /images/kurse/kurs-programmierkurse
+image: /images/age-groups/grundschule.webp
+imageAlt: Kinder bauen und programmieren gemeinsam Roboter
+color: green

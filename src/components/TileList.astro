@@ -1,0 +1,67 @@
+---
+// Tiles of one offer page (src/content/tiles/<page>/*.yaml) plus an optional note below
+import { getCollection } from 'astro:content';
+import BlobTile from './BlobTile.astro';
+import TileGrid from './TileGrid.astro';
+import { pickImage, withFormats } from '../data/pickImage';
+import { EMAIL_HREF } from '../data/site';
+
+interface Props {
+  page: 'kurse' | 'schulprojekttage' | 'geburtstage' | 'vorschule-hort';
+  note?: string;
+}
+
+const { page, note } = Astro.props;
+
+const tiles = (await getCollection('tiles', (t) => t.data.page === page))
+  .sort((a, b) => a.data.order - b.data.order);
+---
+
+<TileGrid count={tiles.length} class="tile-list">
+  {tiles.map((tile, idx) => {
+    const t = tile.data;
+    const image = t.preferredImage ? pickImage(withFormats(t.preferredImage), t.image) : t.image;
+    return t.shopUrl ? (
+      <BlobTile
+        title={t.name}
+        bullets={t.bullets}
+        includes={t.includes}
+        image={image}
+        imageAlt={t.imageAlt}
+        color={t.color}
+        index={idx}
+        ctaLabel="Termine & Tickets"
+        ctaHref={t.shopUrl}
+        ctaExternal
+      />
+    ) : (
+      <BlobTile
+        title={t.name}
+        bullets={t.bullets}
+        includes={t.includes}
+        image={image}
+        imageAlt={t.imageAlt}
+        color={t.color}
+        index={idx}
+        ctaLabel="Anfrage senden"
+        ctaHref={`${EMAIL_HREF}?subject=${encodeURIComponent(t.requestSubject ?? 'Anfrage')}`}
+      />
+    );
+  })}
+</TileGrid>
+
+{note && <p class="tile-note">{note}</p>}
+
+<style>
+  .tile-list {
+    padding-top: 16px;
+  }
+
+  .tile-note {
+    max-width: 60ch;
+    margin: 36px auto 0;
+    text-align: center;
+    font-weight: 600;
+    color: var(--ink);
+  }
+</style>

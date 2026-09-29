@@ -1,10 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
-import { offerImage } from '../data/offerImage';
+import { pickImage, withFormats } from '../data/pickImage';
 import BlobTile from './BlobTile.astro';
+import TileGrid from './TileGrid.astro';
 
 const offers = (await getCollection('offers')).sort((a, b) => a.data.order - b.data.order);
-
 ---
 
 <section class="offers-section" id="angebote">
@@ -20,20 +20,23 @@ const offers = (await getCollection('offers')).sort((a, b) => a.data.order - b.d
     <h2 class="section-heading">Unsere Angebote</h2>
     <p class="section-sub">Für jedes Alter und jeden Anlass das Passende</p>
 
-    <div class="tile-row">
+    <TileGrid count={offers.length}>
       {offers.map((offer, idx) => (
         <BlobTile
           title={offer.data.name}
-          href={`/angebote/${offer.data.slug}`}
+          href={offer.data.href}
           age={offer.data.audience}
           description={offer.data.description}
-          image={offerImage(offer.data.slug, offer.data.image)}
+          image={pickImage(
+            [...withFormats(`/images/angebot-${offer.data.slug}`), ...withFormats(`/images/angebote/angebot-${offer.data.slug}`)],
+            offer.data.image
+          )}
           imageAlt={offer.data.imageAlt}
           color={offer.data.color}
           index={idx}
         />
       ))}
-    </div>
+    </TileGrid>
   </div>
 
   <!-- Coral wave at bottom -->

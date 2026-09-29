@@ -1,0 +1,13 @@
+page: kurse
+name: Programmierworkshops
+order: 3
+bullets:
+  - { icon: users, text: "Ab 6, 8 oder 10 Jahren (je Workshop)" }
+  - { icon: clock, text: "Einmalig, 2–3 Std." }
+  - { icon: blocks, text: "LEGO® SPIKE™, Minecraft, PictoBlox, Python" }
+  - { icon: trophy, text: "Eigener Roboter oder eigenes Spiel an einem Nachmittag" }
+shopUrl: https://shop.bricksnbytes.de/73ps9-2/
+preferredImage: /images/kurse/kurs-workshops
+image: /images/age-groups/why-photo.png
+imageAlt: Mädchen baut lachend einen Roboter aus Bausteinen
+color: orange

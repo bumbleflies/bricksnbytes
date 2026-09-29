@@ -1,0 +1,13 @@
+page: kurse
+name: Medienführerschein
+order: 6
+bullets:
+  - { icon: users, text: "8–12 Jahre" }
+  - { icon: clock, text: "Einmalig, 3 Std." }
+  - { icon: blocks, text: "Praxisbeispiele aus dem Kinderalltag" }
+  - { icon: trophy, text: "Eigener Medienführerschein" }
+shopUrl: https://shop.bricksnbytes.de/9n7m8/
+preferredImage: /images/kurse/kurs-medienfuehrerschein
+image: /images/age-groups/mittelschule.webp
+imageAlt: Kinder arbeiten konzentriert an Laptops
+color: blue
