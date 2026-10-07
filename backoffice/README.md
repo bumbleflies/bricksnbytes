@@ -44,14 +44,27 @@ Unter den PHP-Einstellungen des Pakets **PHP 8.3 oder neuer** auswählen.
 Die Datenbank ist nur vom Strato-Webspace aus erreichbar, nicht aus dem Internet.
 
 ### 1.3 SSH-Zugang
-Unter *Datenbanken und Webspace* → *SFTP/SSH* (o. ä.) die **Serveradresse** und den
-**Benutzernamen** nachsehen und ggf. ein SSH-Passwort setzen. Dann vom eigenen Rechner:
+Unter *Datenbanken und Webspace* → **SFTP & SSH** einen Zugang mit der Zugangsart
+**„SFTP + SSH“** anlegen (nur „SFTP“ reicht nicht → Meldung `shell access not allowed`) und ein
+Passwort setzen. In der Zugangsliste stehen dann **Server** (Muster `…ssh.w….strato.hosting`) und
+**Benutzername** (Muster `stu…`/`su…`).
+
+Achtung, nicht verwechseln: Die Datenbank-Daten aus 1.2 (`database-….webspace-host.com`,
+Benutzer `dbu…`) funktionieren für SSH **nicht** (→ „connection timeout“), sie gehören nur in die
+`config.php`. Auch `bricksnbytes.de` als Adresse geht nicht – die zeigt auf den Website-Server.
+
+Vom eigenen Rechner (Windows: PowerShell, SSH ist eingebaut; Mac/Linux: Terminal) – und
+**nicht** mit einem lokalen PHP wie XAMPP, alle folgenden Befehle laufen auf dem Server:
 
 ```bash
-ssh BENUTZER@SERVERADRESSE
+ssh BENUTZER@SERVER
 php -v     # muss 8.3 oder neuer zeigen
 git --version
 ```
+
+Die Warnung `client_global_hostkeys_prove_confirm: server gave bad signature …` beim Verbinden
+ist harmlos und kann ignoriert werden. Erscheint nach dem Passwort keine Eingabezeile, einfach
+trotzdem `php -v` tippen.
 
 Zeigt `php -v` eine ältere Version, bietet Strato die neueren meist unter eigenem Namen an
 (z. B. `php83`) – mit `ls /usr/bin/ | grep php` nachsehen und diesen Befehl unten statt `php`
