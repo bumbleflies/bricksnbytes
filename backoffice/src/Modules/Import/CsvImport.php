@@ -19,6 +19,9 @@ final class CsvImport
         'status' => ['status'],
         // Generic: 1/0, ja/nein, yes/no
         'newsletter' => ['newsletter'],
+        // Noptin: signup and last change (= unsubscribe date for unsubscribed rows)
+        'angemeldet_am' => ['date_created', 'angemeldet_am', 'anmeldedatum'],
+        'geaendert_am' => ['date_modified', 'geaendert_am'],
     ];
 
     /**
@@ -82,6 +85,8 @@ final class CsvImport
                 'vorname' => $get('vorname'),
                 'nachname' => $get('nachname'),
                 'newsletter' => self::newsletterFlag($get('status'), $get('newsletter')),
+                'angemeldet_am' => self::date($get('angemeldet_am')),
+                'abgemeldet_am' => mb_strtolower($get('status')) === 'unsubscribed' ? self::date($get('geaendert_am')) : null,
             ];
 
             if ($email === '') {
@@ -102,6 +107,18 @@ final class CsvImport
         fclose($stream);
 
         return $result;
+    }
+
+    // "06.03.2026 14:05", "2026-03-06" or "2026-03-06 14:05:00" -> "2026-03-06"
+    private static function date(string $value): ?string
+    {
+        foreach (['!d.m.Y H:i', '!d.m.Y', '!Y-m-d H:i:s', '!Y-m-d'] as $format) {
+            $date = \DateTimeImmutable::createFromFormat($format, $value);
+            if ($date !== false && $date <= new \DateTimeImmutable('tomorrow')) {
+                return $date->format('Y-m-d');
+            }
+        }
+        return null;
     }
 
     private static function newsletterFlag(string $status, string $newsletter): int

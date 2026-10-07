@@ -1,15 +1,23 @@
 <?php
-/** @var array $rows @var int $total @var string $q @var bool $nl @var string $sort @var string $dir @var int $page @var int $pages */
+/** @var array $rows @var int $total @var array $counts @var string $q @var ?string $typ @var string $sort @var string $dir @var int $page @var int $pages */
+use Backoffice\Modules\Kunden\Kundentypen;
 
-$url = static function (array $changes) use ($q, $nl, $sort, $dir, $page): string {
-    $params = array_filter(['q' => $q, 'nl' => $nl ? '1' : '', 'sort' => $sort, 'dir' => $dir, 'seite' => $page], static fn ($v) => $v !== '' && $v !== null);
-    return '/kunden?' . http_build_query(array_merge($params, $changes));
+$url = static function (array $changes) use ($q, $typ, $sort, $dir, $page): string {
+    $params = array_filter(['typ' => $typ, 'q' => $q, 'sort' => $sort, 'dir' => $dir, 'seite' => $page], static fn ($v) => $v !== '' && $v !== null);
+    return '/kunden?' . http_build_query(array_filter(array_merge($params, $changes), static fn ($v) => $v !== null && $v !== ''));
 };
-$exportQuery = http_build_query(array_filter(['q' => $q, 'nl' => $nl ? '1' : '']));
-$columns = [
-    'vorname' => 'Vorname', 'nachname' => 'Nachname', 'email' => 'E-Mail', 'telefon' => 'Telefon',
-    'adresse' => 'Adresse', 'plz' => 'PLZ', 'ort' => 'Ort', 'newsletter' => 'Newsletter', 'kind1' => 'Kind 1', 'kind2' => 'Kind 2',
-];
+
+// Columns depend on the filter: families, organisations, or mixed
+if ($typ === 'privat') {
+    $columns = ['vorname' => 'Vorname', 'nachname' => 'Nachname', 'email' => 'E-Mail', 'telefon' => 'Telefon',
+        'adresse' => 'Adresse', 'plz' => 'PLZ', 'ort' => 'Ort', 'kinder' => 'Kinder'];
+} elseif ($typ !== null) {
+    $columns = ['name' => 'Name', 'typ' => 'Typ', 'ansprechpartner' => 'Ansprechpartner', 'ort' => 'Ort'];
+} else {
+    $columns = ['name' => 'Name', 'typ' => 'Typ', 'email' => 'E-Mail', 'telefon' => 'Telefon', 'ort' => 'Ort', 'kinder' => 'Kinder / Ansprechpartner'];
+}
+$exportQuery = http_build_query(array_filter(['typ' => $typ, 'q' => $q]));
+$all = array_sum($counts);
 ?>
 <div class="page-head">
   <h1>Kunden <span class="count"><?= e($total) ?></span></h1>
@@ -20,18 +28,23 @@ $columns = [
   </div>
 </div>
 
+<nav class="tabs" aria-label="Kundentyp">
+  <a href="<?= e($url(['typ' => null, 'seite' => null, 'sort' => null])) ?>"<?= $typ === null ? ' aria-current="page"' : '' ?>>Alle <span><?= e($all) ?></span></a>
+  <?php foreach (Kundentypen::ALLE as $key => [$singular, $plural]): ?>
+    <a href="<?= e($url(['typ' => $key, 'seite' => null, 'sort' => null])) ?>"<?= $typ === $key ? ' aria-current="page"' : '' ?>><?= e($plural) ?> <span><?= e($counts[$key] ?? 0) ?></span></a>
+  <?php endforeach; ?>
+</nav>
+
 <form class="search" method="get" action="/kunden" role="search">
+  <?php if ($typ !== null): ?><input type="hidden" name="typ" value="<?= e($typ) ?>"><?php endif; ?>
   <label for="q" class="visually-hidden">Suche</label>
-  <input id="q" name="q" type="search" value="<?= e($q) ?>" placeholder="Name, E-Mail oder Ort">
-  <input type="hidden" name="sort" value="<?= e($sort) ?>">
-  <input type="hidden" name="dir" value="<?= e($dir) ?>">
-  <label class="check"><input type="checkbox" name="nl" value="1"<?= $nl ? ' checked' : '' ?>> nur Newsletter</label>
+  <input id="q" name="q" type="search" value="<?= e($q) ?>" placeholder="Name, E-Mail, Ort, Ansprechpartner oder Kind">
   <button type="submit" class="btn btn-secondary">Suchen</button>
-  <?php if ($q !== '' || $nl): ?><a href="/kunden">Zurücksetzen</a><?php endif; ?>
+  <?php if ($q !== ''): ?><a href="<?= e($url(['q' => null, 'seite' => null])) ?>">Suche zurücksetzen</a><?php endif; ?>
 </form>
 
 <?php if (!$rows): ?>
-  <p class="empty"><?= $q !== '' || $nl ? 'Keine Kunden gefunden.' : 'Noch keine Kunden angelegt.' ?></p>
+  <p class="empty"><?= $q !== '' ? 'Keine Kunden gefunden.' : 'Noch keine Kunden in dieser Ansicht.' ?></p>
 <?php else: ?>
   <div class="table-wrap">
     <table class="table">
@@ -41,31 +54,38 @@ $columns = [
               $active = $sort === $key;
               $nextDir = $active && $dir === 'asc' ? 'desc' : 'asc'; ?>
             <th scope="col"<?= $active ? ' aria-sort="' . ($dir === 'asc' ? 'ascending' : 'descending') . '"' : '' ?>>
-              <a href="<?= e($url(['sort' => $key, 'dir' => $nextDir, 'seite' => 1])) ?>">
-                <?= e($label) ?><?php if ($active): ?> <span aria-hidden="true"><?= $dir === 'asc' ? '▲' : '▼' ?></span><?php endif; ?>
-              </a>
+              <a href="<?= e($url(['sort' => $key, 'dir' => $nextDir, 'seite' => 1])) ?>"><?= e($label) ?><?php if ($active): ?> <span aria-hidden="true"><?= $dir === 'asc' ? '▲' : '▼' ?></span><?php endif; ?></a>
             </th>
           <?php endforeach; ?>
-          <th scope="col"><span class="visually-hidden">Aktionen</span></th>
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($rows as $r): ?>
+        <?php foreach ($rows as $r):
+            $link = '/kunden/ansehen?id=' . $r['id'];
+            $contact = trim(($r['hk_vorname'] ?? '') . ' ' . ($r['hk_nachname'] ?? '')); ?>
           <tr>
-            <td><?= e($r['vorname']) ?></td>
-            <td><?= e($r['nachname']) ?></td>
-            <td><?php if ($r['email']): ?><a href="mailto:<?= e($r['email']) ?>"><?= e($r['email']) ?></a><?php endif; ?></td>
-            <td><?= e($r['telefon']) ?></td>
-            <td><?= e($r['adresse']) ?></td>
-            <td><?= e($r['plz']) ?></td>
-            <td><?= e($r['ort']) ?></td>
-            <td><?= $r['newsletter'] ? '<span class="badge badge-ok">angemeldet</span>' : '<span class="badge">nein</span>' ?></td>
-            <td><?= e($r['kind1']) ?></td>
-            <td><?= e($r['kind2']) ?><?php if ($r['kinder_anzahl'] > 2): ?> <span class="muted">+<?= e($r['kinder_anzahl'] - 2) ?></span><?php endif; ?></td>
-            <td class="row-actions">
-              <a href="/kunden/bearbeiten?id=<?= e($r['id']) ?>">Bearbeiten</a>
-              <a class="danger" href="/kunden/loeschen?id=<?= e($r['id']) ?>">Löschen</a>
-            </td>
+            <?php foreach (array_keys($columns) as $i => $key): ?>
+              <td>
+                <?php
+                $value = match ($key) {
+                    'name' => Kundentypen::displayName($r),
+                    'vorname' => $r['hk_vorname'],
+                    'nachname' => $r['hk_nachname'],
+                    'typ' => Kundentypen::label($r['typ']),
+                    'ansprechpartner' => $contact . ($r['hk_rolle'] ? ' (' . $r['hk_rolle'] . ')' : ''),
+                    'kinder' => Kundentypen::isPrivat($r['typ']) || $typ === 'privat' ? $r['kinder_namen'] : $contact,
+                    default => $r[$key],
+                };
+                ?>
+                <?php if ($i === 0): ?>
+                  <a href="<?= e($link) ?>"><?= e($value !== null && $value !== '' ? $value : '–') ?></a>
+                <?php elseif ($key === 'email' && $value): ?>
+                  <a href="mailto:<?= e($value) ?>"><?= e($value) ?></a>
+                <?php else: ?>
+                  <?= e($value) ?>
+                <?php endif; ?>
+              </td>
+            <?php endforeach; ?>
           </tr>
         <?php endforeach; ?>
       </tbody>

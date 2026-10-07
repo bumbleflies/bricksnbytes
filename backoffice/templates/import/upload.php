@@ -12,6 +12,7 @@ use Backoffice\Csrf;
   <ul class="hint-list">
     <li>Pflicht ist eine Spalte <code>email</code> (oder „E-Mail“). Optional: <code>first_name</code>/<code>vorname</code>, <code>last_name</code>/<code>nachname</code>, <code>status</code> (subscribed/unsubscribed) oder <code>newsletter</code> (1/0).</li>
     <li>Trennzeichen (Semikolon, Komma, Tab) und Zeichensatz werden automatisch erkannt.</li>
+    <li>Neue Adressen werden als <strong>Privatkunden</strong> angelegt (Name als Elternteil). Der Newsletter-Status wird als Einwilligung mit Anmelde- bzw. Abmeldedatum gespeichert (<code>date_created</code>/<code>date_modified</code>).</li>
     <li>Alle anderen Spalten (z. B. IP-Adressen, Statistiken) werden ignoriert und nicht gespeichert.</li>
     <li>E-Mail-Adressen, die es schon gibt, werden übersprungen – bestehende Kunden werden nicht verändert.</li>
   </ul>

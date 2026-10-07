@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Backoffice\Modules\Auth;
 
+use Backoffice\Audit;
 use Backoffice\Auth;
 use Backoffice\Router;
 use Backoffice\Session;
@@ -33,6 +34,7 @@ final class AuthController
         $result = Auth::attempt($username, $password, $_SERVER['REMOTE_ADDR'] ?? 'unknown');
 
         if ($result === Auth::LOGIN_OK) {
+            Audit::purge();
             Router::redirect('/');
         }
 

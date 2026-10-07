@@ -1,15 +1,21 @@
 # Imperiales Sicherheitsbüro (Backoffice)
 
-Internes Backoffice für BricksnBytes: Kundendatenbank mit Kindern, Newsletter-Kennzeichen,
-CSV-Import und -Export. PHP 8.3+ und MySQL/MariaDB, ohne Frameworks oder Abhängigkeiten –
-läuft auf normalem Strato-Webspace.
+Internes Backoffice für BricksnBytes. PHP 8.3+ und MySQL/MariaDB, ohne Frameworks oder
+Abhängigkeiten – läuft auf normalem Strato-Webspace.
+
+**Stand Phase 1:** Login, Dashboard (Kundenzahlen; Umsatz/Forecast/Termine als Platzhalter),
+globale Suche, **Kunden** (Eltern, Schulen, Horte, Kitas, Vereine, Firmen, Sonstige) mit
+Ansprechpartnern, **Kindern**, Einwilligungen und Änderungsprotokoll, Kinder-Übersicht,
+CSV-Export und -Import. Aufträge, Kurse, Termine, Buchungen, Rechnungen, Forecast, Kursleiter
+und Einstellungen sind als Seiten angelegt („Kommt bald“); ihre Tabellen existieren bereits
+(`migrations/003_gesamtschema.sql`).
 
 ```
 backoffice/
   public/        ← einziger Ordner, auf den die Subdomain zeigt (Webroot)
   src/           ← Logik (Login, Datenbank, Module Kunden/Import/…)
   templates/     ← HTML
-  migrations/    ← Datenbankschema, nummeriert (001_…, 002_…)
+  migrations/    ← Datenbankschema, nummeriert (001_…, 002_…, 003_gesamtschema = alle Module)
   bin/           ← Kommandozeile: setup.php (erster Admin), migrate.php
   storage/       ← Sessions (wird automatisch angelegt, nicht in Git)
   config.php     ← Zugangsdaten (nur auf dem Server, nie in Git)
@@ -124,15 +130,21 @@ anpassen.)
 1. Anmelden → *Kunden* → **CSV importieren** → Datei wählen → **Datei prüfen**.
 2. Die Vorschau zeigt Zeichensatz, Trennzeichen, Spaltenzuordnung und wie viele Zeilen neu,
    doppelt oder fehlerhaft sind. Es wird erst gespeichert, wenn du **… Kunden importieren** klickst.
-3. Übernommen werden nur E-Mail, Vor- und Nachname und das Newsletter-Kennzeichen
-   (`status = subscribed` → 1, `unsubscribed` → 0). Alle anderen Spalten werden verworfen.
+3. Jede neue Adresse wird als **Privatkunde** angelegt; Vor- und Nachname werden zum Elternteil.
+   Der Newsletter-Status wird eine **Einwilligung**: erteilt am `date_created`, bei
+   `unsubscribed` widerrufen am `date_modified`. Alle anderen Spalten (IP-Adressen, Statistiken)
+   werden verworfen.
 4. Bereits vorhandene E-Mail-Adressen werden übersprungen, nichts wird überschrieben.
+5. Fehlende Angaben (Name, Adresse, Kinder) später beim Kunden ergänzen.
 
 Die CSV-Datei danach von deinem Rechner löschen bzw. sicher ablegen; der Server speichert sie nicht.
 
 ---
 
 ## 3. Updates einspielen
+
+**Vorher immer eine Datenbank-Sicherung anlegen** (siehe Abschnitt 4) – Migrationen ändern
+Tabellen und lassen sich nicht automatisch rückgängig machen.
 
 **Variante A:**
 ```bash
@@ -182,6 +194,15 @@ Kundendaten von Eltern und Kindern → Backups sind Pflicht und müssen selbst g
   muss eine nachweisbare Einwilligung (Double-Opt-in) vorliegen – 138 der importierten
   Adressen hatten die Anmeldung in der alten Liste nicht bestätigt.
 - **Zugang:** nur persönliche Konten, starke Passwörter, nicht auf fremden Geräten anmelden.
+- **Änderungsprotokoll:** Jede Änderung an Kunden, Ansprechpartnern, Kindern und Einwilligungen
+  wird mit Benutzer, Zeit und alt → neu gespeichert (Tabelle `aenderungen`). Beim Löschen bleibt
+  nur der Vermerk „gelöscht“ ohne Inhalte. Einträge werden nach 24 Monaten automatisch entfernt
+  (Einstellung `protokoll_aufbewahrung_monate`).
+- **Kinderdaten:** nur erfassen, was für die Kurse nötig ist (Vorname, Alter/Geburtsjahr,
+  Abholberechtigte). Foto-/Video-Einwilligungen vor jeder Veröffentlichung prüfen.
+- **Rechnungen (später):** Die Kurse sind umsatzsteuerfrei; der Hinweis auf der Rechnung ist in
+  `einstellungen.steuerhinweis` vorbelegt („§ 4 Nr. 21 UStG“) – bitte mit der Steuerberatung
+  abstimmen, welche Rechtsgrundlage und ggf. Bescheinigung gilt.
 
 ---
 
@@ -197,6 +218,20 @@ php -S 127.0.0.1:8099 -t public public/index.php
 
 Nur erfundene Testdaten verwenden – keine echten Kundendaten auf Entwicklungsrechnern.
 
-Neue Module (Kurse, Buchungen, Rechnungen …) bekommen einen Ordner unter `src/Modules/`,
-Templates unter `templates/<modul>/`, eine neue Migration `migrations/00X_….sql` und eine
-Zeile `…Controller::register($router);` in `public/index.php`.
+Neue Module (Aufträge, Kurse, Rechnungen …) bekommen einen Ordner unter `src/Modules/`,
+Templates unter `templates/<modul>/` und eine Zeile `…Controller::register($router);` in
+`public/index.php`; danach den Eintrag aus `Modules/Platzhalter/PlatzhalterController.php`
+entfernen. Die Tabellen gibt es schon – Schemaänderungen als neue Migration `00X_….sql`.
+
+### Datenmodell (Kurzüberblick)
+
+| Bereich | Tabellen |
+|---|---|
+| Basis | `benutzer` (Rollen admin/büro/kursleiter), `login_versuche`, `aenderungen`, `einstellungen`, `aufgaben` |
+| Kunden | `kunden` (Typ), `ansprechpartner`, `kinder`, `einwilligungen` |
+| Kurse | `kursarten`, `kursleiter`, `orte`, `kurse` (Kursreihe), `termine`, `buchungen`, `anwesenheiten` |
+| Aufträge | `auftraege` (Status Anfrage → … → abgerechnet / abgesagt), `auftrag_positionen`, `geburtstage` |
+| Rechnungen | `nummernkreise`, `rechnungen` (Empfänger als Kopie), `rechnung_positionen`, `zahlungen`, `mahnungen`, `gutscheine`, `gutschein_einloesungen` |
+| Forecast | wird aus Aufträgen/Rechnungen berechnet; Wahrscheinlichkeiten je Status in `einstellungen` |
+
+Beträge immer in Cent (`…_cent`).

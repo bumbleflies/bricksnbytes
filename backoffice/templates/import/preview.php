@@ -3,7 +3,9 @@
 use Backoffice\Csrf;
 
 $delimiterNames = [';' => 'Semikolon ( ; )', ',' => 'Komma ( , )', "\t" => 'Tabulator'];
-$fieldNames = ['email' => 'E-Mail', 'vorname' => 'Vorname', 'nachname' => 'Nachname', 'status' => 'Newsletter (status)', 'newsletter' => 'Newsletter'];
+$fieldNames = ['email' => 'E-Mail', 'vorname' => 'Vorname (Elternteil)', 'nachname' => 'Nachname (Elternteil)',
+    'status' => 'Newsletter-Status', 'newsletter' => 'Newsletter', 'angemeldet_am' => 'Einwilligung erteilt am',
+    'geaendert_am' => 'Widerrufen am (bei abgemeldet)'];
 $newsletterCount = count(array_filter($a['new'], static fn ($r) => $r['newsletter'] === 1));
 ?>
 <p class="breadcrumb"><a href="/kunden/import">← Andere Datei wählen</a></p>

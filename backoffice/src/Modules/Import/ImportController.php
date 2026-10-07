@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Backoffice\Modules\Import;
 
-use Backoffice\Db;
+use Backoffice\Modules\Kunden\KundenRepository;
 use Backoffice\Router;
 use Backoffice\Session;
 use Backoffice\View;
@@ -71,29 +71,37 @@ final class ImportController
 
         $imported = 0;
         $skipped = (int) $pending['duplicates'];
-        $pdo = Db::pdo();
-        $pdo->beginTransaction();
-        try {
-            foreach ($pending['rows'] as $row) {
-                try {
-                    Db::query(
-                        'INSERT INTO kunden (email, vorname, nachname, newsletter) VALUES (?, ?, ?, ?)',
-                        [$row['email'], $row['vorname'] !== '' ? $row['vorname'] : null, $row['nachname'] !== '' ? $row['nachname'] : null, $row['newsletter']]
-                    );
-                    $imported++;
-                } catch (PDOException $e) {
-                    // Created in the meantime (e.g. a second import tab): count as duplicate
-                    if (($e->errorInfo[1] ?? null) !== 1062) {
-                        throw $e;
-                    }
-                    $skipped++;
-                }
+        $today = date('Y-m-d');
+        foreach ($pending['rows'] as $row) {
+            $contacts = $row['vorname'] !== '' || $row['nachname'] !== ''
+                ? [['id' => null, 'vorname' => $row['vorname'] ?: null, 'nachname' => $row['nachname'] ?: null,
+                    'rolle' => 'Elternteil', 'email' => null, 'telefon' => null, 'ist_hauptkontakt' => 1]]
+                : [];
+            $consents = [];
+            if ($row['newsletter'] === 1 || $row['abgemeldet_am'] !== null) {
+                $consents['newsletter'] = [
+                    'erteilt_am' => $row['angemeldet_am'] ?? $today,
+                    'widerrufen_am' => $row['newsletter'] === 1 ? null : ($row['abgemeldet_am'] ?? $today),
+                    'quelle' => 'Import ' . $pending['file'],
+                ];
             }
-            $pdo->commit();
-        } catch (PDOException $e) {
-            $pdo->rollBack();
-            View::render('error', ['title' => 'Import fehlgeschlagen', 'message' => 'Es wurde nichts importiert. Bitte versuche es erneut.'], 500);
-            return;
+            try {
+                KundenRepository::save(
+                    null,
+                    ['typ' => 'privat', 'email' => $row['email'], 'quelle' => 'Import alte Datenbank'],
+                    $contacts,
+                    [],
+                    $consents,
+                    'importiert'
+                );
+                $imported++;
+            } catch (PDOException $e) {
+                // Created in the meantime (e.g. a second import tab): count as duplicate
+                if (($e->errorInfo[1] ?? null) !== 1062) {
+                    throw $e;
+                }
+                $skipped++;
+            }
         }
 
         View::render('import/result', [
