@@ -29,3 +29,9 @@ Thumbs.db
 
 # Git worktrees
 .worktrees/
+
+# Backoffice: credentials, HTTP auth file and any customer data never go into git
+backoffice/config.php
+backoffice/.htpasswd
+backoffice/storage/
+backoffice/**/*.csv
