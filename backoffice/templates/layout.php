@@ -3,9 +3,11 @@
 use Backoffice\Auth;
 use Backoffice\Config;
 use Backoffice\Csrf;
+use Backoffice\Navigation;
 
 $appName = (string) Config::get('app.name', 'Imperiales Sicherheitsbüro');
-$current = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/', '/') ?: '/';
+$signedIn = Auth::check();
 ?>
 <!doctype html>
 <html lang="de">
@@ -17,27 +19,44 @@ $current = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
   <link rel="stylesheet" href="/assets/fonts.css">
   <link rel="stylesheet" href="/assets/app.css">
 </head>
-<body>
-  <header class="topbar">
-    <a class="brand" href="/">Bricksn<span>Bytes</span> <small><?= e($appName) ?></small></a>
-    <?php if (Auth::check()): ?>
-      <nav class="mainnav" aria-label="Hauptnavigation">
-        <a href="/"<?= $current === '/' ? ' aria-current="page"' : '' ?>>Übersicht</a>
-        <a href="/kunden"<?= str_starts_with($current, '/kunden') ? ' aria-current="page"' : '' ?>>Kunden</a>
-      </nav>
-      <form class="logout" method="post" action="/logout">
-        <?= Csrf::field() ?>
-        <span class="user"><?= e(Auth::userName()) ?></span>
-        <button type="submit" class="btn btn-ghost">Abmelden</button>
+<body class="<?= $signedIn ? 'app' : 'guest' ?>">
+<?php if ($signedIn): ?>
+  <aside class="sidebar">
+    <a class="brand" href="/">Bricksn<span>Bytes</span><small><?= e($appName) ?></small></a>
+    <nav class="sidenav" aria-label="Module">
+      <?php foreach (Navigation::ITEMS as [$href, $label]): ?>
+        <a href="<?= e($href) ?>"<?= Navigation::isActive($href, $current) ? ' aria-current="page"' : '' ?>><?= e($label) ?></a>
+      <?php endforeach; ?>
+    </nav>
+    <form class="logout" method="post" action="/logout">
+      <?= Csrf::field() ?>
+      <span class="user"><?= e(Auth::userName()) ?></span>
+      <button type="submit" class="btn btn-ghost btn-small">Abmelden</button>
+    </form>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <form class="global-search" method="get" action="/suche" role="search">
+        <label for="global-q" class="visually-hidden">Suche</label>
+        <input id="global-q" name="q" type="search" placeholder="Kunde oder Kind suchen" value="<?= e($current === '/suche' ? ($_GET['q'] ?? '') : '') ?>">
       </form>
-    <?php endif; ?>
-  </header>
-
+      <a class="btn" href="/kunden/neu">+ Neu</a>
+    </header>
+    <main class="page">
+      <?php if (!empty($flash)): ?>
+        <p class="flash flash-<?= e($flash['type']) ?>" role="status"><?= e($flash['text']) ?></p>
+      <?php endif; ?>
+      <?= $content /* already escaped by the inner template */ ?>
+    </main>
+  </div>
+<?php else: ?>
+  <header class="guest-bar"><span class="brand">Bricksn<span>Bytes</span><small><?= e($appName) ?></small></span></header>
   <main class="page">
     <?php if (!empty($flash)): ?>
       <p class="flash flash-<?= e($flash['type']) ?>" role="status"><?= e($flash['text']) ?></p>
     <?php endif; ?>
-    <?= $content /* already escaped by the inner template */ ?>
+    <?= $content ?>
   </main>
+<?php endif; ?>
 </body>
 </html>
