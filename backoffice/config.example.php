@@ -8,7 +8,7 @@ return [
         'password' => 'DATENBANK-PASSWORT',
     ],
     'app' => [
-        'name' => 'BricksnBytes Backoffice',
+        'name' => 'Imperiales Sicherheitsbüro',
         // Show PHP errors in the browser – only for local development
         'debug' => false,
         // Cookies only over HTTPS; set to false only for local http://127.0.0.1 testing

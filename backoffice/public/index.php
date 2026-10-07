@@ -27,5 +27,6 @@ $router = new Router();
 // Modules register their routes here; new modules (Kurse, Buchungen, …) are added the same way
 Modules\Auth\AuthController::register($router);
 Modules\Dashboard\DashboardController::register($router);
+Modules\Kunden\KundenController::register($router);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $_SERVER['REQUEST_URI'] ?? '/');

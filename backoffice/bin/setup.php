@@ -51,5 +51,5 @@ if (ask('Passwort wiederholen: ', true) !== $password) {
 }
 
 Db::query('INSERT INTO benutzer (benutzername, passwort_hash) VALUES (?, ?)', [$username, Auth::hash($password)]);
-echo "Admin \"$username\" angelegt. Du kannst dich jetzt im Backoffice anmelden.\n";
+echo "Admin \"$username\" angelegt. Du kannst dich jetzt im Imperialen Sicherheitsbüro anmelden.\n";
 echo "Empfehlung: bin/setup.php jetzt löschen (rm bin/setup.php).\n";
