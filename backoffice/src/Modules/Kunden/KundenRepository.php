@@ -10,7 +10,7 @@ use PDOException;
 // sort columns come from a fixed whitelist.
 final class KundenRepository
 {
-    public const FIELDS = ['vorname', 'nachname', 'email', 'telefon', 'adresse', 'plz', 'ort'];
+    public const FIELDS = ['vorname', 'nachname', 'email', 'telefon', 'adresse', 'plz', 'ort', 'newsletter'];
 
     // URL sort key => SQL expression
     public const SORTS = [
@@ -23,13 +23,14 @@ final class KundenRepository
         'ort' => 'k.ort',
         'kind1' => 'kind1',
         'kind2' => 'kind2',
+        'newsletter' => 'k.newsletter',
         'erstellt' => 'k.erstellt_am',
     ];
 
     /** @return array{rows: array, total: int} */
-    public static function search(string $q, string $sort, string $dir, int $page, int $perPage): array
+    public static function search(string $q, string $sort, string $dir, int $page, int $perPage, bool $onlyNewsletter = false): array
     {
-        [$where, $params] = self::filter($q);
+        [$where, $params] = self::filter($q, $onlyNewsletter);
         $orderBy = (self::SORTS[$sort] ?? 'k.nachname') . ($dir === 'desc' ? ' DESC' : ' ASC');
 
         $total = (int) Db::query("SELECT COUNT(*) FROM kunden k $where", $params)->fetchColumn();
@@ -47,9 +48,9 @@ final class KundenRepository
     }
 
     /** All matching customers with all children, for the CSV export */
-    public static function exportRows(string $q): array
+    public static function exportRows(string $q, bool $onlyNewsletter = false): array
     {
-        [$where, $params] = self::filter($q);
+        [$where, $params] = self::filter($q, $onlyNewsletter);
         $kunden = Db::query("SELECT k.* FROM kunden k $where ORDER BY k.nachname IS NULL, k.nachname, k.vorname, k.id", $params)->fetchAll();
         $kinder = [];
         foreach (Db::query('SELECT kunde_id, vorname, geburtsdatum FROM kinder ORDER BY geburtsdatum IS NULL, geburtsdatum, id') as $kind) {
@@ -110,6 +111,12 @@ final class KundenRepository
         }
     }
 
+    public static function findIdByEmail(string $email): ?int
+    {
+        $id = Db::query('SELECT id FROM kunden WHERE email = ?', [$email])->fetchColumn();
+        return $id === false ? null : (int) $id;
+    }
+
     public static function delete(int $id): void
     {
         // Children are removed by the foreign key (ON DELETE CASCADE)
@@ -142,16 +149,19 @@ final class KundenRepository
     }
 
     /** @return array{0: string, 1: array} */
-    private static function filter(string $q): array
+    private static function filter(string $q, bool $onlyNewsletter = false): array
     {
+        $conditions = [];
+        $params = [];
         $q = trim($q);
-        if ($q === '') {
-            return ['', []];
+        if ($q !== '') {
+            $like = '%' . addcslashes($q, '%_\\') . '%';
+            $conditions[] = "(k.vorname LIKE ? OR k.nachname LIKE ? OR CONCAT_WS(' ', k.vorname, k.nachname) LIKE ? OR k.email LIKE ? OR k.ort LIKE ?)";
+            array_push($params, $like, $like, $like, $like, $like);
         }
-        $like = '%' . addcslashes($q, '%_\\') . '%';
-        return [
-            "WHERE k.vorname LIKE ? OR k.nachname LIKE ? OR CONCAT_WS(' ', k.vorname, k.nachname) LIKE ? OR k.email LIKE ? OR k.ort LIKE ?",
-            [$like, $like, $like, $like, $like],
-        ];
+        if ($onlyNewsletter) {
+            $conditions[] = 'k.newsletter = 1';
+        }
+        return [$conditions ? 'WHERE ' . implode(' AND ', $conditions) : '', $params];
     }
 }

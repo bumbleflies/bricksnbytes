@@ -34,6 +34,10 @@ $field = static function (string $name, string $label, string $type = 'text', st
       <?= $field('email', 'E-Mail', 'email') ?>
       <?= $field('telefon', 'Telefon', 'tel') ?>
     </div>
+    <label class="check">
+      <input type="checkbox" name="newsletter" value="1"<?= !empty($kunde['newsletter']) ? ' checked' : '' ?>>
+      Für den Newsletter angemeldet
+    </label>
   </fieldset>
 
   <fieldset>

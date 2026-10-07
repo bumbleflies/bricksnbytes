@@ -18,6 +18,7 @@ final class DashboardController
     {
         $kunden = (int) Db::query('SELECT COUNT(*) FROM kunden')->fetchColumn();
         $kinder = (int) Db::query('SELECT COUNT(*) FROM kinder')->fetchColumn();
-        View::render('dashboard', ['title' => 'Übersicht', 'kunden' => $kunden, 'kinder' => $kinder]);
+        $newsletter = (int) Db::query('SELECT COUNT(*) FROM kunden WHERE newsletter = 1')->fetchColumn();
+        View::render('dashboard', ['title' => 'Übersicht', 'kunden' => $kunden, 'kinder' => $kinder, 'newsletter' => $newsletter]);
     }
 }

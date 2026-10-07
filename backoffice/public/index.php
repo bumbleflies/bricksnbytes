@@ -28,5 +28,6 @@ $router = new Router();
 Modules\Auth\AuthController::register($router);
 Modules\Dashboard\DashboardController::register($router);
 Modules\Kunden\KundenController::register($router);
+Modules\Import\ImportController::register($router);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $_SERVER['REQUEST_URI'] ?? '/');

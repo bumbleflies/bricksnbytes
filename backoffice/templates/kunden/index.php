@@ -1,19 +1,21 @@
 <?php
-/** @var array $rows @var int $total @var string $q @var string $sort @var string $dir @var int $page @var int $pages */
+/** @var array $rows @var int $total @var string $q @var bool $nl @var string $sort @var string $dir @var int $page @var int $pages */
 
-$url = static function (array $changes) use ($q, $sort, $dir, $page): string {
-    $params = array_filter(['q' => $q, 'sort' => $sort, 'dir' => $dir, 'seite' => $page] + [], static fn ($v) => $v !== '' && $v !== null);
+$url = static function (array $changes) use ($q, $nl, $sort, $dir, $page): string {
+    $params = array_filter(['q' => $q, 'nl' => $nl ? '1' : '', 'sort' => $sort, 'dir' => $dir, 'seite' => $page], static fn ($v) => $v !== '' && $v !== null);
     return '/kunden?' . http_build_query(array_merge($params, $changes));
 };
+$exportQuery = http_build_query(array_filter(['q' => $q, 'nl' => $nl ? '1' : '']));
 $columns = [
     'vorname' => 'Vorname', 'nachname' => 'Nachname', 'email' => 'E-Mail', 'telefon' => 'Telefon',
-    'adresse' => 'Adresse', 'plz' => 'PLZ', 'ort' => 'Ort', 'kind1' => 'Kind 1', 'kind2' => 'Kind 2',
+    'adresse' => 'Adresse', 'plz' => 'PLZ', 'ort' => 'Ort', 'newsletter' => 'Newsletter', 'kind1' => 'Kind 1', 'kind2' => 'Kind 2',
 ];
 ?>
 <div class="page-head">
   <h1>Kunden <span class="count"><?= e($total) ?></span></h1>
   <div class="actions">
-    <a class="btn btn-secondary" href="/kunden/export<?= $q !== '' ? '?q=' . e(rawurlencode($q)) : '' ?>">CSV exportieren</a>
+    <a class="btn btn-secondary" href="/kunden/export<?= $exportQuery !== '' ? '?' . e($exportQuery) : '' ?>">CSV exportieren</a>
+    <a class="btn btn-secondary" href="/kunden/import">CSV importieren</a>
     <a class="btn" href="/kunden/neu">Neuer Kunde</a>
   </div>
 </div>
@@ -23,12 +25,13 @@ $columns = [
   <input id="q" name="q" type="search" value="<?= e($q) ?>" placeholder="Name, E-Mail oder Ort">
   <input type="hidden" name="sort" value="<?= e($sort) ?>">
   <input type="hidden" name="dir" value="<?= e($dir) ?>">
+  <label class="check"><input type="checkbox" name="nl" value="1"<?= $nl ? ' checked' : '' ?>> nur Newsletter</label>
   <button type="submit" class="btn btn-secondary">Suchen</button>
-  <?php if ($q !== ''): ?><a href="/kunden">Zurücksetzen</a><?php endif; ?>
+  <?php if ($q !== '' || $nl): ?><a href="/kunden">Zurücksetzen</a><?php endif; ?>
 </form>
 
 <?php if (!$rows): ?>
-  <p class="empty"><?= $q !== '' ? 'Keine Kunden gefunden.' : 'Noch keine Kunden angelegt.' ?></p>
+  <p class="empty"><?= $q !== '' || $nl ? 'Keine Kunden gefunden.' : 'Noch keine Kunden angelegt.' ?></p>
 <?php else: ?>
   <div class="table-wrap">
     <table class="table">
@@ -56,6 +59,7 @@ $columns = [
             <td><?= e($r['adresse']) ?></td>
             <td><?= e($r['plz']) ?></td>
             <td><?= e($r['ort']) ?></td>
+            <td><?= $r['newsletter'] ? '<span class="badge badge-ok">angemeldet</span>' : '<span class="badge">nein</span>' ?></td>
             <td><?= e($r['kind1']) ?></td>
             <td><?= e($r['kind2']) ?><?php if ($r['kinder_anzahl'] > 2): ?> <span class="muted">+<?= e($r['kinder_anzahl'] - 2) ?></span><?php endif; ?></td>
             <td class="row-actions">

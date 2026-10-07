@@ -31,12 +31,13 @@ final class KundenController
         $sort = array_key_exists(self::str($_GET['sort'] ?? ''), KundenRepository::SORTS) ? self::str($_GET['sort']) : 'nachname';
         $dir = self::str($_GET['dir'] ?? '') === 'desc' ? 'desc' : 'asc';
         $page = max(1, (int) ($_GET['seite'] ?? 1));
+        $nl = ($_GET['nl'] ?? '') === '1';
 
-        $result = KundenRepository::search($q, $sort, $dir, $page, self::PER_PAGE);
+        $result = KundenRepository::search($q, $sort, $dir, $page, self::PER_PAGE, $nl);
         $pages = max(1, (int) ceil($result['total'] / self::PER_PAGE));
         if ($page > $pages) {
             $page = $pages;
-            $result = KundenRepository::search($q, $sort, $dir, $page, self::PER_PAGE);
+            $result = KundenRepository::search($q, $sort, $dir, $page, self::PER_PAGE, $nl);
         }
 
         View::render('kunden/index', [
@@ -44,6 +45,7 @@ final class KundenController
             'rows' => $result['rows'],
             'total' => $result['total'],
             'q' => $q,
+            'nl' => $nl,
             'sort' => $sort,
             'dir' => $dir,
             'page' => $page,
@@ -53,7 +55,7 @@ final class KundenController
 
     public static function createForm(): void
     {
-        self::renderForm(null, array_fill_keys(KundenRepository::FIELDS, null), [], []);
+        self::renderForm(null, array_fill_keys(KundenRepository::FIELDS, null) + ['newsletter' => 0], [], []);
     }
 
     public static function create(): void
@@ -105,7 +107,7 @@ final class KundenController
     public static function export(): void
     {
         $q = self::str($_GET['q'] ?? '');
-        $rows = KundenRepository::exportRows($q);
+        $rows = KundenRepository::exportRows($q, ($_GET['nl'] ?? '') === '1');
 
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="kunden-' . date('Y-m-d') . '.csv"');
@@ -113,7 +115,7 @@ final class KundenController
         $out = fopen('php://output', 'w');
         fwrite($out, "\xEF\xBB\xBF"); // BOM so Excel opens UTF-8 (umlauts) correctly
         $header = ['Vorname', 'Nachname', 'E-Mail', 'Telefon', 'Adresse', 'PLZ', 'Ort',
-            'Kind 1', 'Kind 1 Geburtsdatum', 'Kind 2', 'Kind 2 Geburtsdatum', 'Weitere Kinder', 'Angelegt am', 'Geändert am'];
+            'Newsletter', 'Kind 1', 'Kind 1 Geburtsdatum', 'Kind 2', 'Kind 2 Geburtsdatum', 'Weitere Kinder', 'Angelegt am', 'Geändert am'];
         fputcsv($out, $header, ';', '"', '');
         foreach ($rows as $r) {
             $kinder = $r['kinder'];
@@ -123,6 +125,7 @@ final class KundenController
             );
             $line = [
                 $r['vorname'], $r['nachname'], $r['email'], $r['telefon'], $r['adresse'], $r['plz'], $r['ort'],
+                $r['newsletter'] ? 'ja' : 'nein',
                 $kinder[0]['vorname'] ?? '', self::germanDate($kinder[0]['geburtsdatum'] ?? null),
                 $kinder[1]['vorname'] ?? '', self::germanDate($kinder[1]['geburtsdatum'] ?? null),
                 implode(', ', $more),

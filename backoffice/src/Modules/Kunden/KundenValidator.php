@@ -14,13 +14,16 @@ final class KundenValidator
         $data = [];
         $errors = [];
 
-        foreach (KundenRepository::FIELDS as $field) {
+        foreach (array_diff(KundenRepository::FIELDS, ['newsletter']) as $field) {
             $value = is_string($input[$field] ?? null) ? trim(preg_replace('/\s+/u', ' ', $input[$field])) : '';
             if (mb_strlen($value) > self::MAX[$field]) {
                 $errors[$field] = 'Höchstens ' . self::MAX[$field] . ' Zeichen.';
             }
             $data[$field] = $value === '' ? null : $value;
         }
+
+        // Checkbox: present = subscribed
+        $data['newsletter'] = !empty($input['newsletter']) ? 1 : 0;
 
         if ($data['email'] !== null) {
             $data['email'] = mb_strtolower($data['email']);
