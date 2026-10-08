@@ -11,6 +11,16 @@ final class Session
     {
         $secure = (bool) Config::get('app.secure_cookies', true);
 
+        // Own session folder outside the web root (shared hosting may share the default one)
+        $savePath = BACKOFFICE_ROOT . '/storage/sessions';
+        if (!is_dir($savePath)) {
+            mkdir($savePath, 0700, true);
+        }
+        session_save_path($savePath);
+        ini_set('session.gc_maxlifetime', (string) ((int) Config::get('app.session_max_hours', 8) * 3600));
+        ini_set('session.gc_probability', '1');
+        ini_set('session.gc_divisor', '100');
+
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
         ini_set('session.use_trans_sid', '0');

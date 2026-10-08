@@ -24,9 +24,13 @@ header('Cache-Control: no-store');
 Session::start();
 
 $router = new Router();
-// Modules register their routes here; new modules (Kurse, Buchungen, …) are added the same way
+// Modules register their routes here; new modules (Aufträge, Kurse, …) replace their placeholder
 Modules\Auth\AuthController::register($router);
 Modules\Dashboard\DashboardController::register($router);
+Modules\Suche\SucheController::register($router);
 Modules\Kunden\KundenController::register($router);
+Modules\Kinder\KinderController::register($router);
+Modules\Import\ImportController::register($router);
+Modules\Platzhalter\PlatzhalterController::register($router);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $_SERVER['REQUEST_URI'] ?? '/');
