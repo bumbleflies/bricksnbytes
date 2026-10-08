@@ -40,3 +40,9 @@ mittelschule.webp wurde doppelt verwendet, und why-photo.png diente als Platzhal
 Texte in `src/data/kartendetails.ts` ändern. Eine neue Karte (YAML) braucht dort einen Eintrag,
 sonst schlagen Build und Test fehl. Ein schärferes Foto legt man mit gleichem Namen als `.webp`
 nach `public/images/kurse/`.
+
+## Nachtrag (gleicher Tag)
+- Termine, Uhrzeiten, Orte und Preise werden nur in pretix gepflegt. Bei Shop-Kursen sind sie aus Pop-up und Daten entfernt, stattdessen steht dort: „Aktuelle Termine, Orte und Preise findest du im Shop.“ Ein Test stellt das sicher.
+- Anfrage-Angebote (Geburtstage, Schulprojekttag, Vorschule/Hort) behalten Termine und Ort, ohne Preis und Uhrzeit.
+- Online-Kurse und Medienführerschein: Einleitung und Inhalte stammen aus den Kursbeschreibungen in pretix. Das Alter der Online-Kurse ist jetzt „Ab 8 Jahren“, wie im Shop.
+- Startseite: „Was uns besonders macht“ zeigt das hochgeladene Foto (`public/images/besonders.webp`).
