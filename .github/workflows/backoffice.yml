@@ -74,7 +74,7 @@ jobs:
       - name: Test Docker image healthcheck
         run: |
           # No database: the entrypoint's bounded wait must give up after
-          # ~90s and start apache anyway so /healthz can answer.
+          # ~90s and start apache anyway so /healthz.php can answer.
           docker run --rm --detach --name test_container \
             -e DB_USER=smoketest -e DB_PASSWORD=smoketest \
             bumblecode/ibs:latest
