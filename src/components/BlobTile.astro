@@ -317,23 +317,31 @@ const ctaAria = `${ctaLabel}: ${title}${ctaExternal ? ' (öffnet in neuem Tab)' 
     color: var(--coral-deep);
   }
 
-  @media (hover: hover) {
+  /* Hover is not limited to (hover: hover): Chrome on touch-capable laptops reports
+     "no hover" even with a mouse attached */
+  .bcard-more {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  .has-details:hover {
+    transform: translateY(-6px);
+  }
+
+  .has-details:hover .bcard-photo img {
+    transform: scale(1.06);
+  }
+
+  .has-details:hover .bcard-more,
+  .has-details:focus-within .bcard-more {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Phones and tablets: no hover to reveal the hint, so show it all the time */
+  @media (hover: none) and (pointer: coarse) {
     .bcard-more {
-      opacity: 0;
-      transform: translateY(6px);
-      transition: opacity 0.25s ease, transform 0.25s ease;
-    }
-
-    .has-details:hover {
-      transform: translateY(-6px);
-    }
-
-    .has-details:hover .bcard-photo img {
-      transform: scale(1.06);
-    }
-
-    .has-details:hover .bcard-more,
-    .has-details:focus-within .bcard-more {
       opacity: 1;
       transform: none;
     }
