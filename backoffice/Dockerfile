@@ -1,6 +1,6 @@
 # BricksnBytes Office (IBS) — PHP 8.3 + Apache, MariaDB client included.
 # Build context is backoffice/ (see .github/workflows/backoffice.yml).
-FROM php:8.5-apache
+FROM php:8.3-apache
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \

@@ -17,6 +17,12 @@
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
+    },
+    {
+      "description": "IBS backoffice Dockerfile pinned to php:8.3 (app targets 8.3+; php:8.5 breaks the opcache build, CI run 37831399188). Do not auto-bump this base image.",
+      "matchFileNames": ["backoffice/Dockerfile"],
+      "matchPackageNames": ["php"],
+      "enabled": false
     }
   ]
 }
