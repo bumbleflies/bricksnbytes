@@ -18,12 +18,22 @@ describe('kartendetails', () => {
 
   it.each(tileIds)('%s has the fields the pop-up needs', (id) => {
     const d = kartendetails[id];
-    for (const field of [d.termine, d.uhrzeiten, d.ort, d.preis, d.lernziele.titel]) {
-      expect(field.trim()).not.toBe('');
-    }
+    expect(d.lernziele.titel.trim()).not.toBe('');
     expect(d.intro.length).toBeGreaterThan(0);
     expect(d.inhalte.length).toBeGreaterThan(0);
     expect(d.lernziele.absaetze.length).toBeGreaterThan(0);
+  });
+
+  it.each(tileIds)('%s keeps pretix facts out unless it is a request offer', (id) => {
+    const tile = parse(readFileSync(join(tilesDir, `${id}.yaml`), 'utf8'));
+    const d = kartendetails[id];
+    if (tile.shopUrl) {
+      expect(d.termine).toBeUndefined();
+      expect(d.ort).toBeUndefined();
+    } else {
+      expect(d.termine?.trim()).toBeTruthy();
+      expect(d.ort?.trim()).toBeTruthy();
+    }
   });
 
   it.each(tileIds)('%s has an age (tile bullet or override)', (id) => {

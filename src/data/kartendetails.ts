@@ -4,16 +4,16 @@
 // Key = tile file under src/content/tiles/ without ".yaml" (e.g. "kurse/programmierkurse").
 // Alter, Dauer, Material and "Das nehmen die Kinder mit" come from the tile's own bullets.
 //
-// Texts are taken from the shop overview pages. Anything not stated there starts with
-// "TODO:" — it is highlighted in `npm run dev` and left out of the live site until filled in.
+// Texts are taken from the shop (pretix). Dates, times, places and prices are kept only in
+// pretix; the pop-up links there. Anything still missing starts with "TODO:" — it is
+// highlighted in `npm run dev` and left out of the live site until filled in.
 
 export interface KartenDetails {
   // Introduction, one string per paragraph
   intro: string[];
-  termine: string;
-  uhrzeiten: string;
-  ort: string;
-  preis: string;
+  // Only for request offers (no pretix page): when and where it takes place
+  termine?: string;
+  ort?: string;
   // "Was dich erwartet"
   inhalte: { titel?: string; text: string }[];
   // "Warum …?" section of the overview page
@@ -33,8 +33,6 @@ const OFFEN = {
 
 const ANFRAGE = {
   termine: 'Euer Wunschtermin – am besten 4–6 Wochen im Voraus anfragen',
-  uhrzeiten: 'TODO: Uhrzeiten ergänzen',
-  preis: 'TODO: Preis ergänzen',
 };
 
 export const kartendetails: Record<string, KartenDetails> = {
@@ -44,10 +42,6 @@ export const kartendetails: Record<string, KartenDetails> = {
       'Dein Kind hat Lust, so richtig ins Programmieren einzusteigen? In unseren Programmierkursen treffen sich die Kinder regelmäßig einmal pro Woche und bauen Woche für Woche ihr Wissen aus.',
       'Anders als bei unseren Workshops geht es hier nicht nur ums Reinschnuppern: Über mehrere Termine hinweg lernen die Kinder Schritt für Schritt dazu, entwickeln eigene Projekte und merken, wie viel sie schon können. Vorkenntnisse braucht es keine.',
     ],
-    termine: 'Einmal pro Woche, in einer festen Gruppe',
-    uhrzeiten: 'TODO: Uhrzeiten ergänzen',
-    ort: 'TODO: Ort ergänzen',
-    preis: 'TODO: Preis ergänzen',
     inhalte: [
       { titel: 'LEGO Spike', text: 'Roboter bauen und programmieren, mit wechselnden Themen wie dem „Fabelhaften Freizeitpark“' },
       { titel: 'Minecraft Education', text: 'Programmieren, KI, Cybersicherheit und mehr, mitten in der Minecraft-Welt' },
@@ -64,14 +58,23 @@ export const kartendetails: Record<string, KartenDetails> = {
     hinweis: `Mit einer Buchung meldest du dein Kind für alle Termine des Kurses an. ${GUTSCHEIN}`,
   },
 
-  // https://shop.bricksnbytes.de/rynml/ — the overview page has no description yet
+  // https://shop.bricksnbytes.de/rynml/ — the overview page has no text; taken from the
+  // description of the "Game Design mit PictoBlox" course in pretix
   'kurse/online': {
-    intro: ['TODO: Einleitung ergänzen (die Shop-Übersicht hat noch keinen Text)'],
-    termine: 'TODO: Termine ergänzen',
-    uhrzeiten: 'TODO: Uhrzeiten ergänzen',
-    ort: 'Online, live über Google Meet',
-    preis: 'TODO: Preis ergänzen',
-    ...OFFEN,
+    intro: [
+      'Dein Kind zockt gern und fragt sich, wie Spiele eigentlich gemacht werden? Dann ab in unseren Game-Design-Kurs! In mehreren Online-Terminen programmieren die Jugendlichen mit PictoBlox ihr eigenes Computerspiel.',
+      'PictoBlox ist eine kostenlose, blockbasierte Programmierumgebung, perfekt für den Einstieg ins Coden und in die KI. Am Ende hat jede*r ein eigenes, funktionierendes Spiel, das sie oder er mit nach Hause nimmt.',
+    ],
+    inhalte: [
+      { text: 'Figuren (Sprites) bewegen und per Tastatur steuern' },
+      { text: 'Punkte zählen, Kollisionen erkennen, Level bauen' },
+      { text: 'Gegner und Soundeffekte einbauen' },
+    ],
+    lernziele: {
+      titel: 'Das lernt dein Kind',
+      absaetze: ['Ganz nebenbei: Schleifen, Bedingungen und Variablen verstehen.'],
+    },
+    hinweis: 'Dein Kind braucht einen Laptop oder PC. PictoBlox ist kostenlos und läuft direkt im Browser. Eine Maus macht das Programmieren am Laptop deutlich angenehmer.',
   },
 
   // https://shop.bricksnbytes.de/73ps9-2/
@@ -80,10 +83,6 @@ export const kartendetails: Record<string, KartenDetails> = {
       'Dein Kind ist neugierig, tüftelt gern und will wissen, wie Technik funktioniert? Dann bist du hier genau richtig!',
       'Unsere Workshops sind einmalige Programmiererlebnisse: kein fester Kurs über Wochen, sondern ein paar Stunden voller Ausprobieren, Bauen und Aha-Momente. Perfekt, um reinzuschnuppern und herauszufinden, ob Programmieren das Ding deines Kindes ist. Vorkenntnisse braucht es keine, nur Lust aufs Ausprobieren.',
     ],
-    termine: 'TODO: Termine ergänzen',
-    uhrzeiten: 'TODO: Uhrzeiten ergänzen',
-    ort: 'TODO: Ort ergänzen',
-    preis: 'TODO: Preis ergänzen',
     inhalte: [
       { titel: 'LEGO Spike', text: 'bauen, programmieren und zusehen, wie sich das eigene Modell bewegt' },
       { titel: 'Minecraft Education', text: 'vom Spieler zum Macher werden und die Minecraft-Welt mit Code gestalten' },
@@ -105,10 +104,6 @@ export const kartendetails: Record<string, KartenDetails> = {
       'Ferien und keine Ahnung, was dein Kind machen soll? Wie wär’s mit einem Tag voller Technik, Kreativität und Teamwork!',
       'In unseren Ferienkursen entdecken Kinder das Programmieren ganz spielerisch, mit LEGO-Robotern, Minecraft und für die Größeren auch mit Python. Jeder Ferienkurs ist ein einmaliges Programmiererlebnis: ein ganzer Tag zum Bauen, Tüfteln und Ausprobieren, ganz ohne Vorkenntnisse.',
     ],
-    termine: 'In den Schulferien, jeweils ein ganzer Tag',
-    uhrzeiten: 'TODO: Uhrzeiten ergänzen',
-    ort: 'TODO: Ort ergänzen',
-    preis: 'TODO: Preis ergänzen',
     inhalte: [
       { titel: 'LEGO Spike Essential', text: 'echte Roboter bauen und programmieren' },
       { titel: 'Minecraft Education', text: 'die Minecraft-Welt mit Code gestalten' },
@@ -131,10 +126,6 @@ export const kartendetails: Record<string, KartenDetails> = {
       'Gemeinsam tüfteln, bauen und programmieren: In unseren Eltern-Kind-Workshops entdeckst du zusammen mit deinem Kind die Welt des Programmierens, ganz spielerisch mit LEGO Spike. Ob Mama, Papa, Oma oder Opa: Hier seid ihr ein Team!',
       'Die Workshops sind einmalige Programmiererlebnisse: kein fester Kurs über Wochen, sondern ein paar gemeinsame Stunden voller Bauen, Ausprobieren und Aha-Momente. Vorkenntnisse braucht ihr beide nicht, nur Lust aufs Tüfteln.',
     ],
-    termine: 'TODO: Termine ergänzen',
-    uhrzeiten: 'TODO: Uhrzeiten ergänzen',
-    ort: 'TODO: Ort ergänzen',
-    preis: 'TODO: Preis ergänzen',
     inhalte: [
       { titel: 'Kurze Einführung', text: 'ihr lernt LEGO Spike kennen und wisst, wie alles funktioniert' },
       { titel: 'Gemeinsames Projekt', text: 'spielerisch die Grundlagen des Programmierens entdecken' },
@@ -150,14 +141,20 @@ export const kartendetails: Record<string, KartenDetails> = {
     hinweis: `Ein Ticket gilt für ein Kind und einen Erwachsenen. ${GUTSCHEIN}`,
   },
 
-  // https://shop.bricksnbytes.de/9n7m8/ — only a "Warum …?" text on the overview page
+  // https://shop.bricksnbytes.de/9n7m8/ — intro and contents from the course description in
+  // pretix, the overview page only has the "Warum …?" text
   'kurse/medienfuehrerschein': {
-    intro: ['TODO: Einleitung ergänzen (die Shop-Übersicht hat nur den Abschnitt „Warum ein Medienführerschein?“)'],
-    termine: 'TODO: Termine ergänzen',
-    uhrzeiten: 'TODO: Uhrzeiten ergänzen',
-    ort: 'TODO: Ort ergänzen',
-    preis: 'TODO: Preis ergänzen',
-    inhalte: OFFEN.inhalte,
+    intro: [
+      'Dein Kind ist schon viel online, schaut Videos, chattet oder zockt? Dann ist jetzt der perfekte Zeitpunkt für den Medienführerschein!',
+      'In drei Stunden lernen die Kinder spielerisch, wie sie sich sicher im Internet bewegen: was man teilen darf und was nicht, wie man Fakes erkennt und was man tut, wenn online mal etwas komisch läuft. So kann dein Kind das Internet mit gutem Gefühl nutzen und du kannst etwas entspannter sein.',
+    ],
+    inhalte: [
+      { text: 'Sichere Passwörter bauen und persönliche Daten schützen' },
+      { text: 'Fake News, Fake-Profile und Abzock-Tricks erkennen' },
+      { text: 'Fair miteinander umgehen im Chat und wissen, was bei Cybermobbing hilft' },
+      { text: 'Werbung, In-App-Käufe und Kostenfallen durchschauen' },
+      { text: 'Fotos und Videos: Was darf ich posten, und was lieber nicht?' },
+    ],
     lernziele: {
       titel: 'Warum ein Medienführerschein?',
       absaetze: [
