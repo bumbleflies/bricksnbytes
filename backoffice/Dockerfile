@@ -29,7 +29,7 @@ EXPOSE 80
 # /healthz is a static-response page that works (200) even without the DB
 # connected, so CI can smoke-test this image without a database.
 HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=5 \
-  CMD curl -fsS -o /dev/null http://127.0.0.1/healthz || exit 1
+  CMD curl -fsS -o /dev/null http://127.0.0.1/healthz.php || exit 1
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["apache2-foreground"]
