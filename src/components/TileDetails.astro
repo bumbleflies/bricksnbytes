@@ -35,9 +35,7 @@ const facts = [
   { icon: 'users', label: 'Alter', text: keep(bulletOf('users') ?? details.alter) },
   { icon: 'clock', label: 'Dauer', text: keep(bulletOf('clock')) },
   { icon: 'calendar-check', label: 'Termine', text: keep(details.termine) },
-  { icon: 'clock', label: 'Uhrzeiten', text: keep(details.uhrzeiten) },
   { icon: 'map-pin', label: 'Ort', text: keep(details.ort) },
-  { icon: 'tag', label: 'Preis', text: keep(details.preis) },
   { icon: 'blocks', label: 'Material', text: keep(bulletOf('blocks')) },
 ].filter((f): f is { icon: IconName; label: string; text: string } => Boolean(f.text));
 
@@ -102,6 +100,8 @@ const todo = (value: string) => (isTodo(value) ? 'todo' : undefined);
       {includes && <p class="tdet-includes"><strong>Inklusive:</strong> {includes}</p>}
 
       {hinweis && <p class:list={['tdet-hint', todo(hinweis)]}>{hinweis}</p>}
+
+      {ctaExternal && <p class="tdet-shopnote">Aktuelle Termine, Orte und Preise findest du im Shop.</p>}
 
       <a class="tdet-cta" href={ctaHref} {...external}>
         {ctaLabel}{ctaExternal && <span class="visually-hidden"> (öffnet in neuem Tab)</span>}

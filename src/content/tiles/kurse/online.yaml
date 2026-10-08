@@ -2,7 +2,7 @@ page: kurse
 name: Online-Programmierkurse
 order: 2
 bullets:
-  - { icon: users, text: "Ab 12 Jahren" }
+  - { icon: users, text: "Ab 8 Jahren" }
   - { icon: clock, text: "4–6 Termine à 60 Min., live über Google Meet" }
   - { icon: blocks, text: "PictoBlox" }
   - { icon: trophy, text: "Eigenes Computerspiel, Urkunde" }
