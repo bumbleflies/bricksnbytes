@@ -17,7 +17,8 @@ COPY --chown=root:root . /var/www/html/
 # Front controller: everything that is not a real file under public/ is
 # handled by FallbackResource, so clean paths work without mod_rewrite.
 COPY docker/ibs-apache.conf /etc/apache2/conf-available/ibs.conf
-RUN a2enconf ibs
+RUN a2enconf ibs \
+ && sed -ri 's|/var/www/html/?|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
 # Credentials/config are generated from environment variables at first boot
 # (nothing secret is committed; see docker/entrypoint.sh + docker/make-config.php).
