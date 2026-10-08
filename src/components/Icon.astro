@@ -1,6 +1,6 @@
 ---
 // Inline Lucide icons (https://lucide.dev), stroke style, decorative by default
-export type IconName = 'phone' | 'calendar-check' | 'users' | 'clock' | 'blocks' | 'trophy' | 'star' | 'check';
+export type IconName = 'phone' | 'calendar-check' | 'users' | 'clock' | 'blocks' | 'trophy' | 'star' | 'check' | 'map-pin' | 'tag' | 'x';
 
 interface Props {
   name: IconName;
@@ -70,4 +70,22 @@ const { name, size = 18, class: className } = Astro.props;
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   )}
   {name === 'check' && <path d="M20 6 9 17l-5-5" />}
+  {name === 'map-pin' && (
+    <>
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </>
+  )}
+  {name === 'tag' && (
+    <>
+      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+      <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+    </>
+  )}
+  {name === 'x' && (
+    <>
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </>
+  )}
 </svg>

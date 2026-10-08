@@ -1,10 +1,14 @@
 ---
-// Tiles of one offer page (src/content/tiles/<page>/*.yaml) plus an optional note below
+// Tiles of one offer page (src/content/tiles/<page>/*.yaml) plus an optional note below.
+// Every tile opens a detail pop-up whose texts live in src/data/kartendetails.ts.
 import { getCollection } from 'astro:content';
 import BlobTile from './BlobTile.astro';
 import TileGrid from './TileGrid.astro';
+import TileDetails from './TileDetails.astro';
+import DetailModal from './DetailModal.astro';
 import { pickImage, withFormats } from '../data/pickImage';
 import { EMAIL_HREF } from '../data/site';
+import { kartendetails } from '../data/kartendetails';
 
 interface Props {
   page: 'kurse' | 'schulprojekttage' | 'geburtstage' | 'vorschule-hort';
@@ -14,43 +18,62 @@ interface Props {
 const { page, note } = Astro.props;
 
 const tiles = (await getCollection('tiles', (t) => t.data.page === page))
-  .sort((a, b) => a.data.order - b.data.order);
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((tile) => {
+    const t = tile.data;
+    const details = kartendetails[tile.id];
+    if (!details) {
+      throw new Error(`No entry "${tile.id}" in src/data/kartendetails.ts`);
+    }
+    const cta = t.shopUrl
+      ? { label: 'Termine & Tickets', href: t.shopUrl, external: true }
+      : { label: 'Anfrage senden', href: `${EMAIL_HREF}?subject=${encodeURIComponent(t.requestSubject ?? 'Anfrage')}`, external: false };
+    return {
+      t,
+      details,
+      cta,
+      detailsId: `details-${tile.id.replace(/[^a-z0-9]+/gi, '-')}`,
+      image: t.preferredImage ? pickImage(withFormats(t.preferredImage), t.image) : t.image,
+    };
+  });
 ---
 
 <TileGrid count={tiles.length} class="tile-list">
-  {tiles.map((tile, idx) => {
-    const t = tile.data;
-    const image = t.preferredImage ? pickImage(withFormats(t.preferredImage), t.image) : t.image;
-    return t.shopUrl ? (
-      <BlobTile
-        title={t.name}
-        bullets={t.bullets}
-        includes={t.includes}
-        image={image}
-        imageAlt={t.imageAlt}
-        color={t.color}
-        index={idx}
-        ctaLabel="Termine & Tickets"
-        ctaHref={t.shopUrl}
-        ctaExternal
-      />
-    ) : (
-      <BlobTile
-        title={t.name}
-        bullets={t.bullets}
-        includes={t.includes}
-        image={image}
-        imageAlt={t.imageAlt}
-        color={t.color}
-        index={idx}
-        ctaLabel="Anfrage senden"
-        ctaHref={`${EMAIL_HREF}?subject=${encodeURIComponent(t.requestSubject ?? 'Anfrage')}`}
-      />
-    );
-  })}
+  {tiles.map(({ t, image, cta, detailsId }, idx) => (
+    <BlobTile
+      title={t.name}
+      bullets={t.bullets}
+      includes={t.includes}
+      image={image}
+      imageAlt={t.imageAlt}
+      color={t.color}
+      index={idx}
+      ctaLabel={cta.label}
+      ctaHref={cta.href}
+      ctaExternal={cta.external}
+      detailsId={detailsId}
+    />
+  ))}
 </TileGrid>
 
 {note && <p class="tile-note">{note}</p>}
+
+{tiles.map(({ t, image, cta, details, detailsId }) => (
+  <TileDetails
+    id={detailsId}
+    title={t.name}
+    image={image}
+    imageAlt={t.imageAlt}
+    bullets={t.bullets}
+    includes={t.includes}
+    details={details}
+    ctaLabel={cta.label}
+    ctaHref={cta.href}
+    ctaExternal={cta.external}
+  />
+))}
+
+<DetailModal />
 
 <style>
   .tile-list {

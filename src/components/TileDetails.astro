@@ -1,0 +1,111 @@
+---
+// Content of one tile's detail pop-up, rendered at build time into a <template> that
+// DetailModal clones into its dialog. "TODO: …" values show up highlighted in dev only.
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
+import { isTodo, type KartenDetails } from '../data/kartendetails';
+
+interface Props {
+  id: string;
+  title: string;
+  image: string;
+  imageAlt: string;
+  bullets: { icon: IconName; text: string }[];
+  includes?: string;
+  details: KartenDetails;
+  ctaLabel: string;
+  ctaHref: string;
+  ctaExternal?: boolean;
+}
+
+const { id, title, image, imageAlt, bullets, includes, details, ctaLabel, ctaHref, ctaExternal = false } = Astro.props;
+
+const showTodos = import.meta.env.DEV;
+const keep = (value: string | undefined) => (value && (!isTodo(value) || showTodos) ? value : undefined);
+
+const bulletOf = (icon: IconName) => bullets.find((b) => b.icon === icon)?.text;
+
+// "Ablauf: …" / "Ergebnis: …" bullets bring their own label
+const labelled = (text: string, fallback: string) => {
+  const match = text.match(/^([A-ZÄÖÜ][\wäöüß]+):\s*(.+)$/);
+  return match ? { label: match[1], text: match[2] } : { label: fallback, text };
+};
+
+const facts = [
+  { icon: 'users', label: 'Alter', text: keep(bulletOf('users') ?? details.alter) },
+  { icon: 'clock', label: 'Dauer', text: keep(bulletOf('clock')) },
+  { icon: 'calendar-check', label: 'Termine', text: keep(details.termine) },
+  { icon: 'clock', label: 'Uhrzeiten', text: keep(details.uhrzeiten) },
+  { icon: 'map-pin', label: 'Ort', text: keep(details.ort) },
+  { icon: 'tag', label: 'Preis', text: keep(details.preis) },
+  { icon: 'blocks', label: 'Material', text: keep(bulletOf('blocks')) },
+].filter((f): f is { icon: IconName; label: string; text: string } => Boolean(f.text));
+
+const intro = details.intro.filter((p) => keep(p));
+const inhalte = details.inhalte.filter((i) => keep(i.text));
+const lernziele = details.lernziele.absaetze.filter((p) => keep(p));
+const result = bulletOf('trophy') ?? bulletOf('star');
+const mitnehmen = result ? labelled(result, 'Das nehmen die Kinder mit') : undefined;
+const hinweis = keep(details.hinweis);
+
+const headingId = `${id}-title`;
+const external = ctaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+const todo = (value: string) => (isTodo(value) ? 'todo' : undefined);
+---
+
+<template id={id} data-heading={headingId}>
+  <div class="tdet">
+    <div class="tdet-photo">
+      <img src={image} alt={imageAlt} loading="lazy" decoding="async" />
+    </div>
+    <div class="tdet-body">
+      <h2 class="tdet-title" id={headingId}>{title}</h2>
+
+      {intro.map((p) => <p class:list={['tdet-intro', todo(p)]}>{p}</p>)}
+
+      {facts.length > 0 && (
+        <dl class="tdet-facts">
+          {facts.map((f) => (
+            <div class:list={['tdet-fact', todo(f.text)]}>
+              <dt><Icon name={f.icon} size={16} /> {f.label}</dt>
+              <dd>{f.text}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      {inhalte.length > 0 && (
+        <section class="tdet-section">
+          <h3>Inhalte</h3>
+          <ul class="tdet-list">
+            {inhalte.map((i) => (
+              <li class={todo(i.text)}>{i.titel && <strong>{i.titel}: </strong>}{i.text}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {lernziele.length > 0 && (
+        <section class="tdet-section">
+          <h3>{details.lernziele.titel}</h3>
+          {lernziele.map((p) => <p class={todo(p)}>{p}</p>)}
+        </section>
+      )}
+
+      {mitnehmen && (
+        <section class="tdet-section tdet-result">
+          <h3>{mitnehmen.label}</h3>
+          <p>{mitnehmen.text}</p>
+        </section>
+      )}
+
+      {includes && <p class="tdet-includes"><strong>Inklusive:</strong> {includes}</p>}
+
+      {hinweis && <p class:list={['tdet-hint', todo(hinweis)]}>{hinweis}</p>}
+
+      <a class="tdet-cta" href={ctaHref} {...external}>
+        {ctaLabel}{ctaExternal && <span class="visually-hidden"> (öffnet in neuem Tab)</span>}
+      </a>
+    </div>
+  </div>
+</template>
