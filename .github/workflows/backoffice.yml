@@ -1,0 +1,124 @@
+name: Backoffice Build and Publish (IBS)
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "backoffice/**"
+      - ".github/workflows/backoffice.yml"
+  workflow_dispatch:
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: bumblecode/ibs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=master-
+
+      - name: Build Docker image to tar
+        uses: docker/build-push-action@v7
+        with:
+          context: ./backoffice
+          push: false
+          outputs: type=docker,dest=/tmp/ibs.tar
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: docker-image-ibs
+          path: /tmp/ibs.tar
+          retention-days: 1
+
+  healthcheck:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: docker-image-ibs
+          path: /tmp
+
+      - name: Load Docker image
+        run: |
+          docker load --input /tmp/ibs.tar
+          docker image ls -a
+
+      - name: Test Docker image healthcheck
+        run: |
+          # No database: the entrypoint's bounded wait must give up after
+          # ~90s and start apache anyway so /healthz can answer.
+          docker run --rm --detach --name test_container \
+            -e DB_USER=smoketest -e DB_PASSWORD=smoketest \
+            bumblecode/ibs:latest
+          for i in {1..25}; do
+            status=$(docker inspect --format='{{.State.Health.Status}}' test_container)
+            echo "Health status: $status"
+            if [ "$status" = "healthy" ]; then break; fi
+            sleep 6
+          done
+          if [ "$status" != "healthy" ]; then
+            echo "Container did not become healthy after 25 attempts."
+            docker logs test_container
+            exit 1
+          fi
+          docker stop test_container
+
+  push:
+    runs-on: ubuntu-latest
+    needs: healthcheck
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: docker-image-ibs
+          path: /tmp
+
+      - name: Load Docker image
+        run: |
+          docker load --input /tmp/ibs.tar
+          docker image ls -a
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: dachrisch
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Tag and push Docker image
+        run: |
+          SHA_TAG="master-$(echo "${GITHUB_SHA}" | cut -c1-7)"
+          docker tag bumblecode/ibs:latest "bumblecode/ibs:${SHA_TAG}"
+          docker push bumblecode/ibs:latest
+          docker push "bumblecode/ibs:${SHA_TAG}"
