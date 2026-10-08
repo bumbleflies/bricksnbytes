@@ -1,12 +1,15 @@
-# BricksnBytes Office (IBS) — PHP 8.3 + Apache, MariaDB client included.
+# BricksnBytes Office (IBS) — PHP 8.5 + Apache, MariaDB client included.
 # Build context is backoffice/ (see .github/workflows/backoffice.yml).
-FROM php:8.3-apache
+FROM php:8.5-apache
 
+# opcache is a required, built-in extension since PHP 8.5 (RFC make_opcache_required)
+# and is enabled by default in the official images — do NOT pass it to
+# docker-php-ext-install, which fails with `cp: cannot stat 'modules/*'` otherwise.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       default-mysql-client \
       curl \
- && docker-php-ext-install pdo_mysql opcache \
+ && docker-php-ext-install pdo_mysql \
  && rm -rf /var/lib/apt/lists/*
 
 # App root: public/ is the web root, everything else stays non-readable.
