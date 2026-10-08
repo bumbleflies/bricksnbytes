@@ -22,11 +22,13 @@ interface Props {
   ctaHref?: string;
   // Open the button in a new tab (shop links)
   ctaExternal?: boolean;
+  // Id of a TileDetails <template>: the whole card opens it in the DetailModal
+  detailsId?: string;
 }
 
 const {
   title, image, imageAlt, color, index = 0, age, description, bullets, includes,
-  href, ctaLabel, ctaHref, ctaExternal = false,
+  href, ctaLabel, ctaHref, ctaExternal = false, detailsId,
 } = Astro.props;
 
 const colorMap = {
@@ -51,13 +53,19 @@ const external = ctaExternal ? { target: '_blank', rel: 'noopener noreferrer' } 
 const ctaAria = `${ctaLabel}: ${title}${ctaExternal ? ' (öffnet in neuem Tab)' : ''}`;
 ---
 
-<div class={`bcard ${bullets ? 'has-bullets' : ''}`}>
+<div class:list={['bcard', { 'has-bullets': bullets, 'has-details': detailsId }]}>
   <div class="bcard-blob" style={`background:${colors.blob};border-radius:${radius};`}></div>
   <div class="bcard-photo">
     <img src={image} alt={imageAlt} loading="lazy" />
   </div>
   <div class={`bcard-body ${ctaLabel ? 'has-button' : ''}`}>
-    {href ? <a href={href} class="bcard-title">{title}</a> : <h3 class="bcard-title">{title}</h3>}
+    {detailsId ? (
+      <h3 class="bcard-title">
+        <button type="button" class="bcard-open" data-details={detailsId} aria-haspopup="dialog" aria-controls="tile-dialog">
+          {title}<span class="visually-hidden"> – Details anzeigen</span>
+        </button>
+      </h3>
+    ) : href ? <a href={href} class="bcard-title">{title}</a> : <h3 class="bcard-title">{title}</h3>}
     {age && <div class="bcard-age" style={`color:${colors.age};`}>{age}</div>}
     {description && <div class="bcard-desc">{description}</div>}
     {bullets && (
@@ -73,6 +81,7 @@ const ctaAria = `${ctaLabel}: ${title}${ctaExternal ? ' (öffnet in neuem Tab)' 
     {includes && (
       <p class="bcard-includes"><strong>Inklusive:</strong> {includes}</p>
     )}
+    {detailsId && <span class="bcard-more" aria-hidden="true">Mehr erfahren →</span>}
   </div>
   {ctaLabel && ctaHref ? (
     <a href={ctaHref} class="bcard-button" style={`background:${colors.cta};`} aria-label={ctaAria} {...external}>
@@ -246,5 +255,99 @@ const ctaAria = `${ctaLabel}: ${title}${ctaExternal ? ' (öffnet in neuem Tab)' 
   .has-bullets .bcard-body {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  /* ---------- Cards with a detail pop-up ---------- */
+
+  .has-details {
+    isolation: isolate;
+    transition: transform 0.3s ease;
+  }
+
+  /* Let the stretched title button below span the whole card, not just the text body */
+  .has-details .bcard-blob {
+    z-index: -1;
+  }
+
+  .has-details .bcard-body {
+    position: static;
+  }
+
+  .has-details .bcard-photo img {
+    transition: transform 0.5s ease;
+  }
+
+  /* The title button stretches over the whole card, so photo, title and card all open it;
+     the shop/request button sits above it and keeps working on its own */
+  .bcard-open {
+    all: unset;
+    cursor: pointer;
+  }
+
+  .bcard-open::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: 36px;
+  }
+
+  .bcard-open:focus-visible::after {
+    outline: 3px solid var(--coral);
+    outline-offset: 4px;
+  }
+
+  .has-details .bcard-button {
+    z-index: 4;
+  }
+
+  .has-details .bcard-body.has-button {
+    padding-bottom: 104px;
+  }
+
+  .bcard-more {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 70px;
+    text-align: center;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--coral-deep);
+  }
+
+  @media (hover: hover) {
+    .bcard-more {
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .has-details:hover {
+      transform: translateY(-6px);
+    }
+
+    .has-details:hover .bcard-photo img {
+      transform: scale(1.06);
+    }
+
+    .has-details:hover .bcard-more,
+    .has-details:focus-within .bcard-more {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .has-details,
+    .has-details .bcard-photo img,
+    .bcard-more {
+      transition: none;
+    }
+
+    .has-details:hover {
+      transform: none;
+    }
   }
 </style>
