@@ -30,7 +30,7 @@ $signedIn = Auth::check();
     </nav>
     <form class="logout" method="post" action="/logout">
       <?= Csrf::field() ?>
-      <span class="user"><?= e(Auth::userName()) ?></span>
+      <span class="user"><?= e(Auth::userName()) ?><a class="user-link" href="/passwort"<?= $current === '/passwort' ? ' aria-current="page"' : '' ?>>Passwort ändern</a></span>
       <button type="submit" class="btn btn-ghost btn-small">Abmelden</button>
     </form>
   </aside>

@@ -16,6 +16,8 @@ final class AuthController
         $router->get('/login', [self::class, 'form'], public: true);
         $router->post('/login', [self::class, 'login'], public: true);
         $router->post('/logout', [self::class, 'logout']);
+        $router->get('/passwort', [self::class, 'passwordForm']);
+        $router->post('/passwort', [self::class, 'changePassword']);
     }
 
     public static function form(): void
@@ -42,6 +44,29 @@ final class AuthController
             ? 'Zu viele Fehlversuche. Der Login ist vorübergehend gesperrt – bitte versuche es in 15 Minuten erneut.'
             : 'Benutzername oder Passwort ist falsch.';
         View::render('login', ['title' => 'Anmelden', 'username' => $username, 'error' => $error], 401);
+    }
+
+    public static function passwordForm(): void
+    {
+        View::render('passwort', ['title' => 'Passwort ändern', 'errors' => []]);
+    }
+
+    public static function changePassword(): void
+    {
+        $field = static fn (string $name): string => is_string($_POST[$name] ?? null) ? $_POST[$name] : '';
+        $current = $field('aktuell');
+        $new = $field('neu');
+
+        $errors = $new !== $field('wiederholen')
+            ? ['wiederholen' => 'Die beiden neuen Passwörter stimmen nicht überein.']
+            : Auth::changePassword($current, $new, $_SERVER['REMOTE_ADDR'] ?? 'unknown');
+
+        if ($errors) {
+            View::render('passwort', ['title' => 'Passwort ändern', 'errors' => $errors], 422);
+            return;
+        }
+        Session::flash('ok', 'Dein Passwort wurde geändert.');
+        Router::redirect('/');
     }
 
     public static function logout(): void
