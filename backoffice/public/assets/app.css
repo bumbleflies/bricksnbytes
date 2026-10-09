@@ -173,7 +173,10 @@ body.app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
 .sidenav a[aria-current="page"] { background: #fff; color: var(--navy); }
 .sidenav a:last-child { margin-top: 12px; }
 .sidebar .logout { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 10px 0; border-top: 1px solid rgba(255, 255, 255, 0.15); }
-.sidebar .user { font-size: 0.9rem; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; }
+.sidebar .user { font-size: 0.9rem; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.sidebar .user-link { display: block; color: #fff; font-size: 0.8rem; margin-top: 2px; white-space: nowrap; }
+.sidebar .user-link[aria-current="page"] { font-weight: 600; }
+.password-card { max-width: 480px; }
 .btn-small { padding: 5px 12px; font-size: 0.85rem; }
 .main { min-width: 0; }
 .topbar { display: flex; gap: 12px; align-items: center; padding: 16px 24px 0; max-width: 1248px; margin: 0 auto; }

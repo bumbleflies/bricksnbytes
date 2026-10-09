@@ -116,6 +116,10 @@ Das Skript legt alle Tabellen an und fragt nach Benutzername und Passwort (minde
 Zeichen, am besten aus einem Passwort-Manager). Sobald ein Benutzer existiert, verweigert es jeden
 weiteren Lauf. Bei Variante B danach `rm bin/setup.php`.
 
+Das eigene Passwort ändert man danach jederzeit im Sicherheitsbüro selbst: unten in der
+Seitenleiste unter dem Benutzernamen → **Passwort ändern** (aktuelles Passwort nötig; fünf
+falsche Eingaben sperren wie beim Login für 15 Minuten).
+
 ### 1.8 Testen
 - `https://<subdomain>.bricksnbytes.de` öffnen → Login erscheint, Anmeldung klappt.
 - `http://…` (ohne s) muss automatisch auf `https://` umleiten.
