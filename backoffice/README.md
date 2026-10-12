@@ -235,6 +235,17 @@ php -S 127.0.0.1:8099 -t public public/index.php
 
 Nur erfundene Testdaten verwenden – keine echten Kundendaten auf Entwicklungsrechnern.
 
+### Erster Admin im Docker-Container (servyy)
+
+Der Entrypoint führt nach den Migrationen `bin/seed-admin.php` aus. Sind
+`IBS_ADMIN_USER` und `IBS_ADMIN_PASSWORD` gesetzt **und** ist die Tabelle
+`benutzer` noch leer, wird daraus der erste Admin (`rolle = admin`)
+angelegt – sonst passiert nichts (Meldung `ignoring IBS_ADMIN_*`). Das
+Passwort braucht 12–256 Zeichen und erscheint nie im Log; danach im
+Backoffice unter dem Benutzernamen → **Passwort ändern** ersetzen und die
+Variablen aus der Compose-Umgebung entfernen (Hygiene – technisch ignoriert
+der Container sie ab dem ersten Benutzer ohnehin).
+
 Neue Module (Aufträge, Kurse, Rechnungen …) bekommen einen Ordner unter `src/Modules/`,
 Templates unter `templates/<modul>/` und eine Zeile `…Controller::register($router);` in
 `public/index.php`; danach den Eintrag aus `Modules/Platzhalter/PlatzhalterController.php`
