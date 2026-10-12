@@ -1,7 +1,8 @@
 #!/bin/sh
 # Docker entrypoint for the IBS backoffice image.
 # Order: generate config.php from env → wait for DB → pre-migration
-# safety dump → run migrations (bin/migrate.php) → start apache (CMD).
+# safety dump → run migrations (bin/migrate.php) → seed first admin
+# (bin/seed-admin.php, no-op once users exist) → start apache (CMD).
 #
 # The DB wait is BOUNDED: if no database answers after the grace period we
 # still start apache (app is unusable but container stays healthy via
@@ -59,6 +60,12 @@ fi
 if [ "$tries" -lt 45 ] && [ "${IBS_SKIP_MIGRATIONS:-0}" != "1" ]; then
     log "running migrations"
     (cd "$APP_ROOT" && $PHP_CLI bin/migrate.php) || { log "migrations FAILED"; exit 1; }
+fi
+
+# 4b) first admin from env (one-shot: seed-admin.php is a no-op once users exist)
+if [ "$tries" -lt 45 ] && [ -n "${IBS_ADMIN_USER:-}" ] && [ -n "${IBS_ADMIN_PASSWORD:-}" ]; then
+    log "seeding first admin user"
+    (cd "$APP_ROOT" && $PHP_CLI bin/seed-admin.php) || { log "admin seed FAILED"; exit 1; }
 fi
 
 # 5) hand off to apache (compose CMD)
