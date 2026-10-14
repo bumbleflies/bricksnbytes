@@ -1,13 +1,21 @@
 ---
-// Newsletter sign-up — posts JSON to /api/newsletter; the mailer sends the sign-up to our inbox
-// (no double opt-in; the sign-up is entered in the backoffice by hand).
+// Newsletter sign-up as a full-width band (like "Was uns besonders macht") — posts JSON to
+// /api/newsletter; the mailer sends the sign-up to our inbox (no double opt-in, entered in the
+// backoffice by hand). Background: the Vorschule/Hort teal or the site blue, see `variant`.
 import { EMAIL, EMAIL_HREF } from '../data/site';
 import '../styles/forms.css';
+
+interface Props {
+  variant?: 'teal' | 'blue';
+}
+
+const { variant = 'teal' } = Astro.props;
 ---
 
-<section class="form-section" id="newsletter">
+<section class="form-section newsletter-band" id="newsletter" data-variant={variant}>
+  <div class="band-blob" aria-hidden="true"></div>
   <div class="container">
-    <div class="form-card">
+    <div class="band-inner">
       <h2 class="section-heading">Newsletter abonnieren</h2>
       <p class="form-intro">
         Erfahre als Erstes von neuen Kursen, Workshops und Terminen. Abmelden kannst du dich jederzeit mit einer
@@ -15,7 +23,7 @@ import '../styles/forms.css';
       </p>
 
       <form class="newsletter-form" action="/api/newsletter" method="post" novalidate>
-        <div class="field-row">
+        <div class="band-row">
           <div class="field">
             <label for="nl-vorname">Vorname <span aria-hidden="true">*</span></label>
             <input id="nl-vorname" name="vorname" type="text" autocomplete="given-name" maxlength="100" required aria-describedby="nl-vorname-err" />
@@ -23,22 +31,24 @@ import '../styles/forms.css';
           </div>
 
           <div class="field">
-            <label for="nl-nachname">Nachname <span aria-hidden="true">*</span></label>
-            <input id="nl-nachname" name="nachname" type="text" autocomplete="family-name" maxlength="100" required aria-describedby="nl-nachname-err" />
+            <label for="nl-nachname">Nachname <span class="optional">(optional)</span></label>
+            <input id="nl-nachname" name="nachname" type="text" autocomplete="family-name" maxlength="100" aria-describedby="nl-nachname-err" />
             <p class="field-error" id="nl-nachname-err" data-error-for="nachname"></p>
+          </div>
+
+          <div class="field">
+            <label for="nl-email">E-Mail <span aria-hidden="true">*</span></label>
+            <input id="nl-email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="nl-email-err" />
+            <p class="field-error" id="nl-email-err" data-error-for="email"></p>
           </div>
         </div>
 
-        <div class="field">
-          <label for="nl-email">E-Mail <span aria-hidden="true">*</span></label>
-          <input id="nl-email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="nl-email-err" />
-          <p class="field-error" id="nl-email-err" data-error-for="email"></p>
-        </div>
-
-        <div class="field">
-          <label for="nl-telefon">Telefon <span class="optional">(optional)</span></label>
-          <input id="nl-telefon" name="telefon" type="tel" autocomplete="tel" maxlength="30" aria-describedby="nl-telefon-err" />
-          <p class="field-error" id="nl-telefon-err" data-error-for="telefon"></p>
+        <div class="band-row band-row-single">
+          <div class="field">
+            <label for="nl-telefon">Telefon <span class="optional">(optional)</span></label>
+            <input id="nl-telefon" name="telefon" type="tel" autocomplete="tel" maxlength="30" aria-describedby="nl-telefon-err" />
+            <p class="field-error" id="nl-telefon-err" data-error-for="telefon"></p>
+          </div>
         </div>
 
         <!-- Honeypot: hidden from people, bots tend to fill it -->
@@ -57,12 +67,147 @@ import '../styles/forms.css';
           <p class="field-error" id="nl-consent-err" data-error-for="consent"></p>
         </div>
 
-        <button type="submit" class="submit-btn">Newsletter abonnieren</button>
+        <button type="submit" class="submit-btn">Abonnieren</button>
         <p class="form-status" role="status" aria-live="polite"></p>
       </form>
     </div>
   </div>
 </section>
+
+<style>
+  /* Band colour: --nl-bg; text stays --ink on both (contrast ≥ 4.5:1, see PR) */
+  .newsletter-band {
+    --nl-bg: var(--teal);
+    position: relative;
+    padding: 70px 40px;
+    background: var(--nl-bg);
+    overflow: hidden;
+  }
+
+  .newsletter-band[data-variant='blue'] {
+    --nl-bg: var(--blue);
+  }
+
+  /* Soft blob like in "Was uns besonders macht" */
+  .band-blob {
+    position: absolute;
+    width: 520px;
+    height: 400px;
+    background: white;
+    border-radius: 60% 40% 50% 50% / 50% 45% 55% 50%;
+    top: 50%;
+    left: -140px;
+    transform: translateY(-50%);
+    opacity: 0.16;
+    z-index: 0;
+  }
+
+  .newsletter-band .container {
+    position: relative;
+    z-index: 1;
+    padding: 0 40px;
+  }
+
+  .band-inner {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .newsletter-band .section-heading {
+    margin-bottom: 8px;
+  }
+
+  .newsletter-band .form-intro {
+    color: var(--ink);
+    max-width: 60ch;
+  }
+
+  /* Links on the coloured band: ink + underline instead of coral (coral has too little contrast here) */
+  .newsletter-band .form-intro a,
+  .newsletter-band .field-check a {
+    color: var(--ink);
+    font-weight: 700;
+    text-decoration: underline;
+  }
+
+  .band-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0 16px;
+  }
+
+  .band-row-single {
+    grid-template-columns: minmax(0, 1fr) 2fr;
+  }
+
+  .newsletter-band .field .optional,
+  .newsletter-band .field-check label {
+    color: var(--ink);
+  }
+
+  /* Visible field edges on the coloured background */
+  .newsletter-band .field input[type='text'],
+  .newsletter-band .field input[type='email'],
+  .newsletter-band .field input[type='tel'] {
+    border-color: var(--ink-soft);
+  }
+
+  .newsletter-band .field-check input {
+    accent-color: var(--ink);
+  }
+
+  /* Errors as small white labels so the red stays readable on teal and blue */
+  .newsletter-band .field-error:not(:empty) {
+    display: inline-block;
+    background: #fff;
+    padding: 2px 8px;
+    border-radius: 8px;
+  }
+
+  .newsletter-band .field-check .field-error:not(:empty) {
+    justify-self: start;
+  }
+
+  /* Orange button, larger text and a darker orange so white text and the button edge stand out */
+  .newsletter-band .submit-btn {
+    background: var(--coral-deep);
+    font-size: 18px;
+    padding: 14px 36px;
+    box-shadow: 0 8px 18px -8px oklch(0.29 0.035 265 / 0.6);
+  }
+
+  .newsletter-band .form-status {
+    display: inline-block;
+    background: #fff;
+    padding: 6px 12px;
+    border-radius: 10px;
+  }
+
+  .newsletter-band .form-status:empty {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .newsletter-band {
+      padding: 48px 16px;
+    }
+
+    .newsletter-band .container {
+      padding: 0;
+    }
+
+    .band-row,
+    .band-row-single {
+      grid-template-columns: 1fr;
+    }
+
+    .band-blob {
+      width: 300px;
+      height: 250px;
+      left: -120px;
+    }
+  }
+</style>
 
 <script>
   import { EMAIL_RE, mailerForm } from '../scripts/mailerForm';
@@ -75,7 +220,6 @@ import '../styles/forms.css';
         const errors: Record<string, string> = {};
         const telefon = String(data.get('telefon') ?? '').trim();
         if (!String(data.get('vorname') ?? '').trim()) errors.vorname = 'Bitte gib deinen Vornamen an.';
-        if (!String(data.get('nachname') ?? '').trim()) errors.nachname = 'Bitte gib deinen Nachnamen an.';
         if (!EMAIL_RE.test(String(data.get('email') ?? '').trim())) errors.email = 'Bitte gib eine gültige E-Mail-Adresse an.';
         if (telefon && !PHONE_RE.test(telefon)) errors.telefon = 'Bitte gib eine gültige Telefonnummer an (nur Ziffern, Leerzeichen, + - / ( )).';
         if (!data.get('consent')) errors.consent = 'Bitte bestätige, dass du den Newsletter erhalten möchtest.';

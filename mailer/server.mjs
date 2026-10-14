@@ -1,5 +1,5 @@
 // Minimal mailer for the website forms (JSON) -> SMTP mail to MAIL_TO:
-//   POST /api/contact     contact form
+//   POST /api/contact     contact form (optionally with newsletter sign-up)
 //   POST /api/newsletter  newsletter sign-up (entered in the backoffice by hand)
 // Runs next to nginx in the same container; nginx proxies /api/contact and /api/newsletter here.
 import http from 'node:http';
@@ -94,10 +94,34 @@ function berlinTime(date) {
   return `${parts.day}.${parts.month}.${parts.year}, ${parts.hour}:${parts.minute} Uhr`;
 }
 
-// Per form: validation, the mail to us and the wording of the error messages
+// The newsletter sign-up mail, from the newsletter form or ticked in the contact form
+function newsletterMail({ vorname, nachname, email, telefon }, via) {
+  const name = [vorname, nachname].filter(Boolean).join(' ');
+  return {
+    replyTo: { name, address: email },
+    subject: `Newsletter-Anmeldung: ${name}`,
+    text: [
+      `Neue Anmeldung zum Newsletter über die Website (${via}).`,
+      '',
+      `Vorname: ${vorname}`,
+      `Nachname: ${nachname || '–'}`,
+      `E-Mail: ${email}`,
+      `Telefon: ${telefon || '–'}`,
+      `Angemeldet am: ${berlinTime(new Date())}`,
+      '',
+      `Einwilligung: Checkbox zur Newsletter-Einwilligung im ${via} angehakt.`,
+      'Bitte im Backoffice eintragen (Kunde anlegen bzw. suchen, Newsletter: Ja) und diese Mail als Nachweis aufheben.',
+      '',
+    ].join('\n'),
+  };
+}
+
+// Per form: validation, the mail(s) to us and the wording of the error messages
 const FORMS = {
   '/api/contact': {
     validate: validateContact,
+    // Ticked "auch den Newsletter erhalten": the same sign-up mail as the newsletter form
+    extra: (data) => (data.newsletter ? newsletterMail(data.newsletter, 'Kontaktformular') : null),
     mail: ({ name, email, message }) => ({
       replyTo: { name, address: email },
       subject: `Kontaktanfrage von ${name}`,
@@ -109,23 +133,7 @@ const FORMS = {
   },
   '/api/newsletter': {
     validate: validateNewsletter,
-    mail: ({ vorname, nachname, email, telefon }) => ({
-      replyTo: { name: `${vorname} ${nachname}`, address: email },
-      subject: `Newsletter-Anmeldung: ${vorname} ${nachname}`,
-      text: [
-        'Neue Anmeldung zum Newsletter über die Website.',
-        '',
-        `Vorname: ${vorname}`,
-        `Nachname: ${nachname}`,
-        `E-Mail: ${email}`,
-        `Telefon: ${telefon || '–'}`,
-        `Angemeldet am: ${berlinTime(new Date())}`,
-        '',
-        'Einwilligung: Checkbox „Ich möchte den Newsletter von BricksnBytes per E-Mail erhalten …“ angehakt.',
-        'Bitte im Backoffice eintragen (Kunde anlegen bzw. suchen, Newsletter: Ja) und diese Mail als Nachweis aufheben.',
-        '',
-      ].join('\n'),
-    }),
+    mail: (data) => newsletterMail(data, 'Newsletter-Formular'),
     what: 'Deine Anmeldung',
     tooMany: 'Zu viele Anmeldungen in kurzer Zeit.',
     unavailable: 'Die Newsletter-Anmeldung ist gerade nicht erreichbar.',
@@ -163,17 +171,31 @@ const server = http.createServer(async (req, res) => {
     return send(res, 503, { ok: false, error: `${form.unavailable} Bitte schreib direkt an info@bricksnbytes.de.` });
   }
 
-  try {
+  const deliver = async (mail) => {
     const info = await transport.sendMail({
       from: { name: 'BricksnBytes Website', address: MAIL_FROM || 'dry-run@localhost' },
       to: MAIL_TO,
-      ...form.mail(result.data),
+      ...mail,
     });
     if (DRY_RUN) console.log('[mailer] dry run:', info.message.toString());
-    return send(res, 200, { ok: true });
+  };
+
+  try {
+    await deliver(form.mail(result.data));
   } catch (err) {
     console.error('[mailer] send failed:', err.message);
     return send(res, 502, { ok: false, error: `${form.what} konnte nicht gesendet werden. Bitte versuch es später noch einmal oder schreib an info@bricksnbytes.de.` });
+  }
+
+  // The message is out; a failing second mail is reported separately so the visitor can retry only that
+  const extra = form.extra?.(result.data);
+  if (!extra) return send(res, 200, { ok: true });
+  try {
+    await deliver(extra);
+    return send(res, 200, { ok: true, newsletter: true });
+  } catch (err) {
+    console.error('[mailer] newsletter mail failed:', err.message);
+    return send(res, 200, { ok: true, newsletter: false });
   }
 });
 

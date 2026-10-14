@@ -7,7 +7,7 @@ describe('validateContact', () => {
   it('accepts a complete submission and trims values', () => {
     const r = validateContact({ ...valid, name: '  Anna  ' });
     expect(r.spam).toBe(false);
-    expect(r.data).toEqual({ name: 'Anna', email: 'anna@example.de', message: 'Hallo!' });
+    expect(r.data).toEqual({ name: 'Anna', email: 'anna@example.de', message: 'Hallo!', newsletter: null });
   });
 
   it('flags a filled honeypot as spam', () => {
@@ -44,6 +44,16 @@ describe('validateContact', () => {
     const r = validateContact({ ...valid, name: { $ne: '' } });
     expect(r.errors.name).toBeDefined();
   });
+
+  it('adds a newsletter sign-up when ticked and consented, split into first and last name', () => {
+    const r = validateContact({ ...valid, name: 'Anna Maria Muster', newsletter: true, newsletter_consent: true });
+    expect(r.data.newsletter).toEqual({ vorname: 'Anna', nachname: 'Maria Muster', email: 'anna@example.de', telefon: '' });
+  });
+
+  it('requires the newsletter consent only when the newsletter is ticked', () => {
+    expect(validateContact({ ...valid, newsletter: true }).errors.newsletter_consent).toBeDefined();
+    expect(validateContact({ ...valid, newsletter_consent: true }).data.newsletter).toBeNull();
+  });
 });
 
 const signup = { vorname: 'Anna', nachname: 'Muster', email: 'anna@example.de', telefon: '', consent: true };
@@ -66,10 +76,11 @@ describe('validateNewsletter', () => {
     }
   });
 
-  it('requires first name, last name, e-mail and the consent checkbox', () => {
+  it('requires first name, e-mail and the consent checkbox; the last name is optional', () => {
     const r = validateNewsletter({});
     expect(r.data).toBeUndefined();
-    expect(Object.keys(r.errors).sort()).toEqual(['consent', 'email', 'nachname', 'vorname']);
+    expect(Object.keys(r.errors).sort()).toEqual(['consent', 'email', 'vorname']);
+    expect(validateNewsletter({ ...signup, nachname: '' }).data?.nachname).toBe('');
   });
 
   it('flags a filled honeypot as spam', () => {
