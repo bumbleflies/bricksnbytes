@@ -19,7 +19,8 @@ function emailError(email) {
 
 /**
  * @param {Record<string, unknown>} input raw request body
- * @returns {{ spam: true } | { spam: false, errors: Record<string, string>, data?: { name: string, email: string, message: string } }}
+ * @returns {{ spam: true } | { spam: false, errors: Record<string, string>, data?: { name: string, email: string, message: string,
+ *   newsletter: null | { vorname: string, nachname: string, email: string, telefon: string } } }}
  */
 export function validateContact(input) {
   const body = input && typeof input === 'object' ? input : {};
@@ -44,8 +45,16 @@ export function validateContact(input) {
 
   if (!privacy) errors.privacy = 'Bitte bestätige, dass du die Datenschutzerklärung gelesen hast.';
 
+  // Optional newsletter sign-up in the same submission ("Ja, ich möchte auch den Newsletter erhalten")
+  const wantsNewsletter = checked(body.newsletter);
+  if (wantsNewsletter && !checked(body.newsletter_consent)) {
+    errors.newsletter_consent = 'Bitte bestätige die Einwilligung für den Newsletter.';
+  }
+
   if (Object.keys(errors).length > 0) return { spam: false, errors };
-  return { spam: false, errors: {}, data: { name, email, message } };
+  const [vorname, ...rest] = name.split(' ');
+  const newsletter = wantsNewsletter ? { vorname, nachname: rest.join(' '), email, telefon: '' } : null;
+  return { spam: false, errors: {}, data: { name, email, message, newsletter } };
 }
 
 /**
@@ -65,8 +74,7 @@ export function validateNewsletter(input) {
   if (!vorname) errors.vorname = 'Bitte gib deinen Vornamen an.';
   else if (vorname.length > LIMITS.name) errors.vorname = `Der Vorname darf höchstens ${LIMITS.name} Zeichen lang sein.`;
 
-  if (!nachname) errors.nachname = 'Bitte gib deinen Nachnamen an.';
-  else if (nachname.length > LIMITS.name) errors.nachname = `Der Nachname darf höchstens ${LIMITS.name} Zeichen lang sein.`;
+  if (nachname.length > LIMITS.name) errors.nachname = `Der Nachname darf höchstens ${LIMITS.name} Zeichen lang sein.`;
 
   const emailErr = emailError(email);
   if (emailErr) errors.email = emailErr;

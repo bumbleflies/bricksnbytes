@@ -45,6 +45,20 @@ import '../styles/forms.css';
           <p class="field-error" id="cf-privacy-err" data-error-for="privacy"></p>
         </div>
 
+        <div class="field field-check">
+          <input id="cf-newsletter" name="newsletter" type="checkbox" aria-controls="cf-newsletter-consent-wrap" aria-expanded="false" />
+          <label for="cf-newsletter">Ja, ich möchte auch den bricksnbytes-Newsletter erhalten.</label>
+        </div>
+
+        <div class="field field-check field-sub" id="cf-newsletter-consent-wrap" hidden>
+          <input id="cf-newsletter-consent" name="newsletter_consent" type="checkbox" aria-describedby="cf-newsletter_consent-err" />
+          <label for="cf-newsletter-consent">
+            Ich willige ein, dass BricksnBytes mir den Newsletter per E-Mail schickt. Abmelden kann ich mich jederzeit.
+            Mehr in der <a href="/datenschutz#newsletter" target="_blank" rel="noopener">Datenschutzerklärung</a>. <span aria-hidden="true">*</span>
+          </label>
+          <p class="field-error" id="cf-newsletter_consent-err" data-error-for="newsletter_consent"></p>
+        </div>
+
         <button type="submit" class="submit-btn">Nachricht senden</button>
         <p class="form-status" role="status" aria-live="polite"></p>
       </form>
@@ -56,6 +70,20 @@ import '../styles/forms.css';
   import { EMAIL_RE, mailerForm } from '../scripts/mailerForm';
 
   const form = document.querySelector<HTMLFormElement>('.contact-form');
+  const newsletter = form?.querySelector<HTMLInputElement>('#cf-newsletter');
+  const consentWrap = form?.querySelector<HTMLElement>('#cf-newsletter-consent-wrap');
+
+  // The consent only appears (and counts) when the newsletter option is ticked
+  function syncNewsletter() {
+    if (!newsletter || !consentWrap) return;
+    consentWrap.hidden = !newsletter.checked;
+    newsletter.setAttribute('aria-expanded', String(newsletter.checked));
+    const consent = consentWrap.querySelector<HTMLInputElement>('input');
+    if (consent) consent.required = newsletter.checked;
+  }
+  newsletter?.addEventListener('change', syncNewsletter);
+  form?.addEventListener('mailer:reset', syncNewsletter);
+
   if (form) {
     mailerForm(form, {
       validate(data) {
@@ -64,6 +92,7 @@ import '../styles/forms.css';
         if (!EMAIL_RE.test(String(data.get('email') ?? '').trim())) errors.email = 'Bitte gib eine gültige E-Mail-Adresse an.';
         if (!String(data.get('message') ?? '').trim()) errors.message = 'Bitte schreib uns eine Nachricht.';
         if (!data.get('privacy')) errors.privacy = 'Bitte bestätige, dass du die Datenschutzerklärung gelesen hast.';
+        if (data.get('newsletter') && !data.get('newsletter_consent')) errors.newsletter_consent = 'Bitte bestätige die Einwilligung für den Newsletter.';
         return errors;
       },
       payload: (data) => ({
@@ -71,8 +100,19 @@ import '../styles/forms.css';
         email: data.get('email'),
         message: data.get('message'),
         privacy: Boolean(data.get('privacy')),
+        newsletter: Boolean(data.get('newsletter')),
+        newsletter_consent: Boolean(data.get('newsletter') && data.get('newsletter_consent')),
       }),
-      success: 'Danke! Deine Nachricht ist angekommen.',
+      success: (body) => {
+        if (body.newsletter === true) return { text: 'Danke! Deine Nachricht ist angekommen und du bist für den Newsletter angemeldet.' };
+        if (body.newsletter === false) {
+          return {
+            text: 'Deine Nachricht ist angekommen – die Newsletter-Anmeldung hat leider nicht geklappt. Bitte melde dich unten im Newsletter-Formular an.',
+            kind: 'error',
+          };
+        }
+        return { text: 'Danke! Deine Nachricht ist angekommen.' };
+      },
       failure: 'Deine Nachricht konnte nicht gesendet werden. Bitte versuch es später noch einmal oder schreib an info@bricksnbytes.de.',
     });
   }

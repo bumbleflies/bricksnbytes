@@ -7,7 +7,8 @@ type Errors = Record<string, string>;
 interface Options {
   validate: (data: FormData) => Errors;
   payload: (data: FormData) => Record<string, unknown>;
-  success: string;
+  // Text after a successful submit; a function gets the server's answer (e.g. { ok, newsletter })
+  success: string | ((body: Record<string, unknown>) => { text: string; kind?: 'success' | 'error' });
   // Shown when the server could not process the submission
   failure: string;
 }
@@ -54,8 +55,10 @@ export function mailerForm(form: HTMLFormElement, { validate, payload, success, 
       const body = await res.json().catch(() => null);
       if (res.ok && body?.ok) {
         form.reset();
+        form.dispatchEvent(new Event('mailer:reset'));
         showErrors({});
-        setStatus(success, 'success');
+        const result = typeof success === 'string' ? { text: success } : success(body);
+        setStatus(result.text, result.kind ?? 'success');
       } else {
         if (body?.fields) showErrors(body.fields);
         setStatus(body?.error ?? failure, 'error');
