@@ -1,0 +1,95 @@
+---
+// Newsletter sign-up — posts JSON to /api/newsletter; the mailer sends the sign-up to our inbox
+// (no double opt-in; the sign-up is entered in the backoffice by hand).
+import { EMAIL, EMAIL_HREF } from '../data/site';
+import '../styles/forms.css';
+---
+
+<section class="form-section" id="newsletter">
+  <div class="container">
+    <div class="form-card">
+      <h2 class="section-heading">Newsletter abonnieren</h2>
+      <p class="form-intro">
+        Erfahre als Erstes von neuen Kursen, Workshops und Terminen. Abmelden kannst du dich jederzeit mit einer
+        kurzen E-Mail an <a href={EMAIL_HREF}>{EMAIL}</a>.
+      </p>
+
+      <form class="newsletter-form" action="/api/newsletter" method="post" novalidate>
+        <div class="field-row">
+          <div class="field">
+            <label for="nl-vorname">Vorname <span aria-hidden="true">*</span></label>
+            <input id="nl-vorname" name="vorname" type="text" autocomplete="given-name" maxlength="100" required aria-describedby="nl-vorname-err" />
+            <p class="field-error" id="nl-vorname-err" data-error-for="vorname"></p>
+          </div>
+
+          <div class="field">
+            <label for="nl-nachname">Nachname <span aria-hidden="true">*</span></label>
+            <input id="nl-nachname" name="nachname" type="text" autocomplete="family-name" maxlength="100" required aria-describedby="nl-nachname-err" />
+            <p class="field-error" id="nl-nachname-err" data-error-for="nachname"></p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="nl-email">E-Mail <span aria-hidden="true">*</span></label>
+          <input id="nl-email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="nl-email-err" />
+          <p class="field-error" id="nl-email-err" data-error-for="email"></p>
+        </div>
+
+        <div class="field">
+          <label for="nl-telefon">Telefon <span class="optional">(optional)</span></label>
+          <input id="nl-telefon" name="telefon" type="tel" autocomplete="tel" maxlength="30" aria-describedby="nl-telefon-err" />
+          <p class="field-error" id="nl-telefon-err" data-error-for="telefon"></p>
+        </div>
+
+        <!-- Honeypot: hidden from people, bots tend to fill it -->
+        <div class="hp" aria-hidden="true">
+          <label for="nl-website">Website</label>
+          <input id="nl-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <div class="field field-check">
+          <input id="nl-consent" name="consent" type="checkbox" required aria-describedby="nl-consent-err" />
+          <label for="nl-consent">
+            Ich möchte den Newsletter von BricksnBytes per E-Mail erhalten. Meine Einwilligung kann ich jederzeit
+            widerrufen. Hinweise dazu stehen in der <a href="/datenschutz#newsletter" target="_blank" rel="noopener">Datenschutzerklärung</a>.
+            <span aria-hidden="true">*</span>
+          </label>
+          <p class="field-error" id="nl-consent-err" data-error-for="consent"></p>
+        </div>
+
+        <button type="submit" class="submit-btn">Newsletter abonnieren</button>
+        <p class="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { EMAIL_RE, mailerForm } from '../scripts/mailerForm';
+
+  const PHONE_RE = /^[0-9+()/ .-]{5,30}$/;
+  const form = document.querySelector<HTMLFormElement>('.newsletter-form');
+  if (form) {
+    mailerForm(form, {
+      validate(data) {
+        const errors: Record<string, string> = {};
+        const telefon = String(data.get('telefon') ?? '').trim();
+        if (!String(data.get('vorname') ?? '').trim()) errors.vorname = 'Bitte gib deinen Vornamen an.';
+        if (!String(data.get('nachname') ?? '').trim()) errors.nachname = 'Bitte gib deinen Nachnamen an.';
+        if (!EMAIL_RE.test(String(data.get('email') ?? '').trim())) errors.email = 'Bitte gib eine gültige E-Mail-Adresse an.';
+        if (telefon && !PHONE_RE.test(telefon)) errors.telefon = 'Bitte gib eine gültige Telefonnummer an (nur Ziffern, Leerzeichen, + - / ( )).';
+        if (!data.get('consent')) errors.consent = 'Bitte bestätige, dass du den Newsletter erhalten möchtest.';
+        return errors;
+      },
+      payload: (data) => ({
+        vorname: data.get('vorname'),
+        nachname: data.get('nachname'),
+        email: data.get('email'),
+        telefon: data.get('telefon'),
+        consent: Boolean(data.get('consent')),
+      }),
+      success: 'Danke! Du bist für den Newsletter angemeldet.',
+      failure: 'Deine Anmeldung konnte nicht gesendet werden. Bitte versuch es später noch einmal oder schreib an info@bricksnbytes.de.',
+    });
+  }
+</script>

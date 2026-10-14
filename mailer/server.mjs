@@ -1,8 +1,10 @@
-// Minimal contact-form mailer: POST /api/contact (JSON) -> SMTP mail to MAIL_TO.
-// Runs next to nginx in the same container; nginx proxies /api/contact here.
+// Minimal mailer for the website forms (JSON) -> SMTP mail to MAIL_TO:
+//   POST /api/contact     contact form
+//   POST /api/newsletter  newsletter sign-up (entered in the backoffice by hand)
+// Runs next to nginx in the same container; nginx proxies /api/contact and /api/newsletter here.
 import http from 'node:http';
 import nodemailer from 'nodemailer';
-import { validateContact } from './validate.mjs';
+import { validateContact, validateNewsletter } from './validate.mjs';
 
 const PORT = Number(process.env.MAILER_PORT || 3001);
 const HOST = process.env.MAILER_HOST || '127.0.0.1';
@@ -45,7 +47,7 @@ function createTransport() {
 }
 
 const transport = createTransport();
-if (!transport) console.warn('[mailer] SMTP_HOST/MAIL_FROM not set – contact form will answer 503');
+if (!transport) console.warn('[mailer] SMTP_HOST/MAIL_FROM not set – the forms will answer 503');
 
 function send(res, status, payload) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -82,8 +84,57 @@ function readJson(req) {
   });
 }
 
+// "14.10.2026, 17:49 Uhr" – built from parts because the Alpine Node has no German locale data
+function berlinTime(date) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(date).map((p) => [p.type, p.value]),
+  );
+  return `${parts.day}.${parts.month}.${parts.year}, ${parts.hour}:${parts.minute} Uhr`;
+}
+
+// Per form: validation, the mail to us and the wording of the error messages
+const FORMS = {
+  '/api/contact': {
+    validate: validateContact,
+    mail: ({ name, email, message }) => ({
+      replyTo: { name, address: email },
+      subject: `Kontaktanfrage von ${name}`,
+      text: `Name: ${name}\nE-Mail: ${email}\n\n${message}\n`,
+    }),
+    what: 'Deine Nachricht',
+    tooMany: 'Zu viele Nachrichten in kurzer Zeit.',
+    unavailable: 'Das Kontaktformular ist gerade nicht erreichbar.',
+  },
+  '/api/newsletter': {
+    validate: validateNewsletter,
+    mail: ({ vorname, nachname, email, telefon }) => ({
+      replyTo: { name: `${vorname} ${nachname}`, address: email },
+      subject: `Newsletter-Anmeldung: ${vorname} ${nachname}`,
+      text: [
+        'Neue Anmeldung zum Newsletter über die Website.',
+        '',
+        `Vorname: ${vorname}`,
+        `Nachname: ${nachname}`,
+        `E-Mail: ${email}`,
+        `Telefon: ${telefon || '–'}`,
+        `Angemeldet am: ${berlinTime(new Date())}`,
+        '',
+        'Einwilligung: Checkbox „Ich möchte den Newsletter von BricksnBytes per E-Mail erhalten …“ angehakt.',
+        'Bitte im Backoffice eintragen (Kunde anlegen bzw. suchen, Newsletter: Ja) und diese Mail als Nachweis aufheben.',
+        '',
+      ].join('\n'),
+    }),
+    what: 'Deine Anmeldung',
+    tooMany: 'Zu viele Anmeldungen in kurzer Zeit.',
+    unavailable: 'Die Newsletter-Anmeldung ist gerade nicht erreichbar.',
+  },
+};
+
 const server = http.createServer(async (req, res) => {
-  if (req.url !== '/api/contact') return send(res, 404, { ok: false, error: 'Nicht gefunden.' });
+  const form = Object.hasOwn(FORMS, req.url) ? FORMS[req.url] : null;
+  if (!form) return send(res, 404, { ok: false, error: 'Nicht gefunden.' });
   if (req.method !== 'POST') return send(res, 405, { ok: false, error: 'Methode nicht erlaubt.' });
 
   let body;
@@ -97,7 +148,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  const result = validateContact(body);
+  const result = form.validate(body);
   // Pretend success so bots get no signal that the honeypot caught them
   if (result.spam) return send(res, 200, { ok: true });
   if (!result.data) {
@@ -105,27 +156,24 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (rateLimited(clientIp(req))) {
-    return send(res, 429, { ok: false, error: 'Zu viele Nachrichten in kurzer Zeit. Bitte versuch es später noch einmal oder schreib an info@bricksnbytes.de.' });
+    return send(res, 429, { ok: false, error: `${form.tooMany} Bitte versuch es später noch einmal oder schreib an info@bricksnbytes.de.` });
   }
 
   if (!transport) {
-    return send(res, 503, { ok: false, error: 'Das Kontaktformular ist gerade nicht erreichbar. Bitte schreib direkt an info@bricksnbytes.de.' });
+    return send(res, 503, { ok: false, error: `${form.unavailable} Bitte schreib direkt an info@bricksnbytes.de.` });
   }
 
-  const { name, email, message } = result.data;
   try {
     const info = await transport.sendMail({
       from: { name: 'BricksnBytes Website', address: MAIL_FROM || 'dry-run@localhost' },
       to: MAIL_TO,
-      replyTo: { name, address: email },
-      subject: `Kontaktanfrage von ${name}`,
-      text: `Name: ${name}\nE-Mail: ${email}\n\n${message}\n`,
+      ...form.mail(result.data),
     });
     if (DRY_RUN) console.log('[mailer] dry run:', info.message.toString());
     return send(res, 200, { ok: true });
   } catch (err) {
     console.error('[mailer] send failed:', err.message);
-    return send(res, 502, { ok: false, error: 'Deine Nachricht konnte nicht gesendet werden. Bitte versuch es später noch einmal oder schreib an info@bricksnbytes.de.' });
+    return send(res, 502, { ok: false, error: `${form.what} konnte nicht gesendet werden. Bitte versuch es später noch einmal oder schreib an info@bricksnbytes.de.` });
   }
 });
 
