@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Backoffice\Modules\Import;
 
-use Backoffice\Config;
 use Backoffice\Modules\Kunden\KundenRepository;
 use Backoffice\Modules\Kunden\KundenValidator;
+use Backoffice\Modules\Kunden\Verteiler;
 
 // Children from the pretix order overview (one row per child and booking): groups the rows by
 // e-mail into families and children and sorts them into "new family", "new child for an existing
@@ -41,7 +41,7 @@ final class KinderImport
             return $result;
         }
 
-        $ownEmail = mb_strtolower(trim((string) Config::get('app.eigene_email', '')));
+        $ownEmail = mb_strtolower((string) Verteiler::ownEmail());
         $byEmail = [];
         $line = 1;
         while (($row = fgetcsv($stream, null, $delimiter, '"', '')) !== false) {
