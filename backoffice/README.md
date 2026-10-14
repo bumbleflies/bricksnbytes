@@ -184,8 +184,10 @@ Newsletter Nein.
 - **E-Mail an Auswahl**: Kunden per Checkbox auswählen („Alle auswählen“ = aktuelle Seite, danach
   „Alle N gefilterten Kunden auswählen“). Öffnet das Mailprogramm mit allen Adressen im **BCC**.
 - **Newsletter verschicken**: dasselbe mit allen Kunden mit Newsletter = Ja.
-- Im „An“-Feld steht die eigene Adresse aus der Konfiguration (`app.eigene_email`, im Docker-Container
-  Umgebungsvariable `APP_OWNER_EMAIL`). Fehlt sie, sind die beiden Buttons deaktiviert.
+- Im „An“-Feld steht die eigene Adresse: die Einstellung `eigene_email` (Tabelle `einstellungen`,
+  von Migration 004 mit `info@bricksnbytes.de` angelegt). Ist in der Konfiguration `app.eigene_email`
+  bzw. im Docker-Container `APP_OWNER_EMAIL` gesetzt, hat das Vorrang. Ohne Adresse sind die beiden
+  Buttons deaktiviert.
 - Ungültige und doppelte Adressen werden weggelassen. Wird der Mail-Link zu lang (über 2.000 Zeichen),
   werden die Adressen stattdessen mit Semikolon in die Zwischenablage kopiert – in Outlook ins
   BCC-Feld einfügen. „Adressen kopieren“ geht immer.

@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Backoffice\Modules\Kunden;
 
+use Backoffice\Config;
+use Backoffice\Settings;
+
 // Mail recipient lists for "E-Mail an Auswahl" / "Newsletter verschicken"
 final class Verteiler
 {
@@ -24,6 +27,13 @@ final class Verteiler
             }
         }
         return array_values($clean);
+    }
+
+    /** Own address for the "An" field: config app.eigene_email (APP_OWNER_EMAIL), else setting eigene_email */
+    public static function ownEmail(): ?string
+    {
+        $address = self::one((string) (Config::get('app.eigene_email') ?: Settings::get('eigene_email')));
+        return $address !== '' ? $address : null;
     }
 
     /** Single address for one table row, or '' when it can't receive mail */

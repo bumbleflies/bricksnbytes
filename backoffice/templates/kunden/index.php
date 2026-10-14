@@ -75,7 +75,7 @@ $all = array_sum($counts);
     <button type="button" class="btn-link" id="copy-newsletter"<?= $newsletterAddresses ? '' : ' disabled' ?>>Adressen kopieren</button>
   </div>
   <?php if ($ownEmail === null): ?>
-    <p class="hint">Die Mail-Buttons brauchen deine eigene Adresse für das „An“-Feld. Sie fehlt noch in der Konfiguration (<code>app.eigene_email</code>, auf dem Server <code>APP_OWNER_EMAIL</code>). „Adressen kopieren“ funktioniert trotzdem.</p>
+    <p class="hint">Die Mail-Buttons brauchen deine eigene Adresse für das „An“-Feld. Sie fehlt noch (Einstellung <code>eigene_email</code> bzw. <code>app.eigene_email</code>/<code>APP_OWNER_EMAIL</code> in der Konfiguration). „Adressen kopieren“ funktioniert trotzdem.</p>
   <?php endif; ?>
   <p class="mail-notice" id="mail-notice" role="status" hidden></p>
 </div>

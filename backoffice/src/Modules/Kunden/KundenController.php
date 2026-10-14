@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Backoffice\Modules\Kunden;
 
 use Backoffice\Audit;
-use Backoffice\Config;
 use Backoffice\Router;
 use Backoffice\Session;
 use Backoffice\View;
@@ -42,7 +41,7 @@ final class KundenController
             $page = $pages;
             $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter);
         }
-        $ownEmail = Verteiler::one(Config::get('app.eigene_email'));
+        $ownEmail = Verteiler::ownEmail();
 
         View::render('kunden/index', [
             'title' => 'Kunden',
@@ -59,7 +58,7 @@ final class KundenController
             // Recipients for the mail buttons: every filtered customer (all pages) and all subscribers
             'filteredAddresses' => Verteiler::clean(KundenRepository::filteredAddresses($q, $typ, $newsletter)),
             'newsletterAddresses' => Verteiler::clean(KundenRepository::newsletterAddresses()),
-            'ownEmail' => $ownEmail !== '' ? $ownEmail : null,
+            'ownEmail' => $ownEmail,
         ]);
     }
 
