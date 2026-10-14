@@ -1,13 +1,15 @@
 <?php
-/** @var ?string $error */
+/** @var ?string $error @var ?bool $kontakteListe */
 use Backoffice\Csrf;
 ?>
 <p class="breadcrumb"><a href="/kunden">← Alle Kunden</a></p>
-<h1>CSV importieren</h1>
+<h1>Newsletter-Liste importieren</h1>
 <?php if (!empty($error)): ?>
-  <p class="flash flash-error" role="alert"><?= e($error) ?></p>
+  <p class="flash flash-error" role="alert"><?= e($error) ?>
+    <?php if (!empty($kontakteListe)): ?> <a href="/kunden/import/kontakte">Zu „Kontakte importieren“</a><?php endif; ?></p>
 <?php endif; ?>
 <section class="card">
+  <p>Für Adresslisten wie den alten Newsletter-Export (E-Mail, Vor- und Nachname, Anmeldestatus). Für Kontaktlisten mit Typ, Organisation und Status bitte <a href="/kunden/import/kontakte">Kontakte importieren</a> verwenden.</p>
   <p>Die Datei wird zuerst nur <strong>geprüft</strong>. Du siehst eine Vorschau mit neuen Kunden, Dubletten und fehlerhaften Zeilen und entscheidest dann, ob importiert wird.</p>
   <ul class="hint-list">
     <li>Pflicht ist eine Spalte <code>email</code> (oder „E-Mail“). Optional: <code>first_name</code>/<code>vorname</code>, <code>last_name</code>/<code>nachname</code>, <code>status</code> (subscribed/unsubscribed) oder <code>newsletter</code> (1/0).</li>

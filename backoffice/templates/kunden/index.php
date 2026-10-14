@@ -29,8 +29,9 @@ $all = array_sum($counts);
   <h1>Kunden <span class="count"><?= e($total) ?></span></h1>
   <div class="actions">
     <a class="btn btn-secondary" href="/kunden/export<?= $exportQuery !== '' ? '?' . e($exportQuery) : '' ?>">CSV exportieren</a>
-    <a class="btn btn-secondary" href="/kunden/import">CSV importieren</a>
+    <a class="btn btn-secondary" href="/kunden/import">Newsletter-Liste importieren</a>
     <a class="btn btn-secondary" href="/kunden/import/kontakte">Kontakte importieren</a>
+    <a class="btn btn-secondary" href="/kunden/importe">Importe</a>
     <a class="btn" href="/kunden/neu">Neuer Kunde</a>
   </div>
 </div>

@@ -144,7 +144,7 @@ anpassen.)
 ---
 
 ## 2. Alte Newsletter-Adressen importieren
-1. Anmelden → *Kunden* → **CSV importieren** → Datei wählen → **Datei prüfen**.
+1. Anmelden → *Kunden* → **Newsletter-Liste importieren** → Datei wählen → **Datei prüfen**.
 2. Die Vorschau zeigt Zeichensatz, Trennzeichen, Spaltenzuordnung und wie viele Zeilen neu,
    doppelt oder fehlerhaft sind. Es wird erst gespeichert, wenn du **… Kunden importieren** klickst.
 3. Jede neue Adresse wird als **Privatkunde** angelegt; Vor- und Nachname werden zum Elternteil.
@@ -194,6 +194,18 @@ Benötigt: `E-Mail`, `Typ`; genutzt außerdem `Name`, `Telefon`, `Organisation`,
   stehen in den Notizen und werden in der Vorschau als Hinweis gelistet.
 - Notizen und Anzahl Mails kommen in die Notizen des Kunden; Newsletter-Einwilligungen werden
   nicht gesetzt.
+
+### Import rückgängig machen
+
+**Kunden → Importe** listet alle Importe, aus denen noch Kunden da sind (Zeitpunkt, Art, Anzahl).
+„Rückgängig machen …“ zeigt erst, was gelöscht würde, und löscht dann nur Kunden, die seit dem
+Import **nicht verändert** wurden. Erhalten bleiben bearbeitete Kunden, Kunden mit später ergänzten
+oder geänderten Ansprechpartnern, Kindern oder Einwilligungen (auch Newsletter-Schalter) und
+Kunden mit Aufträgen, Buchungen, Rechnungen, Aufgaben, Orten oder Gutscheinen. Grundlage ist das
+Änderungsprotokoll.
+
+Die **Newsletter-Liste** (früher „CSV importieren“) lehnt Dateien mit den Spalten „Typ“ oder
+„Organisation“ ab und verweist auf „Kontakte importieren“.
 
 ### Newsletter und E-Mails an mehrere Kunden
 
