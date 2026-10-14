@@ -1,6 +1,12 @@
-# Contact-form mailer
+# Website mailer
 
-Small Node service behind nginx: `POST /api/contact` (JSON) → e-mail to `MAIL_TO` via SMTP.
+Small Node service behind nginx that turns the website forms (JSON) into an e-mail to `MAIL_TO` via SMTP:
+
+- `POST /api/contact` – contact form
+- `POST /api/newsletter` – newsletter sign-up (first/last name, e-mail, optional phone, consent checkbox).
+  There is no double opt-in: the mail to `MAIL_TO` is the record of the consent; the sign-up is entered
+  in the backoffice by hand.
+
 It runs inside the same Docker image as nginx (started by `docker/40-start-mailer.sh`).
 
 ## Configuration (container environment)
@@ -15,7 +21,7 @@ It runs inside the same Docker image as nginx (started by `docker/40-start-maile
 | `MAIL_FROM`    | no       | `SMTP_USER`            | must be an address the SMTP server may send as |
 | `MAIL_TO`      | no       | `info@bricksnbytes.de` |                                                |
 
-Without `SMTP_HOST` the form answers with a friendly 503 pointing to the e-mail address.
+Without `SMTP_HOST` the forms answer with a friendly 503 pointing to the e-mail address.
 
 Example:
 
@@ -29,11 +35,11 @@ docker run -p 80:80 \
 
 - Honeypot field `website` (filled → silently accepted, not sent)
 - Server-side validation (`validate.mjs`, unit-tested in `validate.test.mjs`)
-- Rate limit: 5 messages per IP and 100 in total per hour; body limit 32 KB
+- Rate limit: 5 submissions per IP and 100 in total per hour (both forms together); body limit 32 KB
 
 ## Local development
 
 ```bash
 cd mailer && npm install && npm run dev   # dry run: prints mails instead of sending
-npm run dev                               # in the project root; /api/contact is proxied
+npm run dev                               # in the project root; /api/contact and /api/newsletter are proxied
 ```

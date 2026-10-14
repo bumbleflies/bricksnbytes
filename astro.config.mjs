@@ -55,7 +55,7 @@ export default defineConfig({
     plugins: [yamlLoaderPlugin],
     // `npm run dev`: forward the contact form to a local mailer (cd mailer && npm run dev)
     server: {
-      proxy: { '/api/contact': 'http://127.0.0.1:3001' },
+      proxy: { '/api/contact': 'http://127.0.0.1:3001', '/api/newsletter': 'http://127.0.0.1:3001' },
     },
     ssr: {
       external: []

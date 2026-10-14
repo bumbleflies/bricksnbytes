@@ -1,0 +1,196 @@
+/* Shared look of the form cards on the home page (contact form, newsletter sign-up).
+   Everything is nested under .form-section so the class names don't clash with other sections. */
+
+.form-section {
+  padding: 0 40px 80px;
+  background: #fff;
+}
+
+.form-section .container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.form-section .form-card {
+  max-width: 620px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 28px;
+  padding: 36px;
+  box-shadow: var(--shadow-sm);
+}
+
+.form-section .section-heading {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.form-section .form-intro {
+  color: var(--ink-soft);
+  margin: 0 0 24px;
+}
+
+.form-section .form-intro a,
+.form-section .field-check a {
+  color: var(--coral-deep);
+}
+
+.form-section .field {
+  margin-bottom: 16px;
+}
+
+.form-section .field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+.form-section .field label {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.form-section .field .optional {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.form-section .field input[type="text"],
+.form-section .field input[type="email"],
+.form-section .field input[type="tel"],
+.form-section .field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 16px; /* avoids iOS zoom on focus */
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.form-section .field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.form-section .field input:focus-visible,
+.form-section .field textarea:focus-visible {
+  outline: 3px solid var(--coral-soft);
+  border-color: var(--coral);
+}
+
+.form-section .field input[aria-invalid="true"],
+.form-section .field textarea[aria-invalid="true"] {
+  border-color: oklch(0.58 0.2 25);
+}
+
+.form-section .field-check {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  align-items: start;
+}
+
+.form-section .field-check input {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--coral);
+}
+
+.form-section .field-check label {
+  font-family: inherit;
+  font-weight: 400;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.form-section .field-check .field-error {
+  grid-column: 2;
+}
+
+.form-section .field-error {
+  color: oklch(0.52 0.2 25);
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+  min-height: 0;
+}
+
+.form-section .field-error:empty {
+  display: none;
+}
+
+.form-section .hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.form-section .submit-btn {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  background: var(--coral);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  padding: 13px 28px;
+  border-radius: var(--r-pill);
+  box-shadow: 0 6px 16px -6px var(--coral-deep);
+  margin-top: 8px;
+}
+
+.form-section .submit-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.form-section .form-status {
+  margin: 16px 0 0;
+  font-weight: 600;
+}
+
+.form-section .form-status:empty {
+  display: none;
+}
+
+.form-section .form-status.success {
+  color: oklch(0.5 0.12 150);
+}
+
+.form-section .form-status.error {
+  color: oklch(0.52 0.2 25);
+}
+
+@media (max-width: 768px) {
+  .form-section {
+    padding: 0 16px 56px;
+  }
+
+  .form-section .form-card {
+    padding: 24px 20px;
+    border-radius: 22px;
+  }
+
+  .form-section .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-section .section-heading {
+    font-size: 1.3rem;
+  }
+
+  .form-section .submit-btn {
+    width: 100%;
+  }
+}

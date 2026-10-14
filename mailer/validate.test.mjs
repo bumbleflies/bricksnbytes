@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateContact, LIMITS } from './validate.mjs';
+import { validateContact, validateNewsletter, LIMITS } from './validate.mjs';
 
 const valid = { name: 'Anna', email: 'anna@example.de', message: 'Hallo!', privacy: true };
 
@@ -43,5 +43,45 @@ describe('validateContact', () => {
   it('ignores non-string values', () => {
     const r = validateContact({ ...valid, name: { $ne: '' } });
     expect(r.errors.name).toBeDefined();
+  });
+});
+
+const signup = { vorname: 'Anna', nachname: 'Muster', email: 'anna@example.de', telefon: '', consent: true };
+
+describe('validateNewsletter', () => {
+  it('accepts a sign-up without phone number and trims values', () => {
+    const r = validateNewsletter({ ...signup, vorname: '  Anna ' });
+    expect(r.data).toEqual({ vorname: 'Anna', nachname: 'Muster', email: 'anna@example.de', telefon: '' });
+  });
+
+  it('accepts common phone number formats', () => {
+    for (const telefon of ['+49 179 1234567', '0179/1234567', '(0711) 12-34 56']) {
+      expect(validateNewsletter({ ...signup, telefon }).data?.telefon).toBe(telefon);
+    }
+  });
+
+  it('rejects phone numbers with letters or that are too short or long', () => {
+    for (const telefon of ['abc', '123', '1'.repeat(31), '0179 123<script>']) {
+      expect(validateNewsletter({ ...signup, telefon }).errors.telefon).toBeDefined();
+    }
+  });
+
+  it('requires first name, last name, e-mail and the consent checkbox', () => {
+    const r = validateNewsletter({});
+    expect(r.data).toBeUndefined();
+    expect(Object.keys(r.errors).sort()).toEqual(['consent', 'email', 'nachname', 'vorname']);
+  });
+
+  it('flags a filled honeypot as spam', () => {
+    expect(validateNewsletter({ ...signup, website: 'http://spam' })).toEqual({ spam: true });
+  });
+
+  it('strips newlines from the names so they cannot inject mail headers', () => {
+    const r = validateNewsletter({ ...signup, nachname: 'Muster\r\nBcc: x@y.de' });
+    expect(r.data.nachname).not.toMatch(/[\r\n]/);
+  });
+
+  it('enforces length limits on the names', () => {
+    expect(validateNewsletter({ ...signup, vorname: 'x'.repeat(LIMITS.name + 1) }).errors.vorname).toBeDefined();
   });
 });
