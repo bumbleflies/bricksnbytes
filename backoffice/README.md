@@ -174,6 +174,27 @@ CSV – in Google Sheets: Reiter öffnen → *Datei → Herunterladen → CSV*. 
   E-Mail-Adressen vorkommen, werden als Hinweis gelistet.
 - Buchungen/Termine und Newsletter-Einwilligungen werden nicht angelegt bzw. nicht verändert.
 
+### Kontaktliste importieren (Schulen, Kitas, Bibliotheken, Partner, Eltern)
+
+**Kunden → Kontakte importieren** nimmt eine Kontaktliste mit einer Zeile pro Person bzw. Adresse.
+Benötigt: `E-Mail`, `Typ`; genutzt außerdem `Name`, `Telefon`, `Organisation`, `Status`,
+`Letzter Kontakt`, `Anzahl Mails`, `Notizen`.
+
+- Übernommen wird nur, wessen E-Mail es noch nicht gibt (Kunde oder Ansprechpartner).
+- Zeilen derselben **Organisation** werden ein Kunde: Personen mit Namen werden Ansprechpartner (der
+  jüngste Kontakt ist Hauptkontakt), die jüngste Adresse ohne Namen wird die allgemeine E-Mail,
+  weitere solche Adressen stehen in den Notizen. Gibt es die Organisation unter genau diesem Namen
+  schon, werden dort nur neue Ansprechpartner ergänzt.
+- Eltern: ein Privatkunde je Zeile (Name → Elternteil). „Frau“/„Herr“ werden weggelassen.
+- Typen: Kita/Familienzentrum → Kita, Hort/Förderverein → Hort, Unternehmen/Sponsor und Hotel →
+  Firma, Veranstalter/Partner und Raumgeber/Partner → Partner, Bibliothek → Bibliothek; Kursleiter
+  werden nicht importiert. Bei gemischten Typen einer Organisation zählt der häufigste.
+- **Status** (Feld beim Kunden, filterbar in der Liste): Abgelehnt und Kein Auftrag → Kein Interesse;
+  bei mehreren Personen zählt die mit dem jüngsten Kontakt. Unbekannte Status (z. B. „Abgemeldet“)
+  stehen in den Notizen und werden in der Vorschau als Hinweis gelistet.
+- Notizen und Anzahl Mails kommen in die Notizen des Kunden; Newsletter-Einwilligungen werden
+  nicht gesetzt.
+
 ### Newsletter und E-Mails an mehrere Kunden
 
 In **Kunden** zeigt die Spalte **Newsletter** Ja/Nein; ein Klick auf den Schalter speichert sofort.
@@ -290,7 +311,7 @@ entfernen. Die Tabellen gibt es schon – Schemaänderungen als neue Migration `
 | Bereich | Tabellen |
 |---|---|
 | Basis | `benutzer` (Rollen admin/büro/kursleiter), `login_versuche`, `aenderungen`, `einstellungen`, `aufgaben` |
-| Kunden | `kunden` (Typ), `ansprechpartner`, `kinder`, `einwilligungen` |
+| Kunden | `kunden` (Typ, Status), `ansprechpartner`, `kinder`, `einwilligungen` |
 | Kurse | `kursarten`, `kursleiter`, `orte`, `kurse` (Kursreihe), `termine`, `buchungen`, `anwesenheiten` |
 | Aufträge | `auftraege` (Status Anfrage → … → abgerechnet / abgesagt), `auftrag_positionen`, `geburtstage` |
 | Rechnungen | `nummernkreise`, `rechnungen` (Empfänger als Kopie), `rechnung_positionen`, `zahlungen`, `mahnungen`, `gutscheine`, `gutschein_einloesungen` |

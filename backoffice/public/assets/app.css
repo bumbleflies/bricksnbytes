@@ -105,6 +105,10 @@ a { color: var(--orange-dark); }
 .search { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
 .search input { font: inherit; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; min-width: 260px; flex: 1; max-width: 420px; }
 .search input:focus-visible { outline: 2px solid var(--orange); border-color: var(--orange); }
+.search select { font: inherit; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.search select:focus-visible { outline: 2px solid var(--orange); border-color: var(--orange); }
+/* "Kein Interesse" / "Nicht mehr anschreiben" */
+.status-stop { color: var(--error); font-weight: 600; }
 
 .empty { background: #fff; border: 1px dashed var(--line); border-radius: var(--radius); padding: 24px; text-align: center; color: var(--muted); }
 
@@ -291,3 +295,7 @@ body.app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
 .switch[aria-checked="true"] .switch-track { background: var(--ok); }
 .switch[aria-checked="true"] .switch-track::after { transform: translateX(14px); }
 .switch:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; border-radius: 6px; }
+
+/* Collapsible list in the import preview */
+details.card > summary { cursor: pointer; font-weight: 600; }
+details.card[open] > summary { margin-bottom: 12px; }

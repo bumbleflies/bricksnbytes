@@ -11,7 +11,7 @@ use PDOException;
 // placeholder; sort columns come from a fixed whitelist. Every write is recorded in the change log.
 final class KundenRepository
 {
-    public const FIELDS = ['typ', 'name', 'email', 'telefon', 'adresse', 'plz', 'ort', 'quelle', 'notizen'];
+    public const FIELDS = ['typ', 'name', 'status', 'email', 'telefon', 'adresse', 'plz', 'ort', 'quelle', 'notizen'];
     public const CONTACT_FIELDS = ['vorname', 'nachname', 'rolle', 'email', 'telefon', 'ist_hauptkontakt'];
     public const CHILD_FIELDS = ['vorname', 'nachname', 'geburtsdatum', 'geburtsjahr', 'abholberechtigte', 'notizen'];
 
@@ -21,6 +21,8 @@ final class KundenRepository
         'vorname' => 'hk.vorname',
         'nachname' => 'hk.nachname',
         'typ' => 'k.typ',
+        // Enum order = pipeline order (Akquise … Nicht mehr anschreiben)
+        'status' => 'k.status',
         'email' => 'k.email',
         'telefon' => 'k.telefon',
         'adresse' => 'k.adresse',
@@ -51,9 +53,9 @@ final class KundenRepository
         LEFT JOIN ansprechpartner hk ON hk.kunde_id = k.id AND hk.ist_hauptkontakt = 1";
 
     /** @return array{rows: array, total: int} */
-    public static function search(string $q, ?string $typ, string $sort, string $dir, int $page, int $perPage, ?string $newsletter = null): array
+    public static function search(string $q, ?string $typ, string $sort, string $dir, int $page, int $perPage, ?string $newsletter = null, ?string $status = null): array
     {
-        [$where, $params] = self::filter($q, $typ, $newsletter);
+        [$where, $params] = self::filter($q, $typ, $newsletter, $status);
         $expr = self::SORTS[$sort] ?? self::SORTS['name'];
         $direction = $dir === 'desc' ? 'DESC' : 'ASC';
 
@@ -72,9 +74,9 @@ final class KundenRepository
     }
 
     /** Mail address (customer, else main contact) of every customer matching the list filter */
-    public static function filteredAddresses(string $q, ?string $typ, ?string $newsletter): array
+    public static function filteredAddresses(string $q, ?string $typ, ?string $newsletter, ?string $status = null): array
     {
-        [$where, $params] = self::filter($q, $typ, $newsletter);
+        [$where, $params] = self::filter($q, $typ, $newsletter, $status);
         return Db::query(
             "SELECT COALESCE(NULLIF(k.email, ''), hk.email) FROM kunden k
              LEFT JOIN ansprechpartner hk ON hk.kunde_id = k.id AND hk.ist_hauptkontakt = 1 $where",
@@ -128,9 +130,9 @@ final class KundenRepository
     }
 
     /** All matching customers with contacts, children and consents, for the CSV export */
-    public static function exportRows(string $q, ?string $typ): array
+    public static function exportRows(string $q, ?string $typ, ?string $status = null): array
     {
-        [$where, $params] = self::filter($q, $typ);
+        [$where, $params] = self::filter($q, $typ, null, $status);
         $rows = Db::query(self::BASE_SELECT . " $where ORDER BY k.typ, " . self::SORTS['name'] . ', k.id', $params)->fetchAll();
         $kinder = self::groupBy(Db::query('SELECT * FROM kinder ORDER BY geburtsdatum IS NULL, geburtsdatum, geburtsjahr, id')->fetchAll());
         $einwilligungen = self::groupBy(Db::query('SELECT * FROM einwilligungen WHERE kind_id IS NULL')->fetchAll());
@@ -184,6 +186,45 @@ final class KundenRepository
             [$email, $email]
         )->fetchColumn();
         return $id === false ? null : (int) $id;
+    }
+
+    /** Organisation (any type except privat) with exactly this name, case-insensitive */
+    public static function findOrgIdByName(string $name): ?int
+    {
+        $id = Db::query(
+            "SELECT id FROM kunden WHERE typ <> 'privat' AND LOWER(TRIM(name)) = LOWER(TRIM(?)) ORDER BY id LIMIT 1",
+            [$name]
+        )->fetchColumn();
+        return $id === false ? null : (int) $id;
+    }
+
+    /** Adds one contact to an existing customer (other contacts stay untouched) */
+    public static function addContact(int $kundeId, array $contact, string $action = 'importiert'): int
+    {
+        $values = array_map(static fn ($f) => $contact[$f] ?? null, self::CONTACT_FIELDS);
+        $values[array_search('ist_hauptkontakt', self::CONTACT_FIELDS, true)] = (int) ($contact['ist_hauptkontakt'] ?? 0);
+        Db::query(
+            'INSERT INTO ansprechpartner (kunde_id, ' . implode(', ', self::CONTACT_FIELDS) . ') VALUES (?' . str_repeat(', ?', count(self::CONTACT_FIELDS)) . ')',
+            [$kundeId, ...$values]
+        );
+        $id = (int) Db::pdo()->lastInsertId();
+        Audit::created('ansprechpartner', $id, array_combine(self::CONTACT_FIELDS, $values), $action);
+        return $id;
+    }
+
+    /** Changes single customer fields (whitelisted, recorded in the change log) */
+    public static function patch(int $id, array $changes): void
+    {
+        $changes = array_intersect_key($changes, array_flip(self::FIELDS));
+        if (!$changes) {
+            return;
+        }
+        $before = Db::query('SELECT ' . implode(', ', array_keys($changes)) . ' FROM kunden WHERE id = ?', [$id])->fetch() ?: [];
+        Db::query(
+            'UPDATE kunden SET ' . implode(', ', array_map(static fn ($f) => "$f = ?", array_keys($changes))) . ' WHERE id = ?',
+            [...array_values($changes), $id]
+        );
+        Audit::changed('kunden', $id, $before, $changes);
     }
 
     /** First names of the customer's children */
@@ -309,13 +350,19 @@ final class KundenRepository
     }
 
     /** @return array{0: string, 1: array} */
-    private static function filter(string $q, ?string $typ, ?string $newsletter = null): array
+    private static function filter(string $q, ?string $typ, ?string $newsletter = null, ?string $status = null): array
     {
         $conditions = [];
         $params = [];
         if ($typ !== null) {
             $conditions[] = 'k.typ = ?';
             $params[] = $typ;
+        }
+        if ($status === 'ohne') {
+            $conditions[] = 'k.status IS NULL';
+        } elseif ($status !== null) {
+            $conditions[] = 'k.status = ?';
+            $params[] = $status;
         }
         if ($newsletter === 'ja') {
             $conditions[] = 'EXISTS (' . self::NEWSLETTER_ACTIVE . ')';

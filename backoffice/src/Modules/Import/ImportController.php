@@ -17,12 +17,16 @@ final class ImportController
     private const MAX_BYTES = 2 * 1024 * 1024;
     private const SESSION_KEY = 'kunden_import';
     private const KINDER_KEY = 'kinder_import';
+    private const KONTAKTE_KEY = 'kontakte_import';
 
     public static function register(Router $router): void
     {
         $router->get('/kunden/import', [self::class, 'form']);
         $router->post('/kunden/import', [self::class, 'preview']);
         $router->post('/kunden/import/ausfuehren', [self::class, 'run']);
+        $router->get('/kunden/import/kontakte', [self::class, 'kontakteForm']);
+        $router->post('/kunden/import/kontakte', [self::class, 'kontaktePreview']);
+        $router->post('/kunden/import/kontakte/ausfuehren', [self::class, 'kontakteRun']);
         $router->get('/kinder/import', [self::class, 'kinderForm']);
         $router->post('/kinder/import', [self::class, 'kinderPreview']);
         $router->post('/kinder/import/ausfuehren', [self::class, 'kinderRun']);
@@ -191,6 +195,105 @@ final class ImportController
             'file' => $pending['file'],
             'families' => $families,
             'children' => $children,
+            'skipped' => $skipped,
+        ]);
+    }
+
+    public static function kontakteForm(): void
+    {
+        unset($_SESSION[self::KONTAKTE_KEY]);
+        View::render('import/kontakte-upload', ['title' => 'Kontakte importieren']);
+    }
+
+    public static function kontaktePreview(): void
+    {
+        $file = $_FILES['datei'] ?? null;
+        $error = self::uploadError($file);
+        if ($error !== null) {
+            View::render('import/kontakte-upload', ['title' => 'Kontakte importieren', 'error' => $error], 422);
+            return;
+        }
+        $analysis = KontakteImport::analyse((string) file_get_contents($file['tmp_name']));
+        if (!isset($analysis['mapping']['email'], $analysis['mapping']['typ'])) {
+            View::render('import/kontakte-upload', [
+                'title' => 'Kontakte importieren',
+                'error' => 'In der Datei fehlen die Spalten „E-Mail“ und/oder „Typ“. Gefundene Spalten: ' . implode(', ', $analysis['header']),
+            ], 422);
+            return;
+        }
+        $_SESSION[self::KONTAKTE_KEY] = ['new' => $analysis['new'], 'addContacts' => $analysis['addContacts'], 'file' => (string) $file['name']];
+        View::render('import/kontakte-preview', ['title' => 'Kontakt-Import prüfen', 'a' => $analysis, 'file' => (string) $file['name']]);
+    }
+
+    public static function kontakteRun(): void
+    {
+        $pending = $_SESSION[self::KONTAKTE_KEY] ?? null;
+        unset($_SESSION[self::KONTAKTE_KEY]);
+        if (!is_array($pending)) {
+            Session::flash('info', 'Der Import ist abgelaufen. Bitte die Datei noch einmal hochladen.');
+            Router::redirect('/kunden/import/kontakte');
+        }
+
+        $customers = 0;
+        $contacts = 0;
+        $skipped = 0;
+        // Taken in the meantime (second tab, earlier run): leave out, never overwrite
+        $taken = static fn (?string $email): bool => $email !== null && KundenRepository::findIdByAnyEmail($email) !== null;
+
+        foreach ($pending['new'] as $k) {
+            $k['contacts'] = array_values(array_filter($k['contacts'], static fn ($c) => !$taken($c['email'])));
+            $orgTaken = $k['data']['typ'] !== 'privat' && KundenRepository::findOrgIdByName((string) $k['data']['name']) !== null;
+            if ($orgTaken || $taken($k['data']['email']) || ($k['data']['email'] === null && !$k['contacts'])) {
+                $skipped++;
+                continue;
+            }
+            if ($k['contacts'] && !in_array(1, array_column($k['contacts'], 'ist_hauptkontakt'), true)) {
+                $k['contacts'][0]['ist_hauptkontakt'] = 1;
+            }
+            try {
+                KundenRepository::save(null, $k['data'], $k['contacts'], [], [], 'importiert');
+                $customers++;
+            } catch (PDOException $e) {
+                if (($e->errorInfo[1] ?? null) !== 1062) {
+                    throw $e;
+                }
+                $skipped++;
+            }
+        }
+
+        foreach ($pending['addContacts'] as $k) {
+            $kunde = KundenRepository::find((int) $k['kunde_id']);
+            if ($kunde === null) {
+                $skipped += count($k['contacts']);
+                continue;
+            }
+            $hasMain = (bool) array_filter($kunde['ansprechpartner'], static fn ($a) => (int) $a['ist_hauptkontakt'] === 1);
+            $added = 0;
+            foreach ($k['contacts'] as $c) {
+                if ($taken($c['email'])) {
+                    $skipped++;
+                    continue;
+                }
+                $c['ist_hauptkontakt'] = $hasMain ? 0 : 1;
+                KundenRepository::addContact((int) $kunde['id'], $c);
+                $hasMain = true;
+                $added++;
+            }
+            if ($added > 0) {
+                $notes = trim(($kunde['notizen'] ?? '') . "\n\n" . $k['notizen']);
+                KundenRepository::patch((int) $kunde['id'], array_filter([
+                    'notizen' => mb_substr($notes, 0, 5000),
+                    'status' => $kunde['status'] === null ? $k['status'] : null,
+                ], static fn ($v) => $v !== null));
+                $contacts += $added;
+            }
+        }
+
+        View::render('import/kontakte-result', [
+            'title' => 'Kontakt-Import abgeschlossen',
+            'file' => $pending['file'],
+            'customers' => $customers,
+            'contacts' => $contacts,
             'skipped' => $skipped,
         ]);
     }
