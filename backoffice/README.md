@@ -158,6 +158,22 @@ Die CSV-Datei danach von deinem Rechner löschen bzw. sicher ablegen; der Server
 
 ---
 
+### Kinder aus der pretix-Bestellübersicht importieren
+
+**Kinder → Kinder importieren** nimmt die Bestell-Übersicht (eine Zeile pro Kind und Buchung) als
+CSV – in Google Sheets: Reiter öffnen → *Datei → Herunterladen → CSV*. Benötigt: `E-Mail`,
+`Name Kind`; genutzt außerdem `Name Eltern`, `Alter Kind`, `Bestellung`, `Bestellt am`, `Hinweis`.
+
+- Verbindung über die **E-Mail** (auch die eines Ansprechpartners, Groß-/Kleinschreibung egal):
+  bestehende Kunden bekommen nur fehlende Kinder (gleicher Vorname = schon da), neue Adressen
+  werden Privatkunden mit bis zu zwei Elternteilen aus „Name Eltern“.
+- Statt Geburtsdatum: **geschätztes Geburtsjahr** aus Alter und Buchungsdatum, mit Vermerk in den
+  Notizen; bei mehreren Kindern in einer Buchung zusätzlich „Alter bitte prüfen“.
+- Nicht importiert, sondern zum Prüfen angezeigt: Testbuchungen mit der eigenen Adresse,
+  Platzhalter statt Namen, Kind mit gleichem Namen wie das Elternteil. Kinder, die unter mehreren
+  E-Mail-Adressen vorkommen, werden als Hinweis gelistet.
+- Buchungen/Termine und Newsletter-Einwilligungen werden nicht angelegt bzw. nicht verändert.
+
 ### Newsletter und E-Mails an mehrere Kunden
 
 In **Kunden** zeigt die Spalte **Newsletter** Ja/Nein; ein Klick auf den Schalter speichert sofort.
