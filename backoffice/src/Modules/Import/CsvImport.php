@@ -30,35 +30,8 @@ final class CsvImport
      */
     public static function analyse(string $bytes): array
     {
-        $encoding = 'UTF-8';
-        if (str_starts_with($bytes, "\xEF\xBB\xBF")) {
-            $bytes = substr($bytes, 3);
-            $encoding = 'UTF-8 (mit BOM)';
-        } elseif (!mb_check_encoding($bytes, 'UTF-8')) {
-            $bytes = mb_convert_encoding($bytes, 'UTF-8', 'Windows-1252');
-            $encoding = 'Windows-1252 (umgewandelt nach UTF-8)';
-        }
-
-        $firstLine = strtok($bytes, "\r\n") ?: '';
-        $counts = [';' => substr_count($firstLine, ';'), ',' => substr_count($firstLine, ','), "\t" => substr_count($firstLine, "\t")];
-        arsort($counts);
-        $delimiter = (string) array_key_first($counts);
-
-        $stream = fopen('php://temp', 'r+');
-        fwrite($stream, $bytes);
-        rewind($stream);
-        $header = fgetcsv($stream, null, $delimiter, '"', '') ?: [];
-        $header = array_map(static fn ($h) => trim((string) $h), $header);
-
-        $mapping = [];
-        foreach (self::COLUMNS as $field => $names) {
-            foreach ($header as $index => $name) {
-                if (in_array(mb_strtolower($name), $names, true)) {
-                    $mapping[$field] = $index;
-                    break;
-                }
-            }
-        }
+        ['encoding' => $encoding, 'delimiter' => $delimiter, 'header' => $header, 'stream' => $stream] = self::open($bytes);
+        $mapping = self::mapColumns($header, self::COLUMNS);
 
         $result = ['encoding' => $encoding, 'delimiter' => $delimiter, 'header' => $header, 'mapping' => $mapping,
             'new' => [], 'duplicates' => [], 'invalid' => [], 'total' => 0];
@@ -107,6 +80,55 @@ final class CsvImport
         fclose($stream);
 
         return $result;
+    }
+
+    /**
+     * Decodes the file (UTF-8 with/without BOM or Windows-1252), detects the delimiter and reads the
+     * header row. The returned stream is positioned at the first data row.
+     *
+     * @return array{encoding: string, delimiter: string, header: list<string>, stream: resource}
+     */
+    public static function open(string $bytes): array
+    {
+        $encoding = 'UTF-8';
+        if (str_starts_with($bytes, "\xEF\xBB\xBF")) {
+            $bytes = substr($bytes, 3);
+            $encoding = 'UTF-8 (mit BOM)';
+        } elseif (!mb_check_encoding($bytes, 'UTF-8')) {
+            $bytes = mb_convert_encoding($bytes, 'UTF-8', 'Windows-1252');
+            $encoding = 'Windows-1252 (umgewandelt nach UTF-8)';
+        }
+
+        $firstLine = strtok($bytes, "\r\n") ?: '';
+        $counts = [';' => substr_count($firstLine, ';'), ',' => substr_count($firstLine, ','), "\t" => substr_count($firstLine, "\t")];
+        arsort($counts);
+        $delimiter = (string) array_key_first($counts);
+
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, $bytes);
+        rewind($stream);
+        $header = fgetcsv($stream, null, $delimiter, '"', '') ?: [];
+        $header = array_map(static fn ($h) => trim((string) $h), $header);
+
+        return ['encoding' => $encoding, 'delimiter' => $delimiter, 'header' => $header, 'stream' => $stream];
+    }
+
+    /**
+     * @param array<string, list<string>> $columns field => accepted header names (lower-case)
+     * @return array<string, int> field => column index
+     */
+    public static function mapColumns(array $header, array $columns): array
+    {
+        $mapping = [];
+        foreach ($columns as $field => $names) {
+            foreach ($header as $index => $name) {
+                if (in_array(mb_strtolower($name), $names, true)) {
+                    $mapping[$field] = $index;
+                    break;
+                }
+            }
+        }
+        return $mapping;
     }
 
     // "06.03.2026 14:05", "2026-03-06" or "2026-03-06 14:05:00" -> "2026-03-06"

@@ -12,6 +12,7 @@ $columns = ['name' => 'Name', 'alter' => 'Alter', 'eltern' => 'Eltern', 'ort' =>
   <h1>Kinder <span class="count"><?= e($total) ?></span></h1>
   <div class="actions">
     <a class="btn btn-secondary" href="/kinder/export<?= $q !== '' ? '?q=' . e(rawurlencode($q)) : '' ?>">CSV exportieren</a>
+    <a class="btn btn-secondary" href="/kinder/import">Kinder importieren</a>
   </div>
 </div>
 <p class="hint">Kinder werden bei der jeweiligen Familie angelegt und bearbeitet.</p>

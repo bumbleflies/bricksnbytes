@@ -174,6 +174,37 @@ final class KundenRepository
         return $id === false ? null : (int) $id;
     }
 
+    /** Customer whose own e-mail or one of whose contacts' e-mails matches (case-insensitive) */
+    public static function findIdByAnyEmail(string $email): ?int
+    {
+        $id = Db::query(
+            'SELECT k.id FROM kunden k WHERE LOWER(k.email) = LOWER(?)
+             UNION SELECT a.kunde_id FROM ansprechpartner a WHERE LOWER(a.email) = LOWER(?)
+             LIMIT 1',
+            [$email, $email]
+        )->fetchColumn();
+        return $id === false ? null : (int) $id;
+    }
+
+    /** First names of the customer's children */
+    public static function childFirstNames(int $kundeId): array
+    {
+        return Db::query('SELECT vorname FROM kinder WHERE kunde_id = ?', [$kundeId])->fetchAll(\PDO::FETCH_COLUMN);
+    }
+
+    /** Adds one child to an existing customer (other children stay untouched) */
+    public static function addChild(int $kundeId, array $kind, string $action = 'importiert'): int
+    {
+        $values = array_map(static fn ($f) => $kind[$f] ?? null, self::CHILD_FIELDS);
+        Db::query(
+            'INSERT INTO kinder (kunde_id, ' . implode(', ', self::CHILD_FIELDS) . ') VALUES (?' . str_repeat(', ?', count(self::CHILD_FIELDS)) . ')',
+            [$kundeId, ...$values]
+        );
+        $id = (int) Db::pdo()->lastInsertId();
+        Audit::created('kinder', $id, array_combine(self::CHILD_FIELDS, $values), $action);
+        return $id;
+    }
+
     /**
      * Saves the customer with its contacts, children (only for type privat) and consents in one transaction.
      * @param array $kinder null = leave children untouched
