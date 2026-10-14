@@ -24,6 +24,9 @@ final class ImportController
         $router->get('/kunden/import', [self::class, 'form']);
         $router->post('/kunden/import', [self::class, 'preview']);
         $router->post('/kunden/import/ausfuehren', [self::class, 'run']);
+        $router->get('/kunden/importe', [self::class, 'runs']);
+        $router->get('/kunden/importe/rueckgaengig', [self::class, 'confirmUndo']);
+        $router->post('/kunden/importe/rueckgaengig', [self::class, 'undo']);
         $router->get('/kunden/import/kontakte', [self::class, 'kontakteForm']);
         $router->post('/kunden/import/kontakte', [self::class, 'kontaktePreview']);
         $router->post('/kunden/import/kontakte/ausfuehren', [self::class, 'kontakteRun']);
@@ -35,7 +38,7 @@ final class ImportController
     public static function form(): void
     {
         unset($_SESSION[self::SESSION_KEY]);
-        View::render('import/upload', ['title' => 'CSV importieren']);
+        View::render('import/upload', ['title' => 'Newsletter-Liste importieren']);
     }
 
     public static function preview(): void
@@ -43,14 +46,24 @@ final class ImportController
         $file = $_FILES['datei'] ?? null;
         $error = self::uploadError($file);
         if ($error !== null) {
-            View::render('import/upload', ['title' => 'CSV importieren', 'error' => $error], 422);
+            View::render('import/upload', ['title' => 'Newsletter-Liste importieren', 'error' => $error], 422);
             return;
         }
 
         $analysis = CsvImport::analyse((string) file_get_contents($file['tmp_name']));
+        // A contact list (types, organisations) belongs into the contact import, which keeps those columns
+        $header = array_map('mb_strtolower', $analysis['header']);
+        if (in_array('typ', $header, true) || in_array('organisation', $header, true)) {
+            View::render('import/upload', [
+                'title' => 'Newsletter-Liste importieren',
+                'error' => 'Das sieht nach einer Kontaktliste aus (Spalte „Typ“ bzw. „Organisation“). Hier würden alle als Eltern ohne Namen angelegt – bitte „Kontakte importieren“ verwenden.',
+                'kontakteListe' => true,
+            ], 422);
+            return;
+        }
         if (!isset($analysis['mapping']['email'])) {
             View::render('import/upload', [
-                'title' => 'CSV importieren',
+                'title' => 'Newsletter-Liste importieren',
                 'error' => 'In der Datei wurde keine Spalte für die E-Mail-Adresse gefunden (erwartet z. B. „email“ oder „E-Mail“). Gefundene Spalten: ' . implode(', ', $analysis['header']),
             ], 422);
             return;
@@ -197,6 +210,35 @@ final class ImportController
             'children' => $children,
             'skipped' => $skipped,
         ]);
+    }
+
+    public static function runs(): void
+    {
+        $runs = array_map(static fn ($run) => $run + ['pruefung' => ImportUndo::check($run['ids'])], ImportUndo::runs());
+        View::render('import/runs', ['title' => 'Importe', 'runs' => $runs]);
+    }
+
+    public static function confirmUndo(): void
+    {
+        $run = ImportUndo::find((int) ($_GET['lauf'] ?? 0));
+        if ($run === null) {
+            Session::flash('info', 'Diesen Import gibt es nicht (mehr).');
+            Router::redirect('/kunden/importe');
+        }
+        View::render('import/undo', ['title' => 'Import rückgängig machen', 'run' => $run, 'pruefung' => ImportUndo::check($run['ids'])]);
+    }
+
+    public static function undo(): void
+    {
+        $run = ImportUndo::find((int) ($_POST['lauf'] ?? 0));
+        if ($run === null) {
+            Session::flash('info', 'Diesen Import gibt es nicht (mehr).');
+            Router::redirect('/kunden/importe');
+        }
+        $deleted = ImportUndo::undo($run);
+        $kept = count($run['ids']) - $deleted;
+        Session::flash('ok', "Import rückgängig gemacht: $deleted Kunden gelöscht" . ($kept > 0 ? ", $kept geänderte behalten." : '.'));
+        Router::redirect('/kunden/importe');
     }
 
     public static function kontakteForm(): void
