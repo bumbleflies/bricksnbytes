@@ -17,6 +17,8 @@ return [
         'session_idle_minutes' => 30,
         // … and after this many hours in any case
         'session_max_hours' => 8,
+        // Own address for the "An" field of "E-Mail an Auswahl" / "Newsletter verschicken" (recipients go to BCC)
+        'eigene_email' => 'info@bricksnbytes.de',
     ],
     'login' => [
         // Lock a user name after this many failed logins within the window …

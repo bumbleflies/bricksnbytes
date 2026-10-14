@@ -15,6 +15,7 @@ declare(strict_types=1);
  *   APP_SECURE_COOKIES        → app.secure_cookies
  *   APP_SESSION_IDLE_MINUTES  → app.session_idle_minutes
  *   APP_SESSION_MAX_HOURS     → app.session_max_hours
+ *   APP_OWNER_EMAIL           → app.eigene_email (To address of the mail buttons; empty = buttons off)
  *   LOGIN_MAX_FAILURES_PER_USER → login.max_failures_per_user
  *   LOGIN_MAX_FAILURES_PER_IP   → login.max_failures_per_ip
  *   LOGIN_WINDOW_MINUTES      → login.window_minutes
@@ -52,6 +53,7 @@ $config = [
         'secure_cookies' => $bool('APP_SECURE_COOKIES', true),
         'session_idle_minutes' => $int('APP_SESSION_IDLE_MINUTES', 30),
         'session_max_hours' => $int('APP_SESSION_MAX_HOURS', 8),
+        'eigene_email' => $str('APP_OWNER_EMAIL', ''),
     ],
     'login' => [
         'max_failures_per_user' => $int('LOGIN_MAX_FAILURES_PER_USER', 5),

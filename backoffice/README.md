@@ -158,6 +158,22 @@ Die CSV-Datei danach von deinem Rechner löschen bzw. sicher ablegen; der Server
 
 ---
 
+### Newsletter und E-Mails an mehrere Kunden
+
+In **Kunden** zeigt die Spalte **Newsletter** Ja/Nein; ein Klick auf den Schalter speichert sofort.
+Dahinter steht die Newsletter-Einwilligung: „Ja“ trägt sie mit dem heutigen Datum ein, „Nein“
+setzt das Widerrufsdatum (die Einwilligung bleibt dokumentiert). Filter: Alle / Newsletter Ja /
+Newsletter Nein.
+
+- **E-Mail an Auswahl**: Kunden per Checkbox auswählen („Alle auswählen“ = aktuelle Seite, danach
+  „Alle N gefilterten Kunden auswählen“). Öffnet das Mailprogramm mit allen Adressen im **BCC**.
+- **Newsletter verschicken**: dasselbe mit allen Kunden mit Newsletter = Ja.
+- Im „An“-Feld steht die eigene Adresse aus der Konfiguration (`app.eigene_email`, im Docker-Container
+  Umgebungsvariable `APP_OWNER_EMAIL`). Fehlt sie, sind die beiden Buttons deaktiviert.
+- Ungültige und doppelte Adressen werden weggelassen. Wird der Mail-Link zu lang (über 2.000 Zeichen),
+  werden die Adressen stattdessen mit Semikolon in die Zwischenablage kopiert – in Outlook ins
+  BCC-Feld einfügen. „Adressen kopieren“ geht immer.
+
 ## 3. Updates einspielen
 
 **Vorher immer eine Datenbank-Sicherung anlegen** (siehe Abschnitt 4) – Migrationen ändern

@@ -1,21 +1,27 @@
 <?php
-/** @var array $rows @var int $total @var array $counts @var string $q @var ?string $typ @var string $sort @var string $dir @var int $page @var int $pages */
+/** @var array $rows @var int $total @var array $counts @var string $q @var ?string $typ @var string $sort @var string $dir @var int $page @var int $pages
+ *  @var ?string $newsletter @var list<string> $filteredAddresses @var list<string> $newsletterAddresses @var ?string $ownEmail */
+use Backoffice\Csrf;
+use Backoffice\Modules\Kunden\KundenController;
 use Backoffice\Modules\Kunden\Kundentypen;
+use Backoffice\Modules\Kunden\Verteiler;
 
-$url = static function (array $changes) use ($q, $typ, $sort, $dir, $page): string {
-    $params = array_filter(['typ' => $typ, 'q' => $q, 'sort' => $sort, 'dir' => $dir, 'seite' => $page], static fn ($v) => $v !== '' && $v !== null);
+$url = static function (array $changes) use ($q, $typ, $sort, $dir, $page, $newsletter): string {
+    $params = array_filter(['typ' => $typ, 'newsletter' => $newsletter, 'q' => $q, 'sort' => $sort, 'dir' => $dir, 'seite' => $page], static fn ($v) => $v !== '' && $v !== null);
     return '/kunden?' . http_build_query(array_filter(array_merge($params, $changes), static fn ($v) => $v !== null && $v !== ''));
 };
 
 // Columns depend on the filter: families, organisations, or mixed
 if ($typ === 'privat') {
-    $columns = ['vorname' => 'Vorname', 'nachname' => 'Nachname', 'email' => 'E-Mail', 'telefon' => 'Telefon',
+    $columns = ['vorname' => 'Vorname', 'nachname' => 'Nachname', 'email' => 'E-Mail', 'newsletter' => 'Newsletter', 'telefon' => 'Telefon',
         'adresse' => 'Adresse', 'plz' => 'PLZ', 'ort' => 'Ort', 'kinder' => 'Kinder'];
 } elseif ($typ !== null) {
-    $columns = ['name' => 'Name', 'typ' => 'Typ', 'ansprechpartner' => 'Ansprechpartner', 'ort' => 'Ort'];
+    $columns = ['name' => 'Name', 'newsletter' => 'Newsletter', 'typ' => 'Typ', 'ansprechpartner' => 'Ansprechpartner', 'ort' => 'Ort'];
 } else {
-    $columns = ['name' => 'Name', 'typ' => 'Typ', 'email' => 'E-Mail', 'telefon' => 'Telefon', 'ort' => 'Ort', 'kinder' => 'Kinder / Ansprechpartner'];
+    $columns = ['name' => 'Name', 'typ' => 'Typ', 'email' => 'E-Mail', 'newsletter' => 'Newsletter', 'telefon' => 'Telefon', 'ort' => 'Ort', 'kinder' => 'Kinder / Ansprechpartner'];
 }
+$here = $url([]);
+$newsletterTabs = [null => 'Alle', 'ja' => 'Newsletter Ja', 'nein' => 'Newsletter Nein'];
 $exportQuery = http_build_query(array_filter(['typ' => $typ, 'q' => $q]));
 $all = array_sum($counts);
 ?>
@@ -35,8 +41,15 @@ $all = array_sum($counts);
   <?php endforeach; ?>
 </nav>
 
+<nav class="tabs tabs-small" aria-label="Newsletter">
+  <?php foreach ($newsletterTabs as $key => $label): $key = $key === '' ? null : $key; ?>
+    <a href="<?= e($url(['newsletter' => $key, 'seite' => null])) ?>"<?= $newsletter === $key ? ' aria-current="page"' : '' ?>><?= e($label) ?></a>
+  <?php endforeach; ?>
+</nav>
+
 <form class="search" method="get" action="/kunden" role="search">
   <?php if ($typ !== null): ?><input type="hidden" name="typ" value="<?= e($typ) ?>"><?php endif; ?>
+  <?php if ($newsletter !== null): ?><input type="hidden" name="newsletter" value="<?= e($newsletter) ?>"><?php endif; ?>
   <label for="q" class="visually-hidden">Suche</label>
   <input id="q" name="q" type="search" value="<?= e($q) ?>" placeholder="Name, E-Mail, Ort, Ansprechpartner oder Kind">
   <button type="submit" class="btn btn-secondary">Suchen</button>
@@ -45,11 +58,34 @@ $all = array_sum($counts);
 
 <?php if (!$rows): ?>
   <p class="empty"><?= $q !== '' ? 'Keine Kunden gefunden.' : 'Noch keine Kunden in dieser Ansicht.' ?></p>
-<?php else: ?>
+<?php endif; ?>
+
+<div class="mail-tools" id="mail-tools"
+     data-own-email="<?= e($ownEmail ?? '') ?>"
+     data-filtered="<?= e(json_encode($filteredAddresses, JSON_UNESCAPED_UNICODE)) ?>"
+     data-newsletter="<?= e(json_encode($newsletterAddresses, JSON_UNESCAPED_UNICODE)) ?>"
+     data-total="<?= e($total) ?>">
+  <div class="mail-tools-row">
+    <span class="sel-count" id="sel-count" aria-live="polite">0 ausgewählt</span>
+    <button type="button" class="btn-link" id="select-filtered" hidden>Alle <?= e($total) ?> gefilterten Kunden auswählen</button>
+    <span class="mail-tools-spacer"></span>
+    <button type="button" class="btn" id="mail-selection" disabled>E-Mail an Auswahl</button>
+    <button type="button" class="btn-link" id="copy-selection" disabled>Adressen kopieren</button>
+    <button type="button" class="btn btn-secondary" id="mail-newsletter"<?= $newsletterAddresses ? '' : ' disabled' ?>>Newsletter verschicken (<?= e(count($newsletterAddresses)) ?>)</button>
+    <button type="button" class="btn-link" id="copy-newsletter"<?= $newsletterAddresses ? '' : ' disabled' ?>>Adressen kopieren</button>
+  </div>
+  <?php if ($ownEmail === null): ?>
+    <p class="hint">Die Mail-Buttons brauchen deine eigene Adresse für das „An“-Feld. Sie fehlt noch in der Konfiguration (<code>app.eigene_email</code>, auf dem Server <code>APP_OWNER_EMAIL</code>). „Adressen kopieren“ funktioniert trotzdem.</p>
+  <?php endif; ?>
+  <p class="mail-notice" id="mail-notice" role="status" hidden></p>
+</div>
+
+<?php if ($rows): ?>
   <div class="table-wrap">
     <table class="table">
       <thead>
         <tr>
+          <th scope="col" class="col-select"><input type="checkbox" id="select-page" aria-label="Alle Kunden auf dieser Seite auswählen"></th>
           <?php foreach ($columns as $key => $label):
               $active = $sort === $key;
               $nextDir = $active && $dir === 'asc' ? 'desc' : 'asc'; ?>
@@ -62,8 +98,15 @@ $all = array_sum($counts);
       <tbody>
         <?php foreach ($rows as $r):
             $link = '/kunden/ansehen?id=' . $r['id'];
-            $contact = trim(($r['hk_vorname'] ?? '') . ' ' . ($r['hk_nachname'] ?? '')); ?>
+            $contact = trim(($r['hk_vorname'] ?? '') . ' ' . ($r['hk_nachname'] ?? ''));
+            $address = Verteiler::one($r['mail_adresse']);
+            $nlOn = $r['newsletter_seit'] !== null;
+            $display = Kundentypen::displayName($r); ?>
           <tr>
+            <td class="col-select">
+              <input type="checkbox" class="row-select" value="<?= e($r['id']) ?>" data-email="<?= e($address) ?>"
+                     aria-label="<?= e($display) ?> auswählen<?= $address === '' ? ' (keine gültige E-Mail)' : '' ?>">
+            </td>
             <?php foreach (array_keys($columns) as $i => $key): ?>
               <td>
                 <?php
@@ -74,10 +117,23 @@ $all = array_sum($counts);
                     'typ' => Kundentypen::label($r['typ']),
                     'ansprechpartner' => $contact . ($r['hk_rolle'] ? ' (' . $r['hk_rolle'] . ')' : ''),
                     'kinder' => Kundentypen::isPrivat($r['typ']) || $typ === 'privat' ? $r['kinder_namen'] : $contact,
+                    'newsletter' => null,
                     default => $r[$key],
                 };
                 ?>
-                <?php if ($i === 0): ?>
+                <?php if ($key === 'newsletter'): ?>
+                  <form method="post" action="/kunden/newsletter" class="nl-toggle">
+                    <?= Csrf::field() ?>
+                    <input type="hidden" name="id" value="<?= e($r['id']) ?>">
+                    <input type="hidden" name="wert" value="<?= $nlOn ? 'nein' : 'ja' ?>">
+                    <input type="hidden" name="zurueck" value="<?= e($here) ?>">
+                    <button type="submit" class="switch" role="switch" aria-checked="<?= $nlOn ? 'true' : 'false' ?>"
+                            aria-label="Newsletter für <?= e($display) ?>"
+                            title="<?= $nlOn ? 'Einwilligung am ' . e(KundenController::germanDate($r['newsletter_seit'])) . ' – klicken für Nein' : 'Klicken für Ja (Einwilligung mit heutigem Datum)' ?>">
+                      <span class="switch-track" aria-hidden="true"></span><span class="switch-label"><?= $nlOn ? 'Ja' : 'Nein' ?></span>
+                    </button>
+                  </form>
+                <?php elseif ($i === 0): ?>
                   <a href="<?= e($link) ?>"><?= e($value !== null && $value !== '' ? $value : '–') ?></a>
                 <?php elseif ($key === 'email' && $value): ?>
                   <a href="mailto:<?= e($value) ?>"><?= e($value) ?></a>
@@ -100,3 +156,5 @@ $all = array_sum($counts);
     </nav>
   <?php endif; ?>
 <?php endif; ?>
+
+<script src="/assets/kunden.js" defer></script>
