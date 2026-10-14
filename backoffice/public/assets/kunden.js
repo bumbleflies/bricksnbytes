@@ -2,6 +2,11 @@
 // all recipients in BCC and the own address in To) and copying the addresses.
 // Addresses arrive already cleaned (valid, de-duplicated) from the server.
 (() => {
+  // Filter selects in the search form apply at once (the "Suchen" button still works without JS)
+  document.querySelectorAll('select[data-autosubmit]').forEach((select) => {
+    select.addEventListener('change', () => select.form?.submit());
+  });
+
   const tools = document.getElementById('mail-tools');
   if (!tools) return;
 

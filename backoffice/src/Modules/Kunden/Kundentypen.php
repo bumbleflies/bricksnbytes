@@ -13,8 +13,29 @@ final class Kundentypen
         'kita' => ['Kita', 'Kitas'],
         'verein' => ['Verein', 'Vereine'],
         'firma' => ['Firma', 'Firmen'],
+        'bibliothek' => ['Bibliothek', 'Bibliotheken'],
+        'partner' => ['Partner', 'Partner'],
         'sonstige' => ['Sonstige', 'Sonstige'],
     ];
+
+    // Customer status in the order of the acquisition pipeline (the DB enum sorts the same way)
+    public const STATUS = [
+        'akquise' => 'Akquise',
+        'kontakt' => 'Kontakt',
+        'angefragt' => 'Angefragt',
+        'interessent' => 'Interessent',
+        'angebot_offen' => 'Angebot offen',
+        'nachfassen' => 'Nachfassen',
+        'warteliste' => 'Warteliste',
+        'kunde' => 'Kunde',
+        'partner' => 'Partner',
+        'beendet' => 'Beendet',
+        'kein_interesse' => 'Kein Interesse',
+        'nicht_anschreiben' => 'Nicht mehr anschreiben',
+    ];
+
+    // Status that mean: please do not write to them (highlighted in lists)
+    public const STATUS_STOP = ['kein_interesse', 'nicht_anschreiben'];
 
     public const EINWILLIGUNGEN = [
         'datenschutz' => 'Datenschutz',
@@ -25,6 +46,16 @@ final class Kundentypen
     public static function valid(?string $typ): bool
     {
         return $typ !== null && isset(self::ALLE[$typ]);
+    }
+
+    public static function validStatus(?string $status): bool
+    {
+        return $status !== null && isset(self::STATUS[$status]);
+    }
+
+    public static function statusLabel(?string $status): string
+    {
+        return $status === null ? '' : (self::STATUS[$status] ?? $status);
     }
 
     public static function label(string $typ): string

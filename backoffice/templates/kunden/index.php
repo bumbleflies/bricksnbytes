@@ -1,28 +1,28 @@
 <?php
 /** @var array $rows @var int $total @var array $counts @var string $q @var ?string $typ @var string $sort @var string $dir @var int $page @var int $pages
- *  @var ?string $newsletter @var list<string> $filteredAddresses @var list<string> $newsletterAddresses @var ?string $ownEmail */
+ *  @var ?string $newsletter @var ?string $status @var list<string> $filteredAddresses @var list<string> $newsletterAddresses @var ?string $ownEmail */
 use Backoffice\Csrf;
 use Backoffice\Modules\Kunden\KundenController;
 use Backoffice\Modules\Kunden\Kundentypen;
 use Backoffice\Modules\Kunden\Verteiler;
 
-$url = static function (array $changes) use ($q, $typ, $sort, $dir, $page, $newsletter): string {
-    $params = array_filter(['typ' => $typ, 'newsletter' => $newsletter, 'q' => $q, 'sort' => $sort, 'dir' => $dir, 'seite' => $page], static fn ($v) => $v !== '' && $v !== null);
+$url = static function (array $changes) use ($q, $typ, $sort, $dir, $page, $newsletter, $status): string {
+    $params = array_filter(['typ' => $typ, 'newsletter' => $newsletter, 'status' => $status, 'q' => $q, 'sort' => $sort, 'dir' => $dir, 'seite' => $page], static fn ($v) => $v !== '' && $v !== null);
     return '/kunden?' . http_build_query(array_filter(array_merge($params, $changes), static fn ($v) => $v !== null && $v !== ''));
 };
 
 // Columns depend on the filter: families, organisations, or mixed
 if ($typ === 'privat') {
-    $columns = ['vorname' => 'Vorname', 'nachname' => 'Nachname', 'email' => 'E-Mail', 'newsletter' => 'Newsletter', 'telefon' => 'Telefon',
+    $columns = ['vorname' => 'Vorname', 'nachname' => 'Nachname', 'email' => 'E-Mail', 'newsletter' => 'Newsletter', 'status' => 'Status', 'telefon' => 'Telefon',
         'adresse' => 'Adresse', 'plz' => 'PLZ', 'ort' => 'Ort', 'kinder' => 'Kinder'];
 } elseif ($typ !== null) {
-    $columns = ['name' => 'Name', 'newsletter' => 'Newsletter', 'typ' => 'Typ', 'ansprechpartner' => 'Ansprechpartner', 'ort' => 'Ort'];
+    $columns = ['name' => 'Name', 'newsletter' => 'Newsletter', 'status' => 'Status', 'typ' => 'Typ', 'ansprechpartner' => 'Ansprechpartner', 'ort' => 'Ort'];
 } else {
-    $columns = ['name' => 'Name', 'typ' => 'Typ', 'email' => 'E-Mail', 'newsletter' => 'Newsletter', 'telefon' => 'Telefon', 'ort' => 'Ort', 'kinder' => 'Kinder / Ansprechpartner'];
+    $columns = ['name' => 'Name', 'typ' => 'Typ', 'status' => 'Status', 'email' => 'E-Mail', 'newsletter' => 'Newsletter', 'telefon' => 'Telefon', 'ort' => 'Ort', 'kinder' => 'Kinder / Ansprechpartner'];
 }
 $here = $url([]);
 $newsletterTabs = [null => 'Alle', 'ja' => 'Newsletter Ja', 'nein' => 'Newsletter Nein'];
-$exportQuery = http_build_query(array_filter(['typ' => $typ, 'q' => $q]));
+$exportQuery = http_build_query(array_filter(['typ' => $typ, 'status' => $status, 'q' => $q]));
 $all = array_sum($counts);
 ?>
 <div class="page-head">
@@ -30,6 +30,7 @@ $all = array_sum($counts);
   <div class="actions">
     <a class="btn btn-secondary" href="/kunden/export<?= $exportQuery !== '' ? '?' . e($exportQuery) : '' ?>">CSV exportieren</a>
     <a class="btn btn-secondary" href="/kunden/import">CSV importieren</a>
+    <a class="btn btn-secondary" href="/kunden/import/kontakte">Kontakte importieren</a>
     <a class="btn" href="/kunden/neu">Neuer Kunde</a>
   </div>
 </div>
@@ -52,6 +53,14 @@ $all = array_sum($counts);
   <?php if ($newsletter !== null): ?><input type="hidden" name="newsletter" value="<?= e($newsletter) ?>"><?php endif; ?>
   <label for="q" class="visually-hidden">Suche</label>
   <input id="q" name="q" type="search" value="<?= e($q) ?>" placeholder="Name, E-Mail, Ort, Ansprechpartner oder Kind">
+  <label for="status-filter" class="visually-hidden">Status</label>
+  <select id="status-filter" name="status" data-autosubmit>
+    <option value="">Alle Status</option>
+    <?php foreach (Kundentypen::STATUS as $key => $label): ?>
+      <option value="<?= e($key) ?>"<?= $status === $key ? ' selected' : '' ?>><?= e($label) ?></option>
+    <?php endforeach; ?>
+    <option value="ohne"<?= $status === 'ohne' ? ' selected' : '' ?>>Ohne Status</option>
+  </select>
   <button type="submit" class="btn btn-secondary">Suchen</button>
   <?php if ($q !== ''): ?><a href="<?= e($url(['q' => null, 'seite' => null])) ?>">Suche zurücksetzen</a><?php endif; ?>
 </form>
@@ -115,6 +124,7 @@ $all = array_sum($counts);
                     'vorname' => $r['hk_vorname'],
                     'nachname' => $r['hk_nachname'],
                     'typ' => Kundentypen::label($r['typ']),
+                    'status' => Kundentypen::statusLabel($r['status']),
                     'ansprechpartner' => $contact . ($r['hk_rolle'] ? ' (' . $r['hk_rolle'] . ')' : ''),
                     'kinder' => Kundentypen::isPrivat($r['typ']) || $typ === 'privat' ? $r['kinder_namen'] : $contact,
                     'newsletter' => null,
@@ -135,6 +145,8 @@ $all = array_sum($counts);
                   </form>
                 <?php elseif ($i === 0): ?>
                   <a href="<?= e($link) ?>"><?= e($value !== null && $value !== '' ? $value : '–') ?></a>
+                <?php elseif ($key === 'status' && in_array($r['status'], Kundentypen::STATUS_STOP, true)): ?>
+                  <span class="status-stop"><?= e($value) ?></span>
                 <?php elseif ($key === 'email' && $value): ?>
                   <a href="mailto:<?= e($value) ?>"><?= e($value) ?></a>
                 <?php else: ?>

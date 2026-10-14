@@ -34,12 +34,13 @@ final class KundenController
         $dir = self::str($_GET['dir'] ?? '') === 'desc' ? 'desc' : 'asc';
         $page = max(1, (int) ($_GET['seite'] ?? 1));
         $newsletter = in_array(self::str($_GET['newsletter'] ?? ''), KundenRepository::NEWSLETTER_FILTER, true) ? self::str($_GET['newsletter']) : null;
+        $status = self::statusFilter();
 
-        $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter);
+        $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter, $status);
         $pages = max(1, (int) ceil($result['total'] / self::PER_PAGE));
         if ($page > $pages) {
             $page = $pages;
-            $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter);
+            $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter, $status);
         }
         $ownEmail = Verteiler::ownEmail();
 
@@ -55,8 +56,9 @@ final class KundenController
             'page' => $page,
             'pages' => $pages,
             'newsletter' => $newsletter,
+            'status' => $status,
             // Recipients for the mail buttons: every filtered customer (all pages) and all subscribers
-            'filteredAddresses' => Verteiler::clean(KundenRepository::filteredAddresses($q, $typ, $newsletter)),
+            'filteredAddresses' => Verteiler::clean(KundenRepository::filteredAddresses($q, $typ, $newsletter, $status)),
             'newsletterAddresses' => Verteiler::clean(KundenRepository::newsletterAddresses()),
             'ownEmail' => $ownEmail,
         ]);
@@ -160,7 +162,7 @@ final class KundenController
     {
         $q = self::str($_GET['q'] ?? '');
         $typ = Kundentypen::valid(self::str($_GET['typ'] ?? '')) ? self::str($_GET['typ']) : null;
-        $rows = KundenRepository::exportRows($q, $typ);
+        $rows = KundenRepository::exportRows($q, $typ, self::statusFilter());
 
         $consent = static function (?array $c): string {
             if (!$c || !$c['erteilt_am']) {
@@ -179,7 +181,7 @@ final class KundenController
                 $r['kinder']
             ));
             $lines[] = [
-                Kundentypen::label($r['typ']), $r['name'], $r['hk_vorname'], $r['hk_nachname'], $r['hk_rolle'],
+                Kundentypen::label($r['typ']), $r['name'], Kundentypen::statusLabel($r['status']), $r['hk_vorname'], $r['hk_nachname'], $r['hk_rolle'],
                 $r['email'], $r['telefon'], $r['adresse'], $r['plz'], $r['ort'], $r['quelle'], $kinder,
                 $consent($r['einwilligungen']['datenschutz'] ?? null),
                 $consent($r['einwilligungen']['foto_video'] ?? null),
@@ -187,7 +189,7 @@ final class KundenController
                 self::germanDate($r['erstellt_am']), self::germanDate($r['geaendert_am']),
             ];
         }
-        self::sendCsv('kunden', ['Typ', 'Name (Einrichtung)', 'Kontakt Vorname', 'Kontakt Nachname', 'Rolle', 'E-Mail', 'Telefon',
+        self::sendCsv('kunden', ['Typ', 'Name (Einrichtung)', 'Status', 'Kontakt Vorname', 'Kontakt Nachname', 'Rolle', 'E-Mail', 'Telefon',
             'Adresse', 'PLZ', 'Ort', 'Quelle', 'Kinder', 'Einwilligung Datenschutz', 'Einwilligung Fotos/Video', 'Newsletter',
             'Angelegt am', 'Geändert am'], $lines);
     }
@@ -265,6 +267,13 @@ final class KundenController
             exit;
         }
         return $kunde;
+    }
+
+    // Status filter of list and export (URL ?status=<key>|ohne)
+    private static function statusFilter(): ?string
+    {
+        $status = self::str($_GET['status'] ?? '');
+        return $status === 'ohne' || Kundentypen::validStatus($status) ? $status : null;
     }
 
     private static function str(mixed $value): string

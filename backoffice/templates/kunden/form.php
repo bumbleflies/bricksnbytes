@@ -63,7 +63,19 @@ $sub = static fn (string $group, int $i, string $name): string => $group . '[' .
       <?= $field('plz', 'PLZ') ?>
       <?= $field('ort', 'Ort') ?>
     </div>
-    <?= $field('quelle', 'Quelle', 'text', ['placeholder' => 'z. B. Empfehlung, Website, Schulfest']) ?>
+    <div class="grid-2">
+      <div class="field<?= !empty($errors['status']) ? ' has-error' : '' ?>">
+        <label for="f-status">Status</label>
+        <select id="f-status" name="status"<?= !empty($errors['status']) ? ' aria-invalid="true" aria-describedby="err-status"' : '' ?>>
+          <option value="">– kein Status –</option>
+          <?php foreach (Kundentypen::STATUS as $key => $label): ?>
+            <option value="<?= e($key) ?>"<?= ($kunde['status'] ?? null) === $key ? ' selected' : '' ?>><?= e($label) ?></option>
+          <?php endforeach; ?>
+        </select>
+        <?php if (!empty($errors['status'])): ?><p class="field-error" id="err-status"><?= e($errors['status']) ?></p><?php endif; ?>
+      </div>
+      <?= $field('quelle', 'Quelle', 'text', ['placeholder' => 'z. B. Empfehlung, Website, Schulfest']) ?>
+    </div>
   </fieldset>
 
   <fieldset>

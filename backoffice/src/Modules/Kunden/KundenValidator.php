@@ -30,6 +30,11 @@ final class KundenValidator
             $data[$field] = self::text($input[$field] ?? null, $field, $errors);
         }
         $data['notizen'] = self::text($input['notizen'] ?? null, 'notizen', $errors, multiline: true);
+        $status = is_string($input['status'] ?? null) ? trim($input['status']) : '';
+        $data['status'] = Kundentypen::validStatus($status) ? $status : null;
+        if ($status !== '' && $data['status'] === null) {
+            $errors['status'] = 'Bitte einen Status aus der Liste wählen.';
+        }
         if ($privat) {
             $data['name'] = null; // families are named after their contacts
         } elseif ($data['name'] === null) {
