@@ -140,6 +140,19 @@ final class KundenValidator
             } elseif ($given !== null && $withdrawn !== null && $withdrawn < $given) {
                 $errors["einwilligungen.$art"] = "$label: Der Widerruf liegt vor der Einwilligung.";
             }
+            // Newsletter Ja/Nein: switching to "Ja" → given today (withdrawal cleared), to "Nein" → withdrawn today.
+            // Only a changed switch counts, so typed dates win when the switch was left alone.
+            $status = $row['status'] ?? null;
+            $changed = $status !== ($row['status_vorher'] ?? null);
+            if ($art === 'newsletter' && $changed && !isset($errors["einwilligungen.$art"]) && in_array($status, ['ja', 'nein'], true)) {
+                $today = date('Y-m-d');
+                if ($status === 'ja' && ($given === null || $withdrawn !== null)) {
+                    $given = $withdrawn !== null ? $today : ($given ?? $today);
+                    $withdrawn = null;
+                } elseif ($status === 'nein' && $given !== null && $withdrawn === null) {
+                    $withdrawn = $today;
+                }
+            }
             $consents[$art] = ['erteilt_am' => $given, 'widerrufen_am' => $withdrawn];
         }
 

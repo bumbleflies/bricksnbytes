@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Backoffice\Modules\Kunden;
 
 use Backoffice\Audit;
+use Backoffice\Config;
 use Backoffice\Router;
 use Backoffice\Session;
 use Backoffice\View;
@@ -23,6 +24,7 @@ final class KundenController
         $router->get('/kunden/loeschen', [self::class, 'confirmDelete']);
         $router->post('/kunden/loeschen', [self::class, 'delete']);
         $router->get('/kunden/export', [self::class, 'export']);
+        $router->post('/kunden/newsletter', [self::class, 'toggleNewsletter']);
     }
 
     public static function index(): void
@@ -32,13 +34,15 @@ final class KundenController
         $sort = array_key_exists(self::str($_GET['sort'] ?? ''), KundenRepository::SORTS) ? self::str($_GET['sort']) : ($typ === 'privat' ? 'nachname' : 'name');
         $dir = self::str($_GET['dir'] ?? '') === 'desc' ? 'desc' : 'asc';
         $page = max(1, (int) ($_GET['seite'] ?? 1));
+        $newsletter = in_array(self::str($_GET['newsletter'] ?? ''), KundenRepository::NEWSLETTER_FILTER, true) ? self::str($_GET['newsletter']) : null;
 
-        $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE);
+        $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter);
         $pages = max(1, (int) ceil($result['total'] / self::PER_PAGE));
         if ($page > $pages) {
             $page = $pages;
-            $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE);
+            $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter);
         }
+        $ownEmail = Verteiler::one(Config::get('app.eigene_email'));
 
         View::render('kunden/index', [
             'title' => 'Kunden',
@@ -51,7 +55,29 @@ final class KundenController
             'dir' => $dir,
             'page' => $page,
             'pages' => $pages,
+            'newsletter' => $newsletter,
+            // Recipients for the mail buttons: every filtered customer (all pages) and all subscribers
+            'filteredAddresses' => Verteiler::clean(KundenRepository::filteredAddresses($q, $typ, $newsletter)),
+            'newsletterAddresses' => Verteiler::clean(KundenRepository::newsletterAddresses()),
+            'ownEmail' => $ownEmail !== '' ? $ownEmail : null,
         ]);
+    }
+
+    // Ja/Nein switch in the list: saves at once and returns to the same list view
+    public static function toggleNewsletter(): void
+    {
+        $kunde = KundenRepository::find((int) ($_POST['id'] ?? 0));
+        $back = self::str($_POST['zurueck'] ?? '');
+        // Only back into the customer list, never to another site
+        $back = preg_match('#^/kunden(\?[^\s]*)?$#', $back) ? $back : '/kunden';
+        if ($kunde === null) {
+            Session::flash('error', 'Diesen Kunden gibt es nicht mehr.');
+            Router::redirect($back);
+        }
+        $on = self::str($_POST['wert'] ?? '') === 'ja';
+        KundenRepository::setNewsletter((int) $kunde['id'], $on);
+        Session::flash('ok', 'Newsletter für „' . Kundentypen::displayName($kunde) . '“: ' . ($on ? 'Ja' : 'Nein') . '.');
+        Router::redirect($back);
     }
 
     public static function show(): void

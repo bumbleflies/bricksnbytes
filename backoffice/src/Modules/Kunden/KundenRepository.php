@@ -29,19 +29,31 @@ final class KundenRepository
         'kinder' => 'kinder_namen',
         'ansprechpartner' => "CONCAT_WS(' ', hk.nachname, hk.vorname)",
         'erstellt' => 'k.erstellt_am',
+        // Active newsletter consents first when sorting descending
+        'newsletter' => '(newsletter_seit IS NOT NULL)',
     ];
+
+    // Newsletter filter values of the list view (URL ?newsletter=ja|nein)
+    public const NEWSLETTER_FILTER = ['ja', 'nein'];
+
+    // A newsletter consent counts as active when it was given and not withdrawn
+    private const NEWSLETTER_ACTIVE = "SELECT 1 FROM einwilligungen e WHERE e.kunde_id = k.id AND e.kind_id IS NULL
+          AND e.art = 'newsletter' AND e.erteilt_am IS NOT NULL AND e.widerrufen_am IS NULL";
 
     private const BASE_SELECT = "SELECT k.*, hk.vorname AS hk_vorname, hk.nachname AS hk_nachname, hk.rolle AS hk_rolle,
           (SELECT GROUP_CONCAT(ki.vorname ORDER BY ki.geburtsdatum IS NULL, ki.geburtsdatum, ki.geburtsjahr, ki.id SEPARATOR ', ')
              FROM kinder ki WHERE ki.kunde_id = k.id) AS kinder_namen,
-          (SELECT COUNT(*) FROM ansprechpartner a WHERE a.kunde_id = k.id) AS ansprechpartner_anzahl
+          (SELECT COUNT(*) FROM ansprechpartner a WHERE a.kunde_id = k.id) AS ansprechpartner_anzahl,
+          (SELECT e.erteilt_am FROM einwilligungen e WHERE e.kunde_id = k.id AND e.kind_id IS NULL
+             AND e.art = 'newsletter' AND e.erteilt_am IS NOT NULL AND e.widerrufen_am IS NULL LIMIT 1) AS newsletter_seit,
+          COALESCE(NULLIF(k.email, ''), hk.email) AS mail_adresse
         FROM kunden k
         LEFT JOIN ansprechpartner hk ON hk.kunde_id = k.id AND hk.ist_hauptkontakt = 1";
 
     /** @return array{rows: array, total: int} */
-    public static function search(string $q, ?string $typ, string $sort, string $dir, int $page, int $perPage): array
+    public static function search(string $q, ?string $typ, string $sort, string $dir, int $page, int $perPage, ?string $newsletter = null): array
     {
-        [$where, $params] = self::filter($q, $typ);
+        [$where, $params] = self::filter($q, $typ, $newsletter);
         $expr = self::SORTS[$sort] ?? self::SORTS['name'];
         $direction = $dir === 'desc' ? 'DESC' : 'ASC';
 
@@ -57,6 +69,51 @@ final class KundenRepository
         )->fetchAll();
 
         return ['rows' => $rows, 'total' => $total];
+    }
+
+    /** Mail address (customer, else main contact) of every customer matching the list filter */
+    public static function filteredAddresses(string $q, ?string $typ, ?string $newsletter): array
+    {
+        [$where, $params] = self::filter($q, $typ, $newsletter);
+        return Db::query(
+            "SELECT COALESCE(NULLIF(k.email, ''), hk.email) FROM kunden k
+             LEFT JOIN ansprechpartner hk ON hk.kunde_id = k.id AND hk.ist_hauptkontakt = 1 $where",
+            $params
+        )->fetchAll(\PDO::FETCH_COLUMN);
+    }
+
+    /** Mail address of every customer with an active newsletter consent */
+    public static function newsletterAddresses(): array
+    {
+        return self::filteredAddresses('', null, 'ja');
+    }
+
+    /**
+     * Switches the newsletter consent on (given today, withdrawal cleared) or off (withdrawn today).
+     * The consent row is kept when switching off, so the original consent stays documented.
+     */
+    public static function setNewsletter(int $kundeId, bool $on): void
+    {
+        $old = Db::query(
+            "SELECT * FROM einwilligungen WHERE kunde_id = ? AND kind_id IS NULL AND art = 'newsletter'",
+            [$kundeId]
+        )->fetch();
+        $active = $old && $old['erteilt_am'] !== null && $old['widerrufen_am'] === null;
+        $today = date('Y-m-d');
+
+        if ($on && !$old) {
+            Db::query(
+                "INSERT INTO einwilligungen (kunde_id, art, erteilt_am, quelle) VALUES (?, 'newsletter', ?, 'Backoffice')",
+                [$kundeId, $today]
+            );
+            Audit::created('einwilligungen', (int) Db::pdo()->lastInsertId(), ['art' => 'newsletter', 'erteilt_am' => $today]);
+        } elseif ($on && !$active) {
+            Db::query('UPDATE einwilligungen SET erteilt_am = ?, widerrufen_am = NULL WHERE id = ?', [$today, $old['id']]);
+            Audit::changed('einwilligungen', (int) $old['id'], $old, ['erteilt_am' => $today, 'widerrufen_am' => null]);
+        } elseif (!$on && $active) {
+            Db::query('UPDATE einwilligungen SET widerrufen_am = ? WHERE id = ?', [$today, $old['id']]);
+            Audit::changed('einwilligungen', (int) $old['id'], $old, ['widerrufen_am' => $today]);
+        }
     }
 
     /** Count per customer type, e.g. ['privat' => 12, 'schule' => 3] */
@@ -221,13 +278,18 @@ final class KundenRepository
     }
 
     /** @return array{0: string, 1: array} */
-    private static function filter(string $q, ?string $typ): array
+    private static function filter(string $q, ?string $typ, ?string $newsletter = null): array
     {
         $conditions = [];
         $params = [];
         if ($typ !== null) {
             $conditions[] = 'k.typ = ?';
             $params[] = $typ;
+        }
+        if ($newsletter === 'ja') {
+            $conditions[] = 'EXISTS (' . self::NEWSLETTER_ACTIVE . ')';
+        } elseif ($newsletter === 'nein') {
+            $conditions[] = 'NOT EXISTS (' . self::NEWSLETTER_ACTIVE . ')';
         }
         $q = trim($q);
         if ($q !== '') {

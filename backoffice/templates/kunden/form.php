@@ -112,13 +112,23 @@ $sub = static fn (string $group, int $i, string $name): string => $group . '[' .
 
   <fieldset>
     <legend>Einwilligungen</legend>
-    <p class="hint">Datum der Einwilligung und ggf. des Widerrufs. Leer = keine Einwilligung.</p>
+    <p class="hint">Datum der Einwilligung und ggf. des Widerrufs. Leer = keine Einwilligung. Beim Newsletter genügt Ja/Nein: Bei „Ja“ wird die Einwilligung mit dem heutigen Datum eingetragen, bei „Nein“ der Widerruf.</p>
     <table class="consent-table">
       <thead><tr><th scope="col">Art</th><th scope="col">Erteilt am</th><th scope="col">Widerrufen am</th></tr></thead>
       <tbody>
         <?php foreach (Kundentypen::EINWILLIGUNGEN as $art => $label): $c = $consents[$art] ?? []; ?>
           <tr>
-            <th scope="row"><?= e($label) ?></th>
+            <th scope="row"><?= e($label) ?>
+              <?php if ($art === 'newsletter'):
+                  $nlActive = !empty($c['erteilt_am']) && empty($c['widerrufen_am']); ?>
+                <label class="visually-hidden" for="f-newsletter">Newsletter</label>
+                <input type="hidden" name="einwilligungen[newsletter][status_vorher]" value="<?= $nlActive ? 'ja' : 'nein' ?>">
+                <select id="f-newsletter" name="einwilligungen[newsletter][status]" class="consent-status">
+                  <option value="nein"<?= $nlActive ? '' : ' selected' ?>>Nein</option>
+                  <option value="ja"<?= $nlActive ? ' selected' : '' ?>>Ja</option>
+                </select>
+              <?php endif; ?>
+            </th>
             <td><input type="date" aria-label="<?= e($label) ?> erteilt am" name="einwilligungen[<?= e($art) ?>][erteilt_am]" value="<?= e($c['erteilt_am'] ?? '') ?>" max="<?= e(date('Y-m-d')) ?>"></td>
             <td><input type="date" aria-label="<?= e($label) ?> widerrufen am" name="einwilligungen[<?= e($art) ?>][widerrufen_am]" value="<?= e($c['widerrufen_am'] ?? '') ?>" max="<?= e(date('Y-m-d')) ?>"></td>
           </tr>

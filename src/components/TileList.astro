@@ -9,6 +9,7 @@ import DetailModal from './DetailModal.astro';
 import { pickImage, withFormats } from '../data/pickImage';
 import { EMAIL_HREF } from '../data/site';
 import { kartendetails } from '../data/kartendetails';
+import { geburtstagsMailto } from '../data/geburtstagsanfrage';
 
 interface Props {
   page: 'kurse' | 'schulprojekttage' | 'geburtstage' | 'vorschule-hort';
@@ -25,9 +26,14 @@ const tiles = (await getCollection('tiles', (t) => t.data.page === page))
     if (!details) {
       throw new Error(`No entry "${tile.id}" in src/data/kartendetails.ts`);
     }
+    const subject = t.requestSubject ?? 'Anfrage';
+    // Birthday requests get a pre-filled form in the mail body (package + duration from the YAML)
+    const requestHref = t.page === 'geburtstage'
+      ? geburtstagsMailto({ subject, paket: t.name, dauer: t.bullets.find((b) => b.icon === 'clock')?.text ?? '' })
+      : `${EMAIL_HREF}?subject=${encodeURIComponent(subject)}`;
     const cta = t.shopUrl
       ? { label: 'Termine & Tickets', href: t.shopUrl, external: true }
-      : { label: 'Anfrage senden', href: `${EMAIL_HREF}?subject=${encodeURIComponent(t.requestSubject ?? 'Anfrage')}`, external: false };
+      : { label: 'Anfrage senden', href: requestHref, external: false };
     return {
       t,
       details,
