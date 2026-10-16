@@ -11,7 +11,7 @@ use PDOException;
 // placeholder; sort columns come from a fixed whitelist. Every write is recorded in the change log.
 final class KundenRepository
 {
-    public const FIELDS = ['typ', 'name', 'status', 'email', 'telefon', 'adresse', 'plz', 'ort', 'quelle', 'notizen'];
+    public const FIELDS = ['typ', 'name', 'vorname', 'nachname', 'status', 'email', 'telefon', 'adresse', 'plz', 'ort', 'quelle', 'notizen'];
     public const CONTACT_FIELDS = ['vorname', 'nachname', 'rolle', 'email', 'telefon', 'ist_hauptkontakt'];
     public const CHILD_FIELDS = ['vorname', 'nachname', 'geburtsdatum', 'geburtsjahr', 'abholberechtigte', 'notizen'];
 
@@ -186,6 +186,25 @@ final class KundenRepository
             [$email, $email]
         )->fetchColumn();
         return $id === false ? null : (int) $id;
+    }
+
+    /** Customers without first and last name (oldest first), for the "Namen aus E-Mail" suggestions */
+    public static function withoutNames(): array
+    {
+        return Db::query(self::BASE_SELECT . ' WHERE k.vorname IS NULL AND k.nachname IS NULL ORDER BY k.id')->fetchAll();
+    }
+
+    /** Sets first/last name only while both are still empty (never overwrites); true when saved */
+    public static function setNamesIfEmpty(int $id, ?string $vorname, ?string $nachname): bool
+    {
+        $done = Db::query(
+            'UPDATE kunden SET vorname = ?, nachname = ? WHERE id = ? AND vorname IS NULL AND nachname IS NULL',
+            [$vorname, $nachname, $id]
+        )->rowCount() > 0;
+        if ($done) {
+            Audit::changed('kunden', $id, ['vorname' => null, 'nachname' => null], ['vorname' => $vorname, 'nachname' => $nachname]);
+        }
+        return $done;
     }
 
     /** Organisation (any type except privat) with exactly this name, case-insensitive */
@@ -372,12 +391,13 @@ final class KundenRepository
         $q = trim($q);
         if ($q !== '') {
             $like = '%' . addcslashes($q, '%_\\') . '%';
-            $conditions[] = "(k.name LIKE ? OR k.email LIKE ? OR k.ort LIKE ?
+            $conditions[] = "(k.name LIKE ? OR k.email LIKE ? OR k.ort LIKE ? OR k.vorname LIKE ? OR k.nachname LIKE ?
+                OR CONCAT_WS(' ', k.vorname, k.nachname) LIKE ?
                 OR EXISTS (SELECT 1 FROM ansprechpartner a WHERE a.kunde_id = k.id
                            AND (a.vorname LIKE ? OR a.nachname LIKE ? OR CONCAT_WS(' ', a.vorname, a.nachname) LIKE ? OR a.email LIKE ?))
                 OR EXISTS (SELECT 1 FROM kinder ki WHERE ki.kunde_id = k.id
                            AND (ki.vorname LIKE ? OR CONCAT_WS(' ', ki.vorname, ki.nachname) LIKE ?)))";
-            array_push($params, ...array_fill(0, 9, $like));
+            array_push($params, ...array_fill(0, 12, $like));
         }
         return [$conditions ? 'WHERE ' . implode(' AND ', $conditions) : '', $params];
     }

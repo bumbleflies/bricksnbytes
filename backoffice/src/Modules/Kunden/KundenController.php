@@ -24,6 +24,8 @@ final class KundenController
         $router->post('/kunden/loeschen', [self::class, 'delete']);
         $router->get('/kunden/export', [self::class, 'export']);
         $router->post('/kunden/newsletter', [self::class, 'toggleNewsletter']);
+        $router->get('/kunden/namen', [self::class, 'namesPreview']);
+        $router->post('/kunden/namen', [self::class, 'namesSave']);
     }
 
     public static function index(): void
@@ -87,6 +89,7 @@ final class KundenController
         View::render('kunden/show', [
             'title' => Kundentypen::displayName($kunde),
             'kunde' => $kunde,
+            'vorschlag' => self::nameSuggestion($kunde),
             'protokoll' => Audit::forRecord('kunden', (int) $kunde['id'], 10),
         ]);
     }
@@ -121,7 +124,13 @@ final class KundenController
     {
         $kunde = self::findOr404();
         $consents = array_map(static fn ($c) => ['erteilt_am' => $c['erteilt_am'], 'widerrufen_am' => $c['widerrufen_am']], $kunde['einwilligungen']);
-        self::renderForm((int) $kunde['id'], $kunde, $kunde['ansprechpartner'], $kunde['kinder'], $consents, []);
+        // Empty names: prefilled from the e-mail address, saved only when the user saves the form
+        $vorschlag = self::nameSuggestion($kunde);
+        if ($vorschlag !== null) {
+            $kunde['vorname'] = $vorschlag['vorname'];
+            $kunde['nachname'] = $vorschlag['nachname'];
+        }
+        self::renderForm((int) $kunde['id'], $kunde, $kunde['ansprechpartner'], $kunde['kinder'], $consents, [], 200, $vorschlag['herkunft'] ?? null);
     }
 
     public static function update(): void
@@ -142,6 +151,66 @@ final class KundenController
         KundenRepository::save($id, $r['data'], $r['contacts'], Kundentypen::isPrivat($r['data']['typ']) ? $r['kinder'] : [], $r['consents']);
         Session::flash('ok', 'Änderungen gespeichert.');
         Router::redirect('/kunden/ansehen?id=' . $id);
+    }
+
+    // "Namen aus E-Mail übernehmen": every customer without names that gets a suggestion, at most one page
+    private const NAMES_PER_PAGE = 200;
+
+    public static function namesPreview(): void
+    {
+        $rows = [];
+        foreach (KundenRepository::withoutNames() as $kunde) {
+            $vorschlag = self::nameSuggestion($kunde);
+            if ($vorschlag !== null) {
+                $rows[] = $kunde + ['vorschlag' => $vorschlag];
+            }
+        }
+        View::render('kunden/namen', [
+            'title' => 'Namen aus E-Mail übernehmen',
+            'rows' => array_slice($rows, 0, self::NAMES_PER_PAGE),
+            'total' => count($rows),
+        ]);
+    }
+
+    public static function namesSave(): void
+    {
+        $saved = 0;
+        $skipped = 0;
+        $selected = is_array($_POST['uebernehmen'] ?? null) ? $_POST['uebernehmen'] : [];
+        $names = is_array($_POST['namen'] ?? null) ? $_POST['namen'] : [];
+        foreach (array_keys($selected) as $id) {
+            $row = is_array($names[$id] ?? null) ? $names[$id] : [];
+            $clean = static fn ($v) => is_string($v) && trim($v) !== '' ? mb_substr(trim((string) preg_replace('/\s+/u', ' ', $v)), 0, 100) : null;
+            $vorname = $clean($row['vorname'] ?? null);
+            $nachname = $clean($row['nachname'] ?? null);
+            // Only while both are still empty: names entered in the meantime are never overwritten
+            if (($vorname !== null || $nachname !== null) && KundenRepository::setNamesIfEmpty((int) $id, $vorname, $nachname)) {
+                $saved++;
+            } else {
+                $skipped++;
+            }
+        }
+        Session::flash('ok', ($saved === 1 ? '1 Name übernommen.' : "$saved Namen übernommen.")
+            . ($skipped > 0 ? " $skipped übersprungen (inzwischen ausgefüllt oder leer)." : ''));
+        Router::redirect('/kunden/namen');
+    }
+
+    /**
+     * While first and last name are empty: the main contact's name if there is one, else a suggestion
+     * from the e-mail (the customer's, else the main contact's).
+     *
+     * @return array{vorname: ?string, nachname: ?string, herkunft: string}|null
+     */
+    private static function nameSuggestion(array $kunde): ?array
+    {
+        if (($kunde['vorname'] ?? null) !== null || ($kunde['nachname'] ?? null) !== null) {
+            return null;
+        }
+        if (($kunde['hk_vorname'] ?? null) !== null || ($kunde['hk_nachname'] ?? null) !== null) {
+            return ['vorname' => $kunde['hk_vorname'], 'nachname' => $kunde['hk_nachname'], 'herkunft' => 'dem Hauptkontakt'];
+        }
+        $fromEmail = Namensvorschlag::fromEmail($kunde['mail_adresse'] ?? $kunde['email'] ?? null);
+        return $fromEmail === null ? null : $fromEmail + ['herkunft' => 'der E-Mail-Adresse'];
     }
 
     public static function confirmDelete(): void
@@ -224,7 +293,8 @@ final class KundenController
         return strlen($value) > 10 ? $date->format('d.m.Y H:i') : $date->format('d.m.Y');
     }
 
-    private static function renderForm(?int $id, array $kunde, array $contacts, array $kinder, array $consents, array $errors, int $status = 200): void
+    /** @param ?string $vorschlag where the prefilled names come from ("der E-Mail-Adresse"), null = nothing prefilled */
+    private static function renderForm(?int $id, array $kunde, array $contacts, array $kinder, array $consents, array $errors, int $status = 200, ?string $vorschlag = null): void
     {
         $privat = Kundentypen::isPrivat($kunde['typ'] ?? 'privat');
 
@@ -255,6 +325,7 @@ final class KundenController
             'kinder' => $childRows,
             'consents' => $consents,
             'errors' => $errors,
+            'vorschlag' => $vorschlag,
         ], $status);
     }
 

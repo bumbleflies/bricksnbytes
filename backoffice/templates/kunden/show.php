@@ -1,5 +1,5 @@
 <?php
-/** @var array $kunde @var array $protokoll */
+/** @var array $kunde @var array $protokoll @var ?array $vorschlag */
 use Backoffice\Modules\Kunden\KundenController;
 use Backoffice\Modules\Kunden\Kundentypen;
 use Backoffice\Modules\Kinder\Alter;
@@ -21,6 +21,12 @@ $actionLabels = ['angelegt' => 'angelegt', 'geaendert' => 'geändert', 'geloesch
     <h2>Stammdaten</h2>
     <dl class="facts">
       <?php if (!$privat): ?><dt>Name</dt><dd><?= e($kunde['name']) ?></dd><?php endif; ?>
+      <dt>Vorname</dt><dd><?= e($kunde['vorname'] ?: '–') ?></dd>
+      <dt>Nachname</dt><dd><?= e($kunde['nachname'] ?: '–') ?></dd>
+      <?php if ($vorschlag !== null): ?>
+        <dt>Vorschlag</dt><dd class="muted"><?= e(trim(($vorschlag['vorname'] ?? '') . ' ' . ($vorschlag['nachname'] ?? ''))) ?> (aus <?= e($vorschlag['herkunft']) ?>) – <a href="/kunden/bearbeiten?id=<?= e($kunde['id']) ?>">im Formular prüfen und speichern</a>
+          · <a href="/kunden/namen">für alle Kunden ohne Namen …</a></dd>
+      <?php endif; ?>
       <dt>Status</dt><dd><?php if ($kunde['status']): ?><span<?= in_array($kunde['status'], Kundentypen::STATUS_STOP, true) ? ' class="status-stop"' : '' ?>><?= e(Kundentypen::statusLabel($kunde['status'])) ?></span><?php else: ?>–<?php endif; ?></dd>
       <dt>E-Mail</dt><dd><?php if ($kunde['email']): ?><a href="mailto:<?= e($kunde['email']) ?>"><?= e($kunde['email']) ?></a><?php else: ?>–<?php endif; ?></dd>
       <dt>Telefon</dt><dd><?= $kunde['telefon'] ? '<a href="tel:' . e(preg_replace('/[^0-9+]/', '', $kunde['telefon'])) . '">' . e($kunde['telefon']) . '</a>' : '–' ?></dd>

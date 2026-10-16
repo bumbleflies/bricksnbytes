@@ -26,7 +26,7 @@ final class KundenValidator
         }
         $privat = Kundentypen::isPrivat($data['typ']);
 
-        foreach (['name', 'email', 'telefon', 'adresse', 'plz', 'ort', 'quelle'] as $field) {
+        foreach (['name', 'vorname', 'nachname', 'email', 'telefon', 'adresse', 'plz', 'ort', 'quelle'] as $field) {
             $data[$field] = self::text($input[$field] ?? null, $field, $errors);
         }
         $data['notizen'] = self::text($input['notizen'] ?? null, 'notizen', $errors, multiline: true);

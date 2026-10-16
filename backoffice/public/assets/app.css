@@ -299,3 +299,8 @@ body.app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
 /* Collapsible list in the import preview */
 details.card > summary { cursor: pointer; font-weight: 600; }
 details.card[open] > summary { margin-bottom: 12px; }
+
+/* Name prefilled from the e-mail address, not saved yet */
+.is-suggestion input { background: #fff8e6; border-style: dashed; }
+.suggestion-hint { margin-top: -6px; }
+.names-form td input:not([type]) { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; width: 100%; min-width: 120px; }
