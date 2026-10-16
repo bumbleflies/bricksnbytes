@@ -195,6 +195,18 @@ Benötigt: `E-Mail`, `Typ`; genutzt außerdem `Name`, `Telefon`, `Organisation`,
 - Notizen und Anzahl Mails kommen in die Notizen des Kunden; Newsletter-Einwilligungen werden
   nicht gesetzt.
 
+### Kundenliste: Aktionen und Typ
+
+- Am Ende jeder Zeile (immer sichtbar, auch wenn die Tabelle seitlich scrollt): **Stift** öffnet den
+  Kunden direkt im Bearbeiten-Formular; Speichern und Abbrechen führen zurück in dieselbe
+  Listenansicht (Suche, Filter, Sortierung, Seite). **Auge** öffnet eine Schnellansicht als Modal
+  (Name, Vor-/Nachname, Typ, Status, E-Mail, Telefon, Adresse, Newsletter, Ansprechpartner, Kinder)
+  mit „Bearbeiten“ und „Zur Detailseite“; schließen per ×, Escape oder Klick daneben.
+- Der **Typ** lässt sich in der Liste per Auswahlfeld ändern und wird sofort gespeichert. Eltern mit
+  Kindern bzw. ohne Namen der Einrichtung lassen sich dort nicht in eine Einrichtung umwandeln
+  (Hinweis, dann über „Bearbeiten“).
+- Detailseite und die Links auf Name/E-Mail bleiben wie bisher.
+
 ### Vor- und Nachname beim Kunden
 
 Kunden haben in den Stammdaten eigene Felder **Vorname** und **Nachname** (Migration 006, für

@@ -1,11 +1,13 @@
 <?php
-/** @var ?int $id @var array $kunde @var array $contacts @var array $kinder @var array $consents @var array $errors @var ?string $vorschlag */
+/** @var ?int $id @var array $kunde @var array $contacts @var array $kinder @var array $consents @var array $errors @var ?string $vorschlag @var ?string $zurueck */
 use Backoffice\Csrf;
 use Backoffice\Modules\Kunden\Kundentypen;
 
 $typ = $kunde['typ'] ?? 'privat';
 $privat = Kundentypen::isPrivat($typ);
 $action = $id === null ? '/kunden/neu' : '/kunden/bearbeiten?id=' . $id;
+// Opened from the list (pencil): back there; otherwise to the detail page as before
+$back = $zurueck ?? ($id === null ? '/kunden' : '/kunden/ansehen?id=' . $id);
 $heading = $id === null ? 'Neuer Kunde: ' . Kundentypen::label($typ) : 'Bearbeiten: ' . Kundentypen::displayName($kunde);
 $hasChildData = (bool) array_filter($kinder, static fn ($k) => !empty($k['vorname']) || !empty($k['id']));
 
@@ -23,7 +25,7 @@ $field = static function (string $name, string $label, string $type = 'text', ar
 };
 $sub = static fn (string $group, int $i, string $name): string => $group . '[' . $i . '][' . $name . ']';
 ?>
-<p class="breadcrumb"><a href="<?= $id === null ? '/kunden' : '/kunden/ansehen?id=' . e($id) ?>">← Zurück</a></p>
+<p class="breadcrumb"><a href="<?= e($back) ?>">← <?= $zurueck !== null ? 'Zurück zur Liste' : 'Zurück' ?></a></p>
 <h1><?= e($heading) ?></h1>
 
 <?php if ($errors): ?>
@@ -32,6 +34,7 @@ $sub = static fn (string $group, int $i, string $name): string => $group . '[' .
 
 <form method="post" action="<?= e($action) ?>" class="card form-grid" novalidate>
   <?= Csrf::field() ?>
+  <?php if ($zurueck !== null): ?><input type="hidden" name="zurueck" value="<?= e($zurueck) ?>"><?php endif; ?>
 
   <fieldset>
     <legend>Kundentyp</legend>
@@ -164,6 +167,6 @@ $sub = static fn (string $group, int $i, string $name): string => $group . '[' .
 
   <div class="form-actions">
     <button type="submit" class="btn">Speichern</button>
-    <a href="<?= $id === null ? '/kunden' : '/kunden/ansehen?id=' . e($id) ?>">Abbrechen</a>
+    <a href="<?= e($back) ?>">Abbrechen</a>
   </div>
 </form>
