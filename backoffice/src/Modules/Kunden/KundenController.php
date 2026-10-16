@@ -16,6 +16,7 @@ final class KundenController
     {
         $router->get('/kunden', [self::class, 'index']);
         $router->get('/kunden/ansehen', [self::class, 'show']);
+        $router->get('/kunden/schnellansicht', [self::class, 'quickView']);
         $router->get('/kunden/neu', [self::class, 'createForm']);
         $router->post('/kunden/neu', [self::class, 'create']);
         $router->get('/kunden/bearbeiten', [self::class, 'editForm']);
@@ -24,6 +25,7 @@ final class KundenController
         $router->post('/kunden/loeschen', [self::class, 'delete']);
         $router->get('/kunden/export', [self::class, 'export']);
         $router->post('/kunden/newsletter', [self::class, 'toggleNewsletter']);
+        $router->post('/kunden/typ', [self::class, 'changeType']);
         $router->get('/kunden/namen', [self::class, 'namesPreview']);
         $router->post('/kunden/namen', [self::class, 'namesSave']);
     }
@@ -70,9 +72,7 @@ final class KundenController
     public static function toggleNewsletter(): void
     {
         $kunde = KundenRepository::find((int) ($_POST['id'] ?? 0));
-        $back = self::str($_POST['zurueck'] ?? '');
-        // Only back into the customer list, never to another site
-        $back = preg_match('#^/kunden(\?[^\s]*)?$#', $back) ? $back : '/kunden';
+        $back = self::listUrl($_POST['zurueck'] ?? null) ?? '/kunden';
         if ($kunde === null) {
             Session::flash('error', 'Diesen Kunden gibt es nicht mehr.');
             Router::redirect($back);
@@ -80,6 +80,34 @@ final class KundenController
         $on = self::str($_POST['wert'] ?? '') === 'ja';
         KundenRepository::setNewsletter((int) $kunde['id'], $on);
         Session::flash('ok', 'Newsletter für „' . Kundentypen::displayName($kunde) . '“: ' . ($on ? 'Ja' : 'Nein') . '.');
+        Router::redirect($back);
+    }
+
+    // Type dropdown in the list: saves at once and returns to the same list view
+    public static function changeType(): void
+    {
+        $kunde = KundenRepository::find((int) ($_POST['id'] ?? 0));
+        $back = self::listUrl($_POST['zurueck'] ?? null) ?? '/kunden';
+        $typ = self::str($_POST['typ'] ?? '');
+        if ($kunde === null) {
+            Session::flash('error', 'Diesen Kunden gibt es nicht mehr.');
+            Router::redirect($back);
+        }
+        if (!Kundentypen::valid($typ) || $typ === $kunde['typ']) {
+            Router::redirect($back);
+        }
+        $name = Kundentypen::displayName($kunde);
+        // Same rules as the form: children only for families, organisations need their own name
+        if (!Kundentypen::isPrivat($typ) && $kunde['kinder']) {
+            Session::flash('error', "„{$name}“ hat Kinder – die gibt es nur bei Eltern. Typ bitte über „Bearbeiten“ ändern (Kinder vorher entfernen).");
+            Router::redirect($back);
+        }
+        if (!Kundentypen::isPrivat($typ) && trim((string) $kunde['name']) === '') {
+            Session::flash('error', "Für „" . Kundentypen::label($typ) . "“ braucht „{$name}“ einen Namen der Einrichtung – Typ bitte über „Bearbeiten“ ändern.");
+            Router::redirect($back);
+        }
+        KundenRepository::patch((int) $kunde['id'], ['typ' => $typ]);
+        Session::flash('ok', "Typ für „{$name}“: " . Kundentypen::label($typ) . '.');
         Router::redirect($back);
     }
 
@@ -92,6 +120,18 @@ final class KundenController
             'vorschlag' => self::nameSuggestion($kunde),
             'protokoll' => Audit::forRecord('kunden', (int) $kunde['id'], 10),
         ]);
+    }
+
+    // Eye icon in the list: read-only summary for the modal (HTML fragment, no layout)
+    public static function quickView(): void
+    {
+        $id = (int) ($_GET['id'] ?? 0);
+        $kunde = $id > 0 ? KundenRepository::find($id) : null;
+        if ($kunde === null) {
+            View::partial('kunden/quick-missing', [], 404);
+            return;
+        }
+        View::partial('kunden/quick', ['kunde' => $kunde, 'zurueck' => self::listUrl($_GET['zurueck'] ?? null)]);
     }
 
     public static function createForm(): void
@@ -150,7 +190,8 @@ final class KundenController
         }
         KundenRepository::save($id, $r['data'], $r['contacts'], Kundentypen::isPrivat($r['data']['typ']) ? $r['kinder'] : [], $r['consents']);
         Session::flash('ok', 'Änderungen gespeichert.');
-        Router::redirect('/kunden/ansehen?id=' . $id);
+        // Opened via the pencil in the list: back to that list view (search, filter, page kept)
+        Router::redirect(self::listUrl($_POST['zurueck'] ?? null) ?? '/kunden/ansehen?id=' . $id);
     }
 
     // "Namen aus E-Mail übernehmen": every customer without names that gets a suggestion, at most one page
@@ -326,6 +367,8 @@ final class KundenController
             'consents' => $consents,
             'errors' => $errors,
             'vorschlag' => $vorschlag,
+            // Where "Abbrechen"/"Zurück" and saving lead when the form was opened from the list
+            'zurueck' => self::listUrl($_GET['zurueck'] ?? $_POST['zurueck'] ?? null),
         ], $status);
     }
 
@@ -345,6 +388,13 @@ final class KundenController
     {
         $status = self::str($_GET['status'] ?? '');
         return $status === 'ohne' || Kundentypen::validStatus($status) ? $status : null;
+    }
+
+    /** A customer-list URL ("/kunden?typ=schule&q=…") to return to — never anything else (no open redirect) */
+    public static function listUrl(mixed $value): ?string
+    {
+        $value = self::str($value);
+        return preg_match('~^/kunden(\?[^\s<>"\'#]*)?$~', $value) ? $value : null;
     }
 
     private static function str(mixed $value): string

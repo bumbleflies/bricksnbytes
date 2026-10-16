@@ -103,6 +103,7 @@ $all = array_sum($counts);
               <a href="<?= e($url(['sort' => $key, 'dir' => $nextDir, 'seite' => 1])) ?>"><?= e($label) ?><?php if ($active): ?> <span aria-hidden="true"><?= $dir === 'asc' ? '▲' : '▼' ?></span><?php endif; ?></a>
             </th>
           <?php endforeach; ?>
+          <th scope="col" class="col-actions">Aktionen</th>
         </tr>
       </thead>
       <tbody>
@@ -146,6 +147,19 @@ $all = array_sum($counts);
                   </form>
                 <?php elseif ($i === 0): ?>
                   <a href="<?= e($link) ?>"><?= e($value !== null && $value !== '' ? $value : '–') ?></a>
+                <?php elseif ($key === 'typ'): ?>
+                  <form method="post" action="/kunden/typ" class="type-change" data-stop-row>
+                    <?= Csrf::field() ?>
+                    <input type="hidden" name="id" value="<?= e($r['id']) ?>">
+                    <input type="hidden" name="zurueck" value="<?= e($here) ?>">
+                    <label class="visually-hidden" for="typ-<?= e($r['id']) ?>">Typ von <?= e($display) ?></label>
+                    <select id="typ-<?= e($r['id']) ?>" name="typ" data-autosubmit>
+                      <?php foreach (Kundentypen::ALLE as $tk => [$tl]): ?>
+                        <option value="<?= e($tk) ?>"<?= $tk === $r['typ'] ? ' selected' : '' ?>><?= e($tl) ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                    <noscript><button type="submit" class="btn-link">Ändern</button></noscript>
+                  </form>
                 <?php elseif ($key === 'status' && in_array($r['status'], Kundentypen::STATUS_STOP, true)): ?>
                   <span class="status-stop"><?= e($value) ?></span>
                 <?php elseif ($key === 'email' && $value): ?>
@@ -155,6 +169,16 @@ $all = array_sum($counts);
                 <?php endif; ?>
               </td>
             <?php endforeach; ?>
+            <td class="col-actions">
+              <a class="icon-btn" href="/kunden/bearbeiten?id=<?= e($r['id']) ?>&amp;zurueck=<?= e(rawurlencode($here)) ?>"
+                 title="Bearbeiten" aria-label="<?= e($display) ?> bearbeiten" data-stop-row>
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>
+              </a>
+              <button type="button" class="icon-btn quick-open" data-id="<?= e($r['id']) ?>"
+                      title="Schnellansicht" aria-label="Schnellansicht für <?= e($display) ?>" aria-haspopup="dialog" data-stop-row>
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+              </button>
+            </td>
           </tr>
         <?php endforeach; ?>
       </tbody>
@@ -170,4 +194,18 @@ $all = array_sum($counts);
   <?php endif; ?>
 <?php endif; ?>
 
+<dialog class="quick-dialog" id="quick-view" aria-labelledby="quick-title" data-list-url="<?= e($here) ?>">
+  <div class="quick-dialog-inner">
+    <form method="dialog" class="quick-close-form">
+      <button type="submit" class="quick-close" aria-label="Schließen" title="Schließen">×</button>
+    </form>
+    <div class="quick-body" id="quick-body" aria-live="polite"></div>
+    <div class="quick-actions">
+      <a class="btn" id="quick-edit" href="#">Bearbeiten</a>
+      <a class="btn btn-secondary" id="quick-detail" href="#">Zur Detailseite</a>
+    </div>
+  </div>
+</dialog>
+
 <script src="/assets/kunden.js" defer></script>
+<script src="/assets/kunden-schnellansicht.js" defer></script>
