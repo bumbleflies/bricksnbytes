@@ -195,6 +195,23 @@ Benötigt: `E-Mail`, `Typ`; genutzt außerdem `Name`, `Telefon`, `Organisation`,
 - Notizen und Anzahl Mails kommen in die Notizen des Kunden; Newsletter-Einwilligungen werden
   nicht gesetzt.
 
+### Vor- und Nachname beim Kunden
+
+Kunden haben in den Stammdaten eigene Felder **Vorname** und **Nachname** (Migration 006, für
+bestehende Kunden leer). Sind beide leer, schlägt das Backoffice den Namen des Hauptkontakts vor,
+gibt es keinen, einen Namen aus der E-Mail
+(`anna.mueller@…` → Anna / Mueller; `.` und `_` trennen, `-` bleibt, Ziffern fallen weg; bei
+info@, kontakt@, familie123@ … kein Vorschlag, bei nur einem Wort nur der Vorname):
+
+- Detailseite: Vorschlag als Hinweis; im **Bearbeiten**-Formular vorausgefüllt und markiert,
+  gespeichert erst mit „Speichern“ (zum Verwerfen die Felder leeren).
+- **Namen aus E-Mail übernehmen** (Link auf der Detailseite, `/kunden/namen`): Vorschau aller Kunden
+  ohne Namen mit Vorschlag, korrigierbar, Eltern vorausgewählt; gespeichert werden nur angehakte
+  Zeilen und nur, solange beide Felder noch leer sind.
+
+Die Ableitung (`src/Modules/Kunden/Namensvorschlag.php`) ist mit Unit-Tests abgesichert:
+`php tests/run.php` (läuft auch in der GitHub-Prüfung des Backoffice).
+
 ### Import rückgängig machen
 
 **Kunden → Importe** listet alle Importe, aus denen noch Kunden da sind (Zeitpunkt, Art, Anzahl).

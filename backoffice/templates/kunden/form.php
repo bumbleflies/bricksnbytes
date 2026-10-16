@@ -1,5 +1,5 @@
 <?php
-/** @var ?int $id @var array $kunde @var array $contacts @var array $kinder @var array $consents @var array $errors */
+/** @var ?int $id @var array $kunde @var array $contacts @var array $kinder @var array $consents @var array $errors @var ?string $vorschlag */
 use Backoffice\Csrf;
 use Backoffice\Modules\Kunden\Kundentypen;
 
@@ -53,6 +53,13 @@ $sub = static fn (string $group, int $i, string $name): string => $group . '[' .
     <legend><?= $privat ? 'Familie' : 'Einrichtung' ?></legend>
     <?php if (!$privat): ?>
       <?= $field('name', 'Name der Einrichtung', 'text', ['placeholder' => 'z. B. Grundschule an der Isar']) ?>
+    <?php endif; ?>
+    <div class="grid-2<?= !empty($vorschlag) ? ' is-suggestion' : '' ?>">
+      <?= $field('vorname', 'Vorname', 'text', ['autocomplete' => 'off']) ?>
+      <?= $field('nachname', 'Nachname', 'text', ['autocomplete' => 'off']) ?>
+    </div>
+    <?php if (!empty($vorschlag)): ?>
+      <p class="hint suggestion-hint">Vorschlag aus <?= e($vorschlag) ?> – bitte prüfen. Er wird erst mit „Speichern“ übernommen; zum Verwerfen die Felder leeren.</p>
     <?php endif; ?>
     <div class="grid-2">
       <?= $field('email', $privat ? 'E-Mail' : 'E-Mail (allgemein)', 'email', ['autocomplete' => 'off']) ?>
