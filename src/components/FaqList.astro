@@ -1,0 +1,91 @@
+---
+// Expandable questions and answers (<details>), used on /faq and the service pages
+interface Props {
+  items: { q: string; a: string[] }[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="faq-list">
+  {items.map((item) => (
+    <details class="faq-item">
+      <summary>{item.q}</summary>
+      <div class="faq-answer">
+        {item.a.map((para) => <p>{para}</p>)}
+      </div>
+    </details>
+  ))}
+</div>
+
+<style>
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .faq-item {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .faq-item summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    min-height: 44px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--ink);
+    border-radius: 18px;
+  }
+
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Plus/minus indicator */
+  .faq-item summary::after {
+    content: "+";
+    content: "+" / ""; /* decorative: not announced by screen readers */
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--coral-soft);
+    color: var(--coral-deep);
+    display: grid;
+    place-items: center;
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  .faq-item[open] summary::after {
+    content: "–";
+    content: "–" / "";
+  }
+
+  .faq-item summary:focus-visible {
+    outline: 3px solid var(--coral);
+    outline-offset: 2px;
+  }
+
+  .faq-answer {
+    padding: 0 20px 16px;
+  }
+
+  .faq-answer p {
+    margin: 0 0 0.75rem;
+  }
+
+  .faq-answer p:last-child {
+    margin-bottom: 0;
+  }
+</style>
