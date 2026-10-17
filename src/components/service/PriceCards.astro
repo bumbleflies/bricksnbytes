@@ -1,0 +1,179 @@
+---
+// Package cards with price; one can be highlighted ("Beliebt"). Each card has its own request button
+// (mailto with the package in the subject). Prices are net: "zzgl. MwSt." under every price.
+import TileGrid from '../TileGrid.astro';
+import { EMAIL_HREF } from '../../data/site';
+
+interface Props {
+  packages: { name: string; price: string; features: string[]; highlight?: boolean }[];
+  // Subject prefix, e.g. "Anfrage Website" → "Anfrage Website – Paket Business"
+  subject: string;
+  buttonText?: string;
+  note?: string;
+}
+
+const { packages, subject, buttonText = 'Paket anfragen', note } = Astro.props;
+const mailto = (name: string) => `${EMAIL_HREF}?subject=${encodeURIComponent(`${subject} – Paket ${name}`)}`;
+---
+
+<TileGrid count={packages.length} class="price-grid">
+  {packages.map((pkg) => (
+    <article class={`price-card${pkg.highlight ? ' price-card--highlight' : ''}`} aria-label={`Paket ${pkg.name}${pkg.highlight ? ' (beliebt)' : ''}`}>
+      {pkg.highlight && <span class="price-badge">Beliebt</span>}
+      <h3>{pkg.name}</h3>
+      <p class="price">{pkg.price}</p>
+      <p class="price-tax">zzgl. MwSt.</p>
+      <ul class="price-features">
+        {pkg.features.map((f) => <li>{f}</li>)}
+      </ul>
+      <a class="price-btn" href={mailto(pkg.name)}>{buttonText}<span class="visually-hidden">: {pkg.name}</span></a>
+    </article>
+  ))}
+</TileGrid>
+
+{note && <p class="price-note">{note}</p>}
+
+<style>
+  .price-grid {
+    align-items: stretch;
+  }
+
+  .price-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 32px 24px 24px;
+  }
+
+  .price-card--highlight {
+    border-color: var(--coral);
+    box-shadow: var(--shadow-md);
+  }
+
+  @media (min-width: 640px) {
+    .price-card--highlight {
+      transform: translateY(-8px);
+    }
+  }
+
+  .price-badge {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 4px 14px;
+    border-radius: var(--r-pill);
+    white-space: nowrap;
+  }
+
+  .price-card h3 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  .price {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  .price-tax {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin: 4px 0 18px;
+  }
+
+  .price-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px;
+    flex: 1;
+  }
+
+  .price-features li {
+    position: relative;
+    padding-left: 26px;
+    margin-bottom: 8px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  /* Check mark, decorative */
+  .price-features li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.45em;
+    width: 12px;
+    height: 7px;
+    border-left: 2.5px solid var(--teal);
+    border-bottom: 2.5px solid var(--teal);
+    transform: rotate(-45deg);
+  }
+
+  /* Darker orange + 18px bold: white text reaches the contrast for large text */
+  .price-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    background: var(--coral-deep);
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: var(--r-pill);
+    box-shadow: 0 6px 16px -6px var(--coral-deep);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .price-card:not(.price-card--highlight) .price-btn {
+    background: #fff;
+    color: var(--coral-deep);
+    border: 2px solid var(--coral-deep);
+    box-shadow: none;
+  }
+
+  .price-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .price-btn:focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: 3px;
+  }
+
+  .price-note {
+    max-width: 62ch;
+    margin: 32px auto 0;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+</style>

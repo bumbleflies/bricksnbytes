@@ -1,0 +1,111 @@
+---
+// Websites for practices, small businesses and freelancers. Not linked yet and kept out of
+// search engines (noindex) until it is released.
+import Layout from '../layouts/Layout.astro';
+import HeroSection from '../components/HeroSection.astro';
+import CTASection from '../components/CTASection.astro';
+import ServiceSection from '../components/service/ServiceSection.astro';
+import InfoCards from '../components/service/InfoCards.astro';
+import PriceCards from '../components/service/PriceCards.astro';
+import StepList from '../components/service/StepList.astro';
+import { EMAIL_HREF } from '../data/site';
+import { pickImage } from '../data/pickImage';
+
+const PLACEHOLDER = '/images/platzhalter.svg';
+const requestHref = `${EMAIL_HREF}?subject=${encodeURIComponent('Anfrage Website (Bytes)')}`;
+
+const reasons = [
+  { title: 'Gefunden werden', text: 'Wer Sie sucht, googelt. Eine klare, schnelle Website bringt Patient:innen und Kund:innen direkt zu Ihnen.' },
+  { title: 'Vertrauen schaffen', text: 'Ihre Website ist der erste Eindruck. Professionell, aktuell und auf dem Handy gut lesbar.' },
+  { title: 'Zeit sparen', text: 'Öffnungszeiten, Terminbuchung, FAQ: Was online steht, muss nicht am Telefon erklärt werden.' },
+];
+
+const packages = [
+  {
+    name: 'Einstieg',
+    price: 'ab 990 €',
+    features: [
+      'Onepager mit bis zu 5 Abschnitten',
+      'Responsives Design',
+      'Kontaktformular',
+      'Impressum & Datenschutz eingebunden',
+      'SEO-Grundlagen',
+      'Livegang inklusive',
+    ],
+  },
+  {
+    name: 'Business',
+    price: 'ab 2.290 €',
+    highlight: true,
+    features: [
+      'Bis zu 6 Unterseiten',
+      'Unterstützung bei Texten',
+      'Einbindung Online-Terminbuchung oder Google Maps',
+      'Google-Unternehmensprofil',
+      'Bildauswahl',
+      '1 Monat Support nach Launch',
+    ],
+  },
+  {
+    name: 'Profi',
+    price: 'ab 3.990 €',
+    features: [
+      'Bis zu 12 Unterseiten',
+      'Mehrsprachig',
+      'News-/Blog-Bereich',
+      'Barrierearme Umsetzung',
+      'Performance-Optimierung',
+      'Einbindung externer Tools (z. B. Buchungssysteme)',
+      '3 Monate Support',
+    ],
+  },
+];
+
+const steps = [
+  { title: 'Kennenlernen', text: 'Kostenlos, 30 Minuten.' },
+  { title: 'Konzept & Entwurf' },
+  { title: 'Umsetzung & Feedback' },
+  { title: 'Livegang & Betreuung' },
+];
+---
+
+<Layout
+  title="Bytes – Websites"
+  description="Moderne, schnelle Websites für Arztpraxen, kleine Unternehmen und Freiberufler. Persönlich betreut aus München – ohne Agentur-Overhead."
+  noindex
+>
+  <HeroSection
+    headline="Bytes – Websites, die für Sie arbeiten"
+    subheading="Moderne, schnelle Websites für Arztpraxen, kleine Unternehmen und Freiberufler. Persönlich betreut aus München – ohne Agentur-Overhead."
+    ctaText="Unverbindlich anfragen"
+    ctaHref={requestHref}
+    imageSrc={pickImage(['/images/bytes-hero.webp'], PLACEHOLDER)}
+    imageAlt="Moderne Website auf Laptop und Smartphone"
+  />
+
+  <ServiceSection title="Warum eine neue Website?" tone="cream" id="warum">
+    <InfoCards items={reasons} />
+  </ServiceSection>
+
+  <ServiceSection title="Pakete" id="pakete">
+    <PriceCards
+      packages={packages}
+      subject="Anfrage Website (Bytes)"
+      note="Optional: Wartung & kleine Änderungen ab 39 €/Monat zzgl. MwSt. Hosting und Domain auf Wunsch."
+    />
+  </ServiceSection>
+
+  <ServiceSection title="So läuft's ab" tone="cream" id="ablauf">
+    <StepList
+      steps={steps}
+      image={pickImage(['/images/bytes-detail.webp'], PLACEHOLDER)}
+      imageAlt="Gemeinsame Besprechung eines Website-Entwurfs am Bildschirm"
+    />
+  </ServiceSection>
+
+  <CTASection
+    headline="Lassen Sie uns über Ihre Website sprechen."
+    buttonText="Unverbindlich anfragen"
+    buttonHref={requestHref}
+  />
+</Layout>

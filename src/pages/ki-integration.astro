@@ -1,0 +1,157 @@
+---
+// Claude / Claude Code set-up and coaching for small businesses. Not linked yet and kept out of
+// search engines (noindex) until it is released. Navigation label later: "KI-Integration".
+import Layout from '../layouts/Layout.astro';
+import HeroSection from '../components/HeroSection.astro';
+import CTASection from '../components/CTASection.astro';
+import FaqList from '../components/FaqList.astro';
+import ServiceSection from '../components/service/ServiceSection.astro';
+import InfoCards from '../components/service/InfoCards.astro';
+import PriceCards from '../components/service/PriceCards.astro';
+import { EMAIL_HREF } from '../data/site';
+import { pickImage } from '../data/pickImage';
+
+const PLACEHOLDER = '/images/platzhalter.svg';
+const requestHref = `${EMAIL_HREF}?subject=${encodeURIComponent('Erstgespräch KI-Integration')}`;
+
+const services = [
+  { title: 'Einrichten', text: 'Wir richten Claude passend zu Ihrer Arbeit ein: Projekte, Vorlagen, Anbindung an Ihre Tools.' },
+  { title: 'Automatisieren', text: 'Wiederkehrende Aufgaben wie Angebote, E-Mails, Auswertungen oder kleine Tools entstehen mit Claude Code in Stunden statt Wochen.' },
+  { title: 'Befähigen', text: 'Kein Frontalunterricht: Wir arbeiten an Ihren echten Aufgaben, bis Sie selbstständig weitermachen können.' },
+];
+
+const packages = [
+  {
+    name: 'Schnellstart',
+    price: '390 €',
+    features: [
+      '3 Stunden 1:1 (remote oder vor Ort in München)',
+      'Einrichtung von Claude',
+      'Eigene Vorlagen & Projekte',
+      'Ein erster Workflow für Ihren Alltag',
+    ],
+  },
+  {
+    name: 'Workflow',
+    price: '1.490 €',
+    highlight: true,
+    features: [
+      '2 halbe Tage + 2 Wochen Begleitung per Mail/Chat',
+      'Einrichtung Claude Code',
+      'Automatisierung von 2–3 konkreten Abläufen',
+      'Kurze Dokumentation zum Nachschlagen',
+    ],
+  },
+  {
+    name: 'Begleitung',
+    price: 'ab 3.900 €',
+    features: [
+      '3 Monate für Teams bis 5 Personen',
+      'Monatliche Arbeitssessions',
+      'Entwicklung eigener kleiner Tools',
+      'Leitfaden für den KI-Einsatz im Team',
+    ],
+  },
+];
+
+const faqs = [
+  { q: 'Brauche ich Programmierkenntnisse?', a: ['Nein. Für Claude Code zeige ich Ihnen alles Schritt für Schritt.'] },
+  { q: 'Was kostet Claude selbst?', a: ['Die Lizenz buchen Sie direkt beim Anbieter, meist ein monatliches Abo. Ich berate Sie, welches passt.'] },
+  { q: 'Was ist mit Datenschutz?', a: ['Wir klären gemeinsam, welche Daten in die KI dürfen und welche nicht.'] },
+];
+---
+
+<Layout
+  title="KI-Integration"
+  description="Ich richte Claude und Claude Code für kleine Unternehmen und Selbstständige ein – und begleite Sie, bis es läuft."
+  noindex
+>
+  <HeroSection
+    headline="KI, die wirklich im Alltag ankommt"
+    subheading="Ich richte Claude und Claude Code für kleine Unternehmen und Selbstständige ein – und begleite Sie, bis es läuft."
+    ctaText="Erstgespräch vereinbaren"
+    ctaHref={requestHref}
+    imageSrc={pickImage(['/images/ki-hero.webp'], PLACEHOLDER)}
+    imageAlt="Arbeiten mit einem KI-Assistenten am Laptop"
+  />
+
+  <ServiceSection title="Was ich für Sie mache" tone="cream" id="leistungen">
+    <InfoCards items={services} />
+  </ServiceSection>
+
+  <ServiceSection title="Für wen?" id="fuer-wen">
+    <div class="audience">
+      <p>
+        Selbstständige, Praxen, Beratungen, Handwerksbetriebe und kleine Teams, die KI nutzen wollen, aber keine Zeit
+        haben, sich durch alles selbst durchzuarbeiten.
+      </p>
+      <img
+        src={pickImage(['/images/ki-detail.webp'], PLACEHOLDER)}
+        alt="Gemeinsames Arbeiten an einer konkreten Aufgabe mit KI-Unterstützung"
+        loading="lazy"
+      />
+    </div>
+  </ServiceSection>
+
+  <ServiceSection title="Pakete" tone="cream" id="pakete">
+    <PriceCards packages={packages} subject="Anfrage KI-Integration" />
+  </ServiceSection>
+
+  <ServiceSection title="Häufige Fragen" id="faq">
+    <div class="faq-wrap">
+      <FaqList items={faqs} />
+    </div>
+  </ServiceSection>
+
+  <CTASection
+    headline="Finden wir heraus, wo KI Ihnen Zeit spart."
+    buttonText="Erstgespräch vereinbaren"
+    buttonHref={requestHref}
+  />
+</Layout>
+
+<style>
+  .audience {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .audience p {
+    font-size: 1.15rem;
+    line-height: 1.65;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .audience img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 28px;
+    transform: rotate(2deg);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+    display: block;
+    background: var(--cream-2);
+  }
+
+  .faq-wrap {
+    max-width: 70ch;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 768px) {
+    .audience {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+
+    .audience img {
+      width: 70%;
+      margin: 0 auto;
+    }
+  }
+</style>

@@ -1,0 +1,61 @@
+---
+// Three (or more) short cards with a coloured number, e.g. "Warum eine neue Website?"
+import TileGrid from '../TileGrid.astro';
+
+interface Props {
+  items: { title: string; text: string }[];
+}
+
+const { items } = Astro.props;
+// Same accent colours as the pillars in "Was uns besonders macht"
+const colors = ['var(--coral)', '#2196f3', '#26a6a1', 'var(--violet)'];
+---
+
+<TileGrid count={items.length}>
+  {items.map((item, idx) => (
+    <article class="info-card">
+      <span class="info-num" style={`background:${colors[idx % colors.length]};`} aria-hidden="true">{String(idx + 1).padStart(2, '0')}</span>
+      <h3>{item.title}</h3>
+      <p>{item.text}</p>
+    </article>
+  ))}
+</TileGrid>
+
+<style>
+  .info-card {
+    background: #fff;
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 28px 24px;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .info-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 14px;
+  }
+
+  .info-card h3 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 8px;
+  }
+
+  .info-card p {
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin: 0;
+  }
+</style>
