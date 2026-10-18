@@ -8,9 +8,11 @@ import Footer from '../components/Footer.astro';
 interface Props {
   title: string;
   description?: string;
+  // Keep the page out of search engines (e.g. pages that are not released yet)
+  noindex?: boolean;
 }
 
-const { title, description = "Programmierkurse für Kinder in München: LEGO SPIKE, Minecraft, Scratch und Python – in kleinen Gruppen, ohne Vorkenntnisse." } = Astro.props;
+const { title, noindex = false, description = "Programmierkurse für Kinder in München: LEGO SPIKE, Minecraft, Scratch und Python – in kleinen Gruppen, ohne Vorkenntnisse." } = Astro.props;
 ---
 
 <!doctype html>
@@ -19,6 +21,7 @@ const { title, description = "Programmierkurse für Kinder in München: LEGO SPI
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <title>{title} | BricksnBytes</title>
     <link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/images/favicon-32.png" sizes="32x32" type="image/png" />

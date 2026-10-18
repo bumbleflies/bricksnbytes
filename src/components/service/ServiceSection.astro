@@ -1,0 +1,72 @@
+---
+// One content band of a service page (/bytes, /ki-integration): heading, optional intro, content.
+// Spacing and heading follow "Was uns besonders macht"; `tone` alternates the background.
+interface Props {
+  title: string;
+  intro?: string;
+  tone?: 'white' | 'cream';
+  id?: string;
+}
+
+const { title, intro, tone = 'white', id } = Astro.props;
+const headingId = id ? `${id}-title` : undefined;
+---
+
+<section class={`service-section service-section--${tone}`} id={id} aria-labelledby={headingId}>
+  <div class="container">
+    <h2 class="section-heading" id={headingId}>{title}</h2>
+    {intro && <p class="section-intro">{intro}</p>}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .service-section {
+    padding: 70px 40px;
+  }
+
+  .service-section--white {
+    background: #fff;
+  }
+
+  .service-section--cream {
+    background: var(--cream);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-heading {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+    margin: 0 0 12px;
+  }
+
+  .section-intro {
+    max-width: 62ch;
+    margin: 0 auto 36px;
+    text-align: center;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
+  .section-heading + :global(*:not(.section-intro)) {
+    margin-top: 32px;
+  }
+
+  @media (max-width: 768px) {
+    .service-section {
+      padding: 48px 16px;
+    }
+
+    .section-heading {
+      font-size: 1.3rem;
+    }
+  }
+</style>
