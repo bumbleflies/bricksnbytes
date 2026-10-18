@@ -26,46 +26,60 @@ final class KundenController
         $router->get('/kunden/export', [self::class, 'export']);
         $router->post('/kunden/newsletter', [self::class, 'toggleNewsletter']);
         $router->post('/kunden/typ', [self::class, 'changeType']);
+        $router->post('/kunden/typ-auswahl', [self::class, 'changeTypeBulk']);
         $router->get('/kunden/namen', [self::class, 'namesPreview']);
         $router->post('/kunden/namen', [self::class, 'namesSave']);
     }
 
     public static function index(): void
     {
-        $q = self::str($_GET['q'] ?? '');
-        $typ = Kundentypen::valid(self::str($_GET['typ'] ?? '')) ? self::str($_GET['typ']) : null;
-        $sort = array_key_exists(self::str($_GET['sort'] ?? ''), KundenRepository::SORTS) ? self::str($_GET['sort']) : ($typ === 'privat' ? 'nachname' : 'name');
+        // Search term from the top search bar AND the dropdowns (Typ, Newsletter, Ort, Status)
+        $filter = KundenFilter::fromQuery($_GET);
+        $sort = array_key_exists(self::str($_GET['sort'] ?? ''), KundenRepository::SORTS) ? self::str($_GET['sort']) : ($filter->typ === 'privat' ? 'nachname' : 'name');
         $dir = self::str($_GET['dir'] ?? '') === 'desc' ? 'desc' : 'asc';
         $page = max(1, (int) ($_GET['seite'] ?? 1));
-        $newsletter = in_array(self::str($_GET['newsletter'] ?? ''), KundenRepository::NEWSLETTER_FILTER, true) ? self::str($_GET['newsletter']) : null;
-        $status = self::statusFilter();
 
-        $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter, $status);
+        $result = KundenRepository::search($filter, $sort, $dir, $page, self::PER_PAGE);
         $pages = max(1, (int) ceil($result['total'] / self::PER_PAGE));
         if ($page > $pages) {
             $page = $pages;
-            $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter, $status);
+            $result = KundenRepository::search($filter, $sort, $dir, $page, self::PER_PAGE);
         }
-        $ownEmail = Verteiler::ownEmail();
+
+        // Dropdown options from the data: types and places that occur, alphabetical
+        $typeOptions = [];
+        foreach (KundenRepository::countsByType() as $key => $n) {
+            if (Kundentypen::valid($key)) {
+                $typeOptions[$key] = [Kundentypen::plural($key), (int) $n];
+            }
+        }
+        uasort($typeOptions, static fn ($a, $b) => strcmp(self::sortKey($a[0]), self::sortKey($b[0])));
 
         View::render('kunden/index', [
             'title' => 'Kunden',
             'rows' => $result['rows'],
             'total' => $result['total'],
-            'counts' => KundenRepository::countsByType(),
-            'q' => $q,
-            'typ' => $typ,
+            'filter' => $filter,
+            'typeOptions' => $typeOptions,
+            'placeOptions' => KundenRepository::placeCounts(),
             'sort' => $sort,
             'dir' => $dir,
             'page' => $page,
             'pages' => $pages,
-            'newsletter' => $newsletter,
-            'status' => $status,
+            // The top search bar searches this list (keeps the dropdowns and the sort order)
+            'listSearch' => ['action' => '/kunden', 'q' => $filter->q,
+                'hidden' => array_diff_key($filter->params(), ['q' => 1]) + array_filter(['sort' => self::str($_GET['sort'] ?? ''), 'dir' => self::str($_GET['dir'] ?? '')])],
             // Recipients for the mail buttons: every filtered customer (all pages) and all subscribers
-            'filteredAddresses' => Verteiler::clean(KundenRepository::filteredAddresses($q, $typ, $newsletter, $status)),
+            'filteredAddresses' => Verteiler::clean(KundenRepository::filteredAddresses($filter)),
             'newsletterAddresses' => Verteiler::clean(KundenRepository::newsletterAddresses()),
-            'ownEmail' => $ownEmail,
+            'ownEmail' => Verteiler::ownEmail(),
         ]);
+    }
+
+    // Alphabetical order with umlauts sorted like their base letter ("Öffentliche" next to "O")
+    private static function sortKey(string $label): string
+    {
+        return strtr(mb_strtolower($label), ['ä' => 'a', 'ö' => 'o', 'ü' => 'u', 'ß' => 'ss']);
     }
 
     // Ja/Nein switch in the list: saves at once and returns to the same list view
@@ -97,18 +111,65 @@ final class KundenController
             Router::redirect($back);
         }
         $name = Kundentypen::displayName($kunde);
-        // Same rules as the form: children only for families, organisations need their own name
-        if (!Kundentypen::isPrivat($typ) && $kunde['kinder']) {
-            Session::flash('error', "„{$name}“ hat Kinder – die gibt es nur bei Eltern. Typ bitte über „Bearbeiten“ ändern (Kinder vorher entfernen).");
-            Router::redirect($back);
-        }
-        if (!Kundentypen::isPrivat($typ) && trim((string) $kunde['name']) === '') {
-            Session::flash('error', "Für „" . Kundentypen::label($typ) . "“ braucht „{$name}“ einen Namen der Einrichtung – Typ bitte über „Bearbeiten“ ändern.");
+        $problem = self::typeChangeProblem($kunde, $typ);
+        if ($problem !== null) {
+            $why = $problem === 'kinder' ? 'hat Kinder – die gibt es nur bei Eltern.' : 'hat keinen Namen der Einrichtung.';
+            Session::flash('error', "„{$name}“ {$why} Typ bitte über „Bearbeiten“ ändern.");
             Router::redirect($back);
         }
         KundenRepository::patch((int) $kunde['id'], ['typ' => $typ]);
         Session::flash('ok', "Typ für „{$name}“: " . Kundentypen::label($typ) . '.');
         Router::redirect($back);
+    }
+
+    // "Typ für Auswahl ändern": the ticked customers, or every customer of the filtered list (all pages)
+    public static function changeTypeBulk(): void
+    {
+        $back = self::listUrl($_POST['zurueck'] ?? null) ?? '/kunden';
+        $typ = self::str($_POST['typ'] ?? '');
+        if (!Kundentypen::valid($typ)) {
+            Session::flash('error', 'Bitte einen Typ wählen.');
+            Router::redirect($back);
+        }
+        $ids = self::str($_POST['alle'] ?? '') === '1'
+            ? KundenRepository::filteredIds(KundenFilter::fromQuery($_POST))
+            : array_values(array_unique(array_filter(array_map('intval', explode(',', self::str($_POST['ids'] ?? ''))))));
+
+        $changed = 0;
+        $skipped = [];
+        foreach ($ids as $id) {
+            $kunde = KundenRepository::find($id);
+            if ($kunde === null || $kunde['typ'] === $typ) {
+                continue;
+            }
+            $problem = self::typeChangeProblem($kunde, $typ);
+            if ($problem !== null) {
+                $skipped[$problem] = ($skipped[$problem] ?? 0) + 1;
+                continue;
+            }
+            KundenRepository::patch($id, ['typ' => $typ]);
+            $changed++;
+        }
+
+        $text = ($changed === 1 ? '1 Kunde' : "$changed Kunden") . ' auf „' . Kundentypen::label($typ) . '“ umgestellt.';
+        $reasons = ['kinder' => 'mit Kindern (die gibt es nur bei Eltern)', 'name' => 'ohne Namen der Einrichtung'];
+        foreach ($skipped as $problem => $n) {
+            $text .= " $n übersprungen " . $reasons[$problem] . '.';
+        }
+        Session::flash($skipped && $changed === 0 ? 'error' : 'ok', $text . ($skipped ? ' Diese bitte über „Bearbeiten“ ändern.' : ''));
+        Router::redirect($back);
+    }
+
+    /** Same rules as the form: children only for families, organisations need their own name ("kinder" / "name") */
+    private static function typeChangeProblem(array $kunde, string $typ): ?string
+    {
+        if (!Kundentypen::isPrivat($typ) && $kunde['kinder']) {
+            return 'kinder';
+        }
+        if (!Kundentypen::isPrivat($typ) && trim((string) $kunde['name']) === '') {
+            return 'name';
+        }
+        return null;
     }
 
     public static function show(): void
@@ -270,9 +331,7 @@ final class KundenController
 
     public static function export(): void
     {
-        $q = self::str($_GET['q'] ?? '');
-        $typ = Kundentypen::valid(self::str($_GET['typ'] ?? '')) ? self::str($_GET['typ']) : null;
-        $rows = KundenRepository::exportRows($q, $typ, self::statusFilter());
+        $rows = KundenRepository::exportRows(KundenFilter::fromQuery($_GET));
 
         $consent = static function (?array $c): string {
             if (!$c || !$c['erteilt_am']) {
@@ -381,13 +440,6 @@ final class KundenController
             exit;
         }
         return $kunde;
-    }
-
-    // Status filter of list and export (URL ?status=<key>|ohne)
-    private static function statusFilter(): ?string
-    {
-        $status = self::str($_GET['status'] ?? '');
-        return $status === 'ohne' || Kundentypen::validStatus($status) ? $status : null;
     }
 
     /** A customer-list URL ("/kunden?typ=schule&q=…") to return to — never anything else (no open redirect) */

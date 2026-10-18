@@ -15,6 +15,7 @@ final class Kundentypen
         'firma' => ['Firma', 'Firmen'],
         'bibliothek' => ['Bibliothek', 'Bibliotheken'],
         'partner' => ['Partner', 'Partner'],
+        'oeffentlich' => ['Öffentlicher Träger', 'Öffentliche Träger'],
         'sonstige' => ['Sonstige', 'Sonstige'],
     ];
 

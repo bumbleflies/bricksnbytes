@@ -1,5 +1,5 @@
 <?php
-/** @var string $title @var string $content @var ?array $flash */
+/** @var string $title @var string $content @var ?array $flash @var ?array $listSearch */
 use Backoffice\Auth;
 use Backoffice\Config;
 use Backoffice\Csrf;
@@ -36,10 +36,20 @@ $signedIn = Auth::check();
   </aside>
   <div class="main">
     <header class="topbar">
-      <form class="global-search" method="get" action="/suche" role="search">
-        <label for="global-q" class="visually-hidden">Suche</label>
-        <input id="global-q" name="q" type="search" placeholder="Kunde oder Kind suchen" value="<?= e($current === '/suche' ? ($_GET['q'] ?? '') : '') ?>">
-      </form>
+      <?php if (!empty($listSearch)): /* on a list page the top bar searches that list and keeps its filters */ ?>
+        <form class="global-search" method="get" action="<?= e($listSearch['action']) ?>" role="search" data-live-search>
+          <?php foreach ($listSearch['hidden'] as $name => $value): ?>
+            <input type="hidden" name="<?= e($name) ?>" value="<?= e($value) ?>">
+          <?php endforeach; ?>
+          <label for="global-q" class="visually-hidden">Kunden durchsuchen</label>
+          <input id="global-q" name="q" type="search" placeholder="Kunden durchsuchen: Name, E-Mail, Ort, Ansprechpartner oder Kind" value="<?= e($listSearch['q']) ?>">
+        </form>
+      <?php else: ?>
+        <form class="global-search" method="get" action="/suche" role="search">
+          <label for="global-q" class="visually-hidden">Suche</label>
+          <input id="global-q" name="q" type="search" placeholder="Kunde oder Kind suchen" value="<?= e($current === '/suche' ? ($_GET['q'] ?? '') : '') ?>">
+        </form>
+      <?php endif; ?>
       <a class="btn" href="/kunden/neu">+ Neu</a>
     </header>
     <main class="page">
