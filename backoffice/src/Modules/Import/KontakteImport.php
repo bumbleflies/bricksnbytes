@@ -40,6 +40,7 @@ final class KontakteImport
         'partner' => 'partner',
         'veranstalter/partner' => 'partner',
         'raumgeber/partner' => 'partner',
+        'öffentlicher träger' => 'oeffentlich',
         'sonstige' => 'sonstige',
         'kursleiter' => null,
     ];

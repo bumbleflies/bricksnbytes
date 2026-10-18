@@ -2,10 +2,56 @@
 // all recipients in BCC and the own address in To) and copying the addresses.
 // Addresses arrive already cleaned (valid, de-duplicated) from the server.
 (() => {
-  // Filter selects in the search form apply at once (the "Suchen" button still works without JS)
-  document.querySelectorAll('select[data-autosubmit]').forEach((select) => {
-    select.addEventListener('change', () => select.form?.submit());
+  // List filters (GET): empty values ("Alle", empty search) stay out of the URL
+  const submit = (form) => {
+    if (form.method === 'get') {
+      form.querySelectorAll('[name]').forEach((field) => { if (field.value === '') field.disabled = true; });
+    }
+    form.submit();
+  };
+  // Back button: the browser may bring back fields disabled above or with values from before the
+  // reload, so show what the server rendered (= the filter the list really uses)
+  window.addEventListener('pageshow', () => {
+    document.querySelectorAll('form[method="get"]').forEach((form) => {
+      form.querySelectorAll('[name]:disabled').forEach((field) => { field.disabled = false; });
+      form.reset();
+    });
   });
+
+  // Filter dropdowns (and the type dropdown in a row) apply at once
+  document.querySelectorAll('select[data-autosubmit]').forEach((select) => {
+    select.addEventListener('change', () => select.form && submit(select.form));
+  });
+
+  // Top search bar on the list: searches while typing (short pause) and keeps the dropdown filters.
+  // After the reload the cursor goes back into the field so typing can simply continue.
+  const live = document.querySelector('form[data-live-search]');
+  const liveInput = live?.querySelector('input[name="q"]');
+  if (live && liveInput) {
+    const FOCUS_KEY = 'kunden-search-focus';
+    try {
+      if (sessionStorage.getItem(FOCUS_KEY) === '1') {
+        sessionStorage.removeItem(FOCUS_KEY);
+        liveInput.focus();
+        liveInput.setSelectionRange(liveInput.value.length, liveInput.value.length);
+      }
+    } catch { /* storage blocked: no focus restore */ }
+    let timer = null;
+    let last = liveInput.value.trim();
+    const run = () => {
+      if (liveInput.value.trim() === last) return;
+      try { sessionStorage.setItem(FOCUS_KEY, '1'); } catch { /* ignore */ }
+      submit(live);
+    };
+    liveInput.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(run, 500);
+    });
+    live.addEventListener('submit', () => {
+      clearTimeout(timer);
+      last = liveInput.value.trim();
+    });
+  }
 
   const tools = document.getElementById('mail-tools');
   if (!tools) return;
@@ -30,6 +76,11 @@
   const copySelection = document.getElementById('copy-selection');
   const mailNewsletter = document.getElementById('mail-newsletter');
   const copyNewsletter = document.getElementById('copy-newsletter');
+  const bulkForm = document.getElementById('bulk-type');
+  const bulkIds = document.getElementById('bulk-ids');
+  const bulkAll = document.getElementById('bulk-all');
+  const bulkSubmit = document.getElementById('bulk-type-submit');
+  const bulkTyp = document.getElementById('bulk-typ');
 
   // true once "Alle N gefilterten Kunden auswählen" was clicked (selection spans all pages)
   let allFiltered = false;
@@ -68,6 +119,12 @@
     }
     // Offer the other pages once the whole page is selected
     selectFiltered.hidden = allFiltered || total <= rows.length || checked !== rows.length || rows.length === 0;
+    // "Typ für Auswahl ändern": ticked rows, or all filtered customers (the server re-applies the filter)
+    if (bulkForm) {
+      bulkIds.value = allFiltered ? '' : rows.filter((r) => r.checked).map((r) => r.value).join(',');
+      bulkAll.value = allFiltered ? '1' : '';
+      bulkSubmit.disabled = n === 0;
+    }
     mailSelection.disabled = addresses.length === 0 || !ownEmail;
     copySelection.disabled = addresses.length === 0;
     if (!ownEmail) mailNewsletter.disabled = true;
@@ -141,6 +198,13 @@
     allFiltered = true;
     rows.forEach((row) => { row.checked = true; });
     update();
+  });
+  bulkForm?.addEventListener('submit', (event) => {
+    const n = selectedCount();
+    const label = bulkTyp.options[bulkTyp.selectedIndex]?.text ?? '';
+    if (n === 0 || !window.confirm(`${n === 1 ? '1 Kunden' : `${n} Kunden`} auf „${label}“ umstellen?`)) {
+      event.preventDefault();
+    }
   });
   mailSelection.addEventListener('click', () => sendMail(selectedAddresses()));
   copySelection.addEventListener('click', () => copyButton(selectedAddresses()));

@@ -4,7 +4,8 @@ Internes Backoffice für BricksnBytes. PHP 8.3+ und MySQL/MariaDB, ohne Framewor
 Abhängigkeiten – läuft auf normalem Strato-Webspace.
 
 **Stand Phase 1:** Login, Dashboard (Kundenzahlen; Umsatz/Forecast/Termine als Platzhalter),
-globale Suche, **Kunden** (Eltern, Schulen, Horte, Kitas, Vereine, Firmen, Sonstige) mit
+globale Suche, **Kunden** (Eltern, Schulen, Horte, Kitas, Vereine, Firmen, Bibliotheken, Partner,
+Öffentliche Träger, Sonstige) mit
 Ansprechpartnern, **Kindern**, Einwilligungen und Änderungsprotokoll, Kinder-Übersicht,
 CSV-Export und -Import. Aufträge, Kurse, Termine, Buchungen, Rechnungen, Forecast, Kursleiter
 und Einstellungen sind als Seiten angelegt („Kommt bald“); ihre Tabellen existieren bereits
@@ -187,13 +188,34 @@ Benötigt: `E-Mail`, `Typ`; genutzt außerdem `Name`, `Telefon`, `Organisation`,
   schon, werden dort nur neue Ansprechpartner ergänzt.
 - Eltern: ein Privatkunde je Zeile (Name → Elternteil). „Frau“/„Herr“ werden weggelassen.
 - Typen: Kita/Familienzentrum → Kita, Hort/Förderverein → Hort, Unternehmen/Sponsor und Hotel →
-  Firma, Veranstalter/Partner und Raumgeber/Partner → Partner, Bibliothek → Bibliothek; Kursleiter
-  werden nicht importiert. Bei gemischten Typen einer Organisation zählt der häufigste.
+  Firma, Veranstalter/Partner und Raumgeber/Partner → Partner, Bibliothek → Bibliothek, Öffentlicher
+  Träger → Öffentlicher Träger; Kursleiter werden nicht importiert. Bei gemischten Typen einer
+  Organisation zählt der häufigste.
 - **Status** (Feld beim Kunden, filterbar in der Liste): Abgelehnt und Kein Auftrag → Kein Interesse;
   bei mehreren Personen zählt die mit dem jüngsten Kontakt. Unbekannte Status (z. B. „Abgemeldet“)
   stehen in den Notizen und werden in der Vorschau als Hinweis gelistet.
 - Notizen und Anzahl Mails kommen in die Notizen des Kunden; Newsletter-Einwilligungen werden
   nicht gesetzt.
+
+### Kundenliste: Suche und Filter
+
+- **Eine Suchleiste** oben (neben „+ Neu“): auf der Kundenliste durchsucht sie die Kunden (Name,
+  E-Mail, Ort, Vor-/Nachname, Ansprechpartner, Kinder) und aktualisiert die Liste beim Tippen; auf
+  allen anderen Seiten ist sie die globale Suche (Kunden und Kinder).
+- Darunter die Filter als Auswahlfelder: **Typ**, **Newsletter** (Ja/Nein), **Ort** und **Status**,
+  jeweils mit „Alle“ als Standard. Typen und Orte kommen aus den vorhandenen Daten (alphabetisch,
+  mit Anzahl). Suche und Filter gelten zusammen (UND); eine Änderung lädt die Liste sofort und
+  lässt die übrigen Einstellungen stehen.
+- Anzahl, Auswahl („Alle N gefilterten Kunden auswählen“), E-Mail-Adressen, Export und
+  „Typ für Auswahl ändern“ nutzen immer das kombinierte Ergebnis. Die Filterlogik
+  (`src/Modules/Kunden/KundenFilter.php`) ist mit Unit-Tests abgesichert.
+- **Typ für Auswahl ändern** (im Bereich „E-Mail an Auswahl“): ausgewählte bzw. alle gefilterten
+  Kunden auf einen Typ umstellen, mit Rückfrage. Wie beim Einzelwechsel werden Eltern mit Kindern
+  und Kunden ohne Namen der Einrichtung nicht in eine Einrichtung umgewandelt (übersprungen, mit
+  Hinweis); jede Änderung steht im Änderungsprotokoll.
+- Typ **Öffentlicher Träger** (Migration 007). Die Migration stellt außerdem einmalig Kunden mit
+  „Bildungslokal“ im Namen oder in der E-Mail auf Öffentlicher Träger und mit „Bibliothek“ auf
+  Bibliothek um (nicht bei Kunden mit Kindern; protokolliert als „migration 007“).
 
 ### Kundenliste: Aktionen und Typ
 
@@ -240,8 +262,8 @@ Die **Newsletter-Liste** (früher „CSV importieren“) lehnt Dateien mit den S
 
 In **Kunden** zeigt die Spalte **Newsletter** Ja/Nein; ein Klick auf den Schalter speichert sofort.
 Dahinter steht die Newsletter-Einwilligung: „Ja“ trägt sie mit dem heutigen Datum ein, „Nein“
-setzt das Widerrufsdatum (die Einwilligung bleibt dokumentiert). Filter: Alle / Newsletter Ja /
-Newsletter Nein.
+setzt das Widerrufsdatum (die Einwilligung bleibt dokumentiert). Filter: Auswahlfeld „Newsletter“
+(Alle / Ja / Nein).
 
 - **E-Mail an Auswahl**: Kunden per Checkbox auswählen („Alle auswählen“ = aktuelle Seite, danach
   „Alle N gefilterten Kunden auswählen“). Öffnet das Mailprogramm mit allen Adressen im **BCC**.
