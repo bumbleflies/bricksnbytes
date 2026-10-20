@@ -2,56 +2,10 @@
 // all recipients in BCC and the own address in To) and copying the addresses.
 // Addresses arrive already cleaned (valid, de-duplicated) from the server.
 (() => {
-  // List filters (GET): empty values ("Alle", empty search) stay out of the URL
-  const submit = (form) => {
-    if (form.method === 'get') {
-      form.querySelectorAll('[name]').forEach((field) => { if (field.value === '') field.disabled = true; });
-    }
-    form.submit();
-  };
-  // Back button: the browser may bring back fields disabled above or with values from before the
-  // reload, so show what the server rendered (= the filter the list really uses)
-  window.addEventListener('pageshow', () => {
-    document.querySelectorAll('form[method="get"]').forEach((form) => {
-      form.querySelectorAll('[name]:disabled').forEach((field) => { field.disabled = false; });
-      form.reset();
-    });
-  });
-
-  // Filter dropdowns (and the type dropdown in a row) apply at once
+  // Filter selects in the search form apply at once (the "Suchen" button still works without JS)
   document.querySelectorAll('select[data-autosubmit]').forEach((select) => {
-    select.addEventListener('change', () => select.form && submit(select.form));
+    select.addEventListener('change', () => select.form?.submit());
   });
-
-  // Top search bar on the list: searches while typing (short pause) and keeps the dropdown filters.
-  // After the reload the cursor goes back into the field so typing can simply continue.
-  const live = document.querySelector('form[data-live-search]');
-  const liveInput = live?.querySelector('input[name="q"]');
-  if (live && liveInput) {
-    const FOCUS_KEY = 'kunden-search-focus';
-    try {
-      if (sessionStorage.getItem(FOCUS_KEY) === '1') {
-        sessionStorage.removeItem(FOCUS_KEY);
-        liveInput.focus();
-        liveInput.setSelectionRange(liveInput.value.length, liveInput.value.length);
-      }
-    } catch { /* storage blocked: no focus restore */ }
-    let timer = null;
-    let last = liveInput.value.trim();
-    const run = () => {
-      if (liveInput.value.trim() === last) return;
-      try { sessionStorage.setItem(FOCUS_KEY, '1'); } catch { /* ignore */ }
-      submit(live);
-    };
-    liveInput.addEventListener('input', () => {
-      clearTimeout(timer);
-      timer = setTimeout(run, 500);
-    });
-    live.addEventListener('submit', () => {
-      clearTimeout(timer);
-      last = liveInput.value.trim();
-    });
-  }
 
   const tools = document.getElementById('mail-tools');
   if (!tools) return;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Backoffice\Modules\Suche;
 
 use Backoffice\Db;
-use Backoffice\Modules\Kunden\KundenFilter;
 use Backoffice\Modules\Kunden\KundenRepository;
 use Backoffice\Router;
 use Backoffice\View;
@@ -25,7 +24,7 @@ final class SucheController
         $kunden = $kinder = [];
         $totalKunden = 0;
         if (mb_strlen($q) >= 2) {
-            $result = KundenRepository::search(KundenFilter::search($q), 'name', 'asc', 1, self::LIMIT);
+            $result = KundenRepository::search($q, null, 'name', 'asc', 1, self::LIMIT);
             $kunden = $result['rows'];
             $totalKunden = $result['total'];
 

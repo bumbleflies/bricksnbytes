@@ -35,6 +35,13 @@ final class KundenRepository
         'newsletter' => '(newsletter_seit IS NOT NULL)',
     ];
 
+    // Newsletter filter values of the list view (URL ?newsletter=ja|nein)
+    public const NEWSLETTER_FILTER = ['ja', 'nein'];
+
+    // A newsletter consent counts as active when it was given and not withdrawn
+    private const NEWSLETTER_ACTIVE = "SELECT 1 FROM einwilligungen e WHERE e.kunde_id = k.id AND e.kind_id IS NULL
+          AND e.art = 'newsletter' AND e.erteilt_am IS NOT NULL AND e.widerrufen_am IS NULL";
+
     private const BASE_SELECT = "SELECT k.*, hk.vorname AS hk_vorname, hk.nachname AS hk_nachname, hk.rolle AS hk_rolle,
           (SELECT GROUP_CONCAT(ki.vorname ORDER BY ki.geburtsdatum IS NULL, ki.geburtsdatum, ki.geburtsjahr, ki.id SEPARATOR ', ')
              FROM kinder ki WHERE ki.kunde_id = k.id) AS kinder_namen,
@@ -46,9 +53,9 @@ final class KundenRepository
         LEFT JOIN ansprechpartner hk ON hk.kunde_id = k.id AND hk.ist_hauptkontakt = 1";
 
     /** @return array{rows: array, total: int} */
-    public static function search(KundenFilter $filter, string $sort, string $dir, int $page, int $perPage): array
+    public static function search(string $q, ?string $typ, string $sort, string $dir, int $page, int $perPage, ?string $newsletter = null, ?string $status = null): array
     {
-        [$where, $params] = $filter->where();
+        [$where, $params] = self::filter($q, $typ, $newsletter, $status);
         $expr = self::SORTS[$sort] ?? self::SORTS['name'];
         $direction = $dir === 'desc' ? 'DESC' : 'ASC';
 
@@ -67,9 +74,9 @@ final class KundenRepository
     }
 
     /** Mail address (customer, else main contact) of every customer matching the list filter */
-    public static function filteredAddresses(KundenFilter $filter): array
+    public static function filteredAddresses(string $q, ?string $typ, ?string $newsletter, ?string $status = null): array
     {
-        [$where, $params] = $filter->where();
+        [$where, $params] = self::filter($q, $typ, $newsletter, $status);
         return Db::query(
             "SELECT COALESCE(NULLIF(k.email, ''), hk.email) FROM kunden k
              LEFT JOIN ansprechpartner hk ON hk.kunde_id = k.id AND hk.ist_hauptkontakt = 1 $where",
@@ -77,10 +84,17 @@ final class KundenRepository
         )->fetchAll(\PDO::FETCH_COLUMN);
     }
 
+    /** Ids of every customer matching the list filter (all pages), e.g. for bulk actions */
+    public static function filteredIds(string $q, ?string $typ, ?string $newsletter, ?string $status = null): array
+    {
+        [$where, $params] = self::filter($q, $typ, $newsletter, $status);
+        return array_map('intval', Db::query("SELECT k.id FROM kunden k $where ORDER BY k.id", $params)->fetchAll(\PDO::FETCH_COLUMN));
+    }
+
     /** Mail address of every customer with an active newsletter consent */
     public static function newsletterAddresses(): array
     {
-        return self::filteredAddresses(KundenFilter::newsletterOnly());
+        return self::filteredAddresses('', null, 'ja');
     }
 
     /**
@@ -111,21 +125,6 @@ final class KundenRepository
         }
     }
 
-    /** Ids of every customer matching the list filter (all pages), e.g. for bulk actions */
-    public static function filteredIds(KundenFilter $filter): array
-    {
-        [$where, $params] = $filter->where();
-        return array_map('intval', Db::query("SELECT k.id FROM kunden k $where ORDER BY k.id", $params)->fetchAll(\PDO::FETCH_COLUMN));
-    }
-
-    /** Places that occur in the customer data with their count, alphabetical (for the Ort filter) */
-    public static function placeCounts(): array
-    {
-        return Db::query(
-            "SELECT TRIM(ort) AS ort, COUNT(*) FROM kunden WHERE ort IS NOT NULL AND TRIM(ort) <> '' GROUP BY TRIM(ort) ORDER BY TRIM(ort)"
-        )->fetchAll(\PDO::FETCH_KEY_PAIR);
-    }
-
     /** Count per customer type, e.g. ['privat' => 12, 'schule' => 3] */
     public static function countsByType(): array
     {
@@ -138,9 +137,9 @@ final class KundenRepository
     }
 
     /** All matching customers with contacts, children and consents, for the CSV export */
-    public static function exportRows(KundenFilter $filter): array
+    public static function exportRows(string $q, ?string $typ, ?string $status = null): array
     {
-        [$where, $params] = $filter->where();
+        [$where, $params] = self::filter($q, $typ, null, $status);
         $rows = Db::query(self::BASE_SELECT . " $where ORDER BY k.typ, " . self::SORTS['name'] . ', k.id', $params)->fetchAll();
         $kinder = self::groupBy(Db::query('SELECT * FROM kinder ORDER BY geburtsdatum IS NULL, geburtsdatum, geburtsjahr, id')->fetchAll());
         $einwilligungen = self::groupBy(Db::query('SELECT * FROM einwilligungen WHERE kind_id IS NULL')->fetchAll());
@@ -374,6 +373,40 @@ final class KundenRepository
                 Audit::created('einwilligungen', (int) Db::pdo()->lastInsertId(), ['art' => $art] + $new);
             }
         }
+    }
+
+    /** @return array{0: string, 1: array} */
+    private static function filter(string $q, ?string $typ, ?string $newsletter = null, ?string $status = null): array
+    {
+        $conditions = [];
+        $params = [];
+        if ($typ !== null) {
+            $conditions[] = 'k.typ = ?';
+            $params[] = $typ;
+        }
+        if ($status === 'ohne') {
+            $conditions[] = 'k.status IS NULL';
+        } elseif ($status !== null) {
+            $conditions[] = 'k.status = ?';
+            $params[] = $status;
+        }
+        if ($newsletter === 'ja') {
+            $conditions[] = 'EXISTS (' . self::NEWSLETTER_ACTIVE . ')';
+        } elseif ($newsletter === 'nein') {
+            $conditions[] = 'NOT EXISTS (' . self::NEWSLETTER_ACTIVE . ')';
+        }
+        $q = trim($q);
+        if ($q !== '') {
+            $like = '%' . addcslashes($q, '%_\\') . '%';
+            $conditions[] = "(k.name LIKE ? OR k.email LIKE ? OR k.ort LIKE ? OR k.vorname LIKE ? OR k.nachname LIKE ?
+                OR CONCAT_WS(' ', k.vorname, k.nachname) LIKE ?
+                OR EXISTS (SELECT 1 FROM ansprechpartner a WHERE a.kunde_id = k.id
+                           AND (a.vorname LIKE ? OR a.nachname LIKE ? OR CONCAT_WS(' ', a.vorname, a.nachname) LIKE ? OR a.email LIKE ?))
+                OR EXISTS (SELECT 1 FROM kinder ki WHERE ki.kunde_id = k.id
+                           AND (ki.vorname LIKE ? OR CONCAT_WS(' ', ki.vorname, ki.nachname) LIKE ?)))";
+            array_push($params, ...array_fill(0, 12, $like));
+        }
+        return [$conditions ? 'WHERE ' . implode(' AND ', $conditions) : '', $params];
     }
 
     private static function groupBy(array $rows): array
