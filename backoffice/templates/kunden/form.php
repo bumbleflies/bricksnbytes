@@ -1,5 +1,5 @@
 <?php
-/** @var ?int $id @var array $kunde @var array $contacts @var array $kinder @var bool $newChild @var array $consents @var array $errors @var ?string $vorschlag @var ?string $zurueck */
+/** @var ?int $id @var array $kunde @var array $contacts @var array $kinder @var bool $newChild @var array $consents @var array $errors @var ?string $zurueck */
 use Backoffice\Csrf;
 use Backoffice\Modules\Kunden\Kundentypen;
 
@@ -9,6 +9,7 @@ $action = $id === null ? '/kunden/neu' : '/kunden/bearbeiten?id=' . $id;
 // Opened from the list (pencil): back there; otherwise to the detail page as before
 $back = $zurueck ?? ($id === null ? '/kunden' : '/kunden/ansehen?id=' . $id);
 $heading = $id === null ? 'Neuer Kunde: ' . Kundentypen::label($typ) : 'Bearbeiten: ' . Kundentypen::displayName($kunde);
+$shows = static fn (string $name): bool => in_array($name, Kundentypen::stammdatenFelder($typ), true);
 $hasChildData = (bool) array_filter($kinder, static fn ($k) => !empty($k['vorname']) || !empty($k['id']));
 
 $field = static function (string $name, string $label, string $type = 'text', array $opts = []) use ($kunde, $errors): string {
@@ -99,15 +100,11 @@ $contactsFieldset = static function () use ($contacts, $errors, $privat, $sub): 
 
   <fieldset>
     <legend><?= $privat ? 'Familie' : 'Einrichtung' ?></legend>
-    <?php if (!$privat): /* families: name, e-mail and phone are with the parents (stored values stay) */ ?>
+    <?php /* Which fields: Kundentypen::stammdatenFelder (names are with parents / contact persons) */ ?>
+    <?php if ($shows('name')): ?>
       <?= $field('name', 'Name der Einrichtung', 'text', ['placeholder' => 'z. B. Grundschule an der Isar']) ?>
-      <div class="grid-2<?= !empty($vorschlag) ? ' is-suggestion' : '' ?>">
-        <?= $field('vorname', 'Vorname', 'text', ['autocomplete' => 'off']) ?>
-        <?= $field('nachname', 'Nachname', 'text', ['autocomplete' => 'off']) ?>
-      </div>
-      <?php if (!empty($vorschlag)): ?>
-        <p class="hint suggestion-hint">Vorschlag aus <?= e($vorschlag) ?> – bitte prüfen. Er wird erst mit „Speichern“ übernommen; zum Verwerfen die Felder leeren.</p>
-      <?php endif; ?>
+    <?php endif; ?>
+    <?php if ($shows('email')): ?>
       <div class="grid-2">
         <?= $field('email', 'E-Mail (allgemein)', 'email', ['autocomplete' => 'off']) ?>
         <?= $field('telefon', 'Telefon', 'tel') ?>

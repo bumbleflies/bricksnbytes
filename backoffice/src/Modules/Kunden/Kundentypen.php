@@ -69,6 +69,18 @@ final class Kundentypen
         return self::ALLE[$typ][1] ?? $typ;
     }
 
+    /**
+     * Customer fields of the form section "Familie" (Eltern) or "Einrichtung" (all other types) – the one
+     * place that decides it. First/last name are with the parents / contact persons, e-mail and phone
+     * too for families; stored values of fields not in the form are kept on save.
+     */
+    public static function stammdatenFelder(string $typ): array
+    {
+        return self::isPrivat($typ)
+            ? ['adresse', 'plz', 'ort', 'status', 'quelle']
+            : ['name', 'email', 'telefon', 'adresse', 'plz', 'ort', 'status', 'quelle'];
+    }
+
     public static function isPrivat(string $typ): bool
     {
         return $typ === 'privat';

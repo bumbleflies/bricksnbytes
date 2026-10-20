@@ -4,6 +4,7 @@
 use Backoffice\Csrf;
 use Backoffice\Modules\Kunden\KundenController;
 use Backoffice\Modules\Kunden\Kundentypen;
+use Backoffice\Modules\Kunden\StatusBadge;
 use Backoffice\Modules\Kunden\Verteiler;
 
 // Search and dropdown filters of the list (also kept by sort links, paging, export and bulk actions)
@@ -13,15 +14,18 @@ $url = static function (array $changes) use ($filter, $sort, $dir, $page): strin
     return '/kunden?' . http_build_query(array_filter(array_merge($params, $changes), static fn ($v) => $v !== null && $v !== ''));
 };
 
-// Columns depend on the filter: families, organisations, or mixed
+// Columns depend on the filter: families, organisations, or mixed. Telefon and Ort are not listed
+// (detail page and form); the Ort filter and the search still use them.
 if ($typ === 'privat') {
-    $columns = ['vorname' => 'Vorname', 'nachname' => 'Nachname', 'email' => 'E-Mail', 'newsletter' => 'Newsletter', 'status' => 'Status', 'telefon' => 'Telefon',
-        'adresse' => 'Adresse', 'plz' => 'PLZ', 'ort' => 'Ort', 'kinder' => 'Kinder'];
+    $columns = ['vorname' => 'Vorname', 'nachname' => 'Nachname', 'email' => 'E-Mail', 'newsletter' => 'Newsletter', 'status' => 'Status',
+        'adresse' => 'Adresse', 'plz' => 'PLZ', 'kinder' => 'Kinder'];
 } elseif ($typ !== null) {
-    $columns = ['name' => 'Name', 'newsletter' => 'Newsletter', 'status' => 'Status', 'typ' => 'Typ', 'ansprechpartner' => 'Ansprechpartner', 'ort' => 'Ort'];
+    $columns = ['name' => 'Name', 'newsletter' => 'Newsletter', 'status' => 'Status', 'typ' => 'Typ', 'ansprechpartner' => 'Ansprechpartner'];
 } else {
-    $columns = ['name' => 'Name', 'typ' => 'Typ', 'status' => 'Status', 'email' => 'E-Mail', 'newsletter' => 'Newsletter', 'telefon' => 'Telefon', 'ort' => 'Ort', 'kinder' => 'Kinder / Ansprechpartner'];
+    $columns = ['name' => 'Name', 'typ' => 'Typ', 'status' => 'Status', 'email' => 'E-Mail', 'newsletter' => 'Newsletter', 'kinder' => 'Kinder / Ansprechpartner'];
 }
+// Longer text columns wrap instead of widening the table (the actions column stays visible)
+$wrapColumns = ['kinder', 'ansprechpartner', 'adresse'];
 $here = $url([]);
 $exportQuery = http_build_query($filter);
 $all = array_sum(array_column($typeOptions, 1));
@@ -136,7 +140,7 @@ $places += $ort !== null && !isset($places[$ort]) ? [$ort => 0] : [];
           <?php foreach ($columns as $key => $label):
               $active = $sort === $key;
               $nextDir = $active && $dir === 'asc' ? 'desc' : 'asc'; ?>
-            <th scope="col"<?= $active ? ' aria-sort="' . ($dir === 'asc' ? 'ascending' : 'descending') . '"' : '' ?>>
+            <th scope="col"<?= in_array($key, $wrapColumns, true) ? ' class="col-wrap"' : '' ?><?= $active ? ' aria-sort="' . ($dir === 'asc' ? 'ascending' : 'descending') . '"' : '' ?>>
               <a href="<?= e($url(['sort' => $key, 'dir' => $nextDir, 'seite' => 1])) ?>"><?= e($label) ?><?php if ($active): ?> <span aria-hidden="true"><?= $dir === 'asc' ? '▲' : '▼' ?></span><?php endif; ?></a>
             </th>
           <?php endforeach; ?>
@@ -156,7 +160,7 @@ $places += $ort !== null && !isset($places[$ort]) ? [$ort => 0] : [];
                      aria-label="<?= e($display) ?> auswählen<?= $address === '' ? ' (keine gültige E-Mail)' : '' ?>">
             </td>
             <?php foreach (array_keys($columns) as $i => $key): ?>
-              <td>
+              <td<?= in_array($key, $wrapColumns, true) ? ' class="col-wrap"' : '' ?>>
                 <?php
                 $value = match ($key) {
                     'name' => Kundentypen::displayName($r),
@@ -197,8 +201,8 @@ $places += $ort !== null && !isset($places[$ort]) ? [$ort => 0] : [];
                     </select>
                     <noscript><button type="submit" class="btn-link">Ändern</button></noscript>
                   </form>
-                <?php elseif ($key === 'status' && in_array($r['status'], Kundentypen::STATUS_STOP, true)): ?>
-                  <span class="status-stop"><?= e($value) ?></span>
+                <?php elseif ($key === 'status'): ?>
+                  <?= StatusBadge::html($r['status']) ?>
                 <?php elseif ($key === 'email' && $value): ?>
                   <a href="mailto:<?= e($value) ?>"><?= e($value) ?></a>
                 <?php else: ?>

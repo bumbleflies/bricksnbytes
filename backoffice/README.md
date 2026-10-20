@@ -199,16 +199,11 @@ Benötigt: `E-Mail`, `Typ`; genutzt außerdem `Name`, `Telefon`, `Organisation`,
 
 ### Dashboard: Geburtstage
 
-Die Kachel **Geburtstage** (zweite Reihe rechts) zeigt die Kinder mit Geburtstag im Zeitraum: Name
-(Link zur Familie), Datum und das Alter, das sie werden. Heute steht oben („Heute 🎉“), danach die
-nächsten, schon vergangene des Zeitraums zuletzt. Nur Tag und Monat zählen; am 29.02. Geborene
-erscheinen in Nicht-Schaltjahren am 28.02. Kinder mit nur einem Geburtsjahr fehlen.
-
-- Umschalter **Woche | Monat** im Kachelkopf: Woche = aktuelle Kalenderwoche (Montag bis Sonntag),
-  Monat = aktueller Kalendermonat. Standard ist Woche; die Auswahl merkt sich der Browser.
-- Die Kachel ist so hoch wie die anderen, längere Listen scrollen in der Kachel.
-- Logik in `src/Modules/Kinder/Geburtstage.php` (mit Unit-Tests). Den Standard ändert
-  `Geburtstage::STANDARD`; ohne Umschalter einfach `ZEITRAEUME` auf einen Eintrag kürzen.
+Die Kachel **Nächste Geburtstage** (zweite Reihe rechts) zeigt die nächsten 5 Geburtstage der Kinder ab
+heute, auch über den Monats- und Jahreswechsel: Name (Link zur Familie), Datum und das Alter, das sie
+werden. Heute steht oben („Heute 🎉“); am selben Tag sortiert der Name. Nur Tag und Monat zählen; am
+29.02. Geborene erscheinen in Nicht-Schaltjahren am 28.02. Kinder ohne Geburtsdatum fehlen. Die
+Anzahl steht in `Geburtstage::ANZAHL` (`src/Modules/Kinder/Geburtstage.php`, mit Unit-Tests).
 
 ### Kundenliste: Suche und Filter
 
@@ -228,6 +223,16 @@ Die Suchleiste oben bleibt die globale Suche (Kunden und Kinder).
 - Typ **Öffentlicher Träger** (Migration 007). Die Migration stellt außerdem einmalig Kunden mit
   „Bildungslokal“ im Namen oder in der E-Mail auf Öffentlicher Träger und mit „Bibliothek“ auf
   Bibliothek um (nicht bei Kunden mit Kindern; protokolliert als „migration 007“).
+
+### Kundenliste: Spalten und Status
+
+- Die Liste zeigt **Telefon** und **Ort** nicht (Detailseite und Formular schon); Ort-Filter und Suche
+  nutzen sie weiterhin.
+- Der **Status** erscheint als farbiges Badge (auch auf Detailseite und in der Schnellansicht):
+  Orange = Angebot offen, Nachfassen · Gelb = Interessent, Warteliste · Grün = Kunde, Partner ·
+  Hellrot = Kein Interesse, Nicht mehr anschreiben · Helllila = Kontakt, Angefragt · Grau = Akquise,
+  Beendet, kein oder unbekannter Status. Zuordnung in `src/Modules/Kunden/StatusBadge.php`, Farben als
+  `--status-*`-Variablen in `public/assets/app.css`.
 
 ### Kundenliste: Aktionen und Typ
 
@@ -255,17 +260,17 @@ Nur beim Typ **Eltern** (alle anderen Typen unverändert):
 
 ### Vor- und Nachname beim Kunden
 
-Kunden haben in den Stammdaten eigene Felder **Vorname** und **Nachname** (Migration 006, für
-bestehende Kunden leer). Sind beide leer, schlägt das Backoffice den Namen des Hauptkontakts vor,
-gibt es keinen, einen Namen aus der E-Mail
-(`anna.mueller@…` → Anna / Mueller; `.` und `_` trennen, `-` bleibt, Ziffern fallen weg; bei
-info@, kontakt@, familie123@ … kein Vorschlag, bei nur einem Wort nur der Vorname):
+Kunden haben in den Stammdaten eigene Felder **Vorname** und **Nachname** (Migration 006). Formular und
+Detailseite zeigen sie nicht mehr: Bei Einrichtungen stehen die Namen beim **Ansprechpartner**, bei
+Eltern bei den **Eltern** (welche Felder das Formular zeigt, legt `Kundentypen::stammdatenFelder()`
+fest). Gespeicherte Werte bleiben erhalten; Speichern leert oder überschreibt sie nicht. Liste,
+Anzeigename, E-Mail-Auswahl und Export nutzen den Namen der Einrichtung bzw. des Ansprechpartners;
+die Suche findet Einrichtungen über ihren Namen und ihre Ansprechpartner.
 
-- Detailseite: Vorschlag als Hinweis; im **Bearbeiten**-Formular vorausgefüllt und markiert,
-  gespeichert erst mit „Speichern“ (zum Verwerfen die Felder leeren).
-- **Namen aus E-Mail übernehmen** (Link auf der Detailseite, `/kunden/namen`): Vorschau aller Kunden
-  ohne Namen mit Vorschlag, korrigierbar, Eltern vorausgewählt; gespeichert werden nur angehakte
-  Zeilen und nur, solange beide Felder noch leer sind.
+- **Namen aus E-Mail übernehmen** (`/kunden/namen`, nur noch über die Adresse erreichbar): Vorschau der
+  Eltern ohne Namen mit Vorschlag (Name des Hauptkontakts, sonst aus der E-Mail:
+  `anna.mueller@…` → Anna / Mueller), korrigierbar; gespeichert werden nur angehakte Zeilen und nur,
+  solange beide Felder noch leer sind.
 
 Die Ableitung (`src/Modules/Kunden/Namensvorschlag.php`) ist mit Unit-Tests abgesichert:
 `php tests/run.php` (läuft auch in der GitHub-Prüfung des Backoffice).

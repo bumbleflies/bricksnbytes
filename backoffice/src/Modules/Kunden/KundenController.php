@@ -183,7 +183,6 @@ final class KundenController
         View::render('kunden/show', [
             'title' => Kundentypen::displayName($kunde),
             'kunde' => $kunde,
-            'vorschlag' => self::nameSuggestion($kunde),
             'protokoll' => Audit::forRecord('kunden', (int) $kunde['id'], 10),
         ]);
     }
@@ -230,13 +229,7 @@ final class KundenController
     {
         $kunde = self::findOr404();
         $consents = array_map(static fn ($c) => ['erteilt_am' => $c['erteilt_am'], 'widerrufen_am' => $c['widerrufen_am']], $kunde['einwilligungen']);
-        // Empty names: prefilled from the e-mail address, saved only when the user saves the form
-        $vorschlag = self::nameSuggestion($kunde);
-        if ($vorschlag !== null) {
-            $kunde['vorname'] = $vorschlag['vorname'];
-            $kunde['nachname'] = $vorschlag['nachname'];
-        }
-        self::renderForm((int) $kunde['id'], $kunde, $kunde['ansprechpartner'], $kunde['kinder'], $consents, [], 200, $vorschlag['herkunft'] ?? null);
+        self::renderForm((int) $kunde['id'], $kunde, $kunde['ansprechpartner'], $kunde['kinder'], $consents, []);
     }
 
     public static function update(): void
@@ -399,8 +392,7 @@ final class KundenController
         return strlen($value) > 10 ? $date->format('d.m.Y H:i') : $date->format('d.m.Y');
     }
 
-    /** @param ?string $vorschlag where the prefilled names come from ("der E-Mail-Adresse"), null = nothing prefilled */
-    private static function renderForm(?int $id, array $kunde, array $contacts, array $kinder, array $consents, array $errors, int $status = 200, ?string $vorschlag = null): void
+    private static function renderForm(?int $id, array $kunde, array $contacts, array $kinder, array $consents, array $errors, int $status = 200): void
     {
         $privat = Kundentypen::isPrivat($kunde['typ'] ?? 'privat');
 
@@ -431,7 +423,6 @@ final class KundenController
             'newChild' => $newChild,
             'consents' => $consents,
             'errors' => $errors,
-            'vorschlag' => $vorschlag,
             // Where "Abbrechen"/"Zurück" and saving lead when the form was opened from the list
             'zurueck' => self::listUrl($_GET['zurueck'] ?? $_POST['zurueck'] ?? null),
         ], $status);

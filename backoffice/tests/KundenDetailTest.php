@@ -6,6 +6,7 @@ declare(strict_types=1);
 // Templates are rendered directly (no database, no layout).
 
 use Backoffice\Modules\Kunden\KundenValidator;
+use Backoffice\Modules\Kunden\Kundentypen;
 
 if (!defined('BACKOFFICE_ROOT')) {
     define('BACKOFFICE_ROOT', dirname(__DIR__));
@@ -53,10 +54,10 @@ $form = static function (array $kunde, bool $newChild = false) use ($render): st
     $contacts[] = ['id' => null, 'ist_hauptkontakt' => 0];
     return $render('kunden/form', [
         'id' => $kunde['id'], 'kunde' => $kunde, 'contacts' => $contacts, 'kinder' => $kunde['kinder'], 'newChild' => $newChild,
-        'consents' => [], 'errors' => [], 'vorschlag' => null, 'zurueck' => null,
+        'consents' => [], 'errors' => [], 'zurueck' => null,
     ]);
 };
-$show = static fn (array $kunde): string => $render('kunden/show', ['kunde' => $kunde, 'vorschlag' => null, 'protokoll' => []]);
+$show = static fn (array $kunde): string => $render('kunden/show', ['kunde' => $kunde, 'protokoll' => []]);
 $childRows = static fn (string $html): array => $matches('~name="kinder\[(\d+)\]\[vorname\]" value="([^"]*)"~', $html);
 
 return [
@@ -86,11 +87,24 @@ return [
         assertSame(1, substr_count(explode('<template', $withNew)[0], 'data-new-child'));
         assertSame(true, str_contains($withNew, 'name="kinder[2][vorname]" value=""'));
     }],
-    ['Formular andere Typen unverändert (Einrichtung mit Name, Kontakt, kein Kinder-Bereich)', static function () use ($form, $kunde, $legends, $fieldsIn): void {
+    ['Formular andere Typen: Reihenfolge wie bisher, kein Kinder-Bereich', static function () use ($form, $kunde, $legends): void {
         $html = $form($kunde('schule'));
         assertSame(['Kundentyp', 'Einrichtung', 'Ansprechpartner', 'Einwilligungen', 'Notizen'], $legends($html));
-        assertSame(['name', 'vorname', 'nachname', 'email', 'telefon', 'adresse', 'plz', 'ort', 'status', 'quelle'], $fieldsIn($html, 'Einrichtung'));
         assertSame(false, str_contains($html, 'id="add-child"'));
+    }],
+    ['Formular jeder Einrichtungstyp: „Einrichtung“ ohne Vor-/Nachname, Ansprechpartner mit', static function () use ($form, $kunde, $fieldsIn): void {
+        $types = array_keys(array_filter(Kundentypen::ALLE, static fn ($t, $k) => !Kundentypen::isPrivat($k), ARRAY_FILTER_USE_BOTH));
+        assertSame(['schule', 'hort', 'kita', 'verein', 'firma', 'bibliothek', 'partner', 'oeffentlich', 'sonstige'], $types);
+        foreach ($types as $typ) {
+            $html = $form($kunde($typ));
+            assertSame(['name', 'email', 'telefon', 'adresse', 'plz', 'ort', 'status', 'quelle'], $fieldsIn($html, 'Einrichtung'), $typ);
+            preg_match('~<legend>Ansprechpartner</legend>(.*?)</fieldset>~s', $html, $m);
+            assertSame(true, str_contains($m[1], 'name="ansprechpartner[0][vorname]" value="Anna"') && str_contains($m[1], 'name="ansprechpartner[0][nachname]" value="Muster"'), $typ);
+        }
+    }],
+    ['Feldkonfiguration an einer Stelle: Eltern unverändert (Adresse, Status, Quelle)', static function (): void {
+        assertSame(['adresse', 'plz', 'ort', 'status', 'quelle'], Kundentypen::stammdatenFelder('privat'));
+        assertSame(['name', 'email', 'telefon', 'adresse', 'plz', 'ort', 'status', 'quelle'], Kundentypen::stammdatenFelder('kita'));
     }],
     // Detail page (Ansehen)
     ['Detailseite Eltern: Eltern → Familie → Kinder → Rest', static function () use ($show, $kunde, $headings): void {
@@ -104,8 +118,27 @@ return [
         assertSame(['Ben Muster', 'Mia Muster'], $matches('~<strong>(.*?)</strong>~', $k[1]));
         assertSame(true, str_contains($k[1], 'kind=neu'));
     }],
-    ['Detailseite andere Typen unverändert', static function () use ($show, $kunde, $headings): void {
-        assertSame(['Stammdaten', 'Ansprechpartner', 'Einwilligungen', 'Notizen', 'Aufträge', 'Buchungen', 'Rechnungen', 'Änderungsprotokoll'], $headings($show($kunde('schule'))));
+    ['Detailseite andere Typen: Bereiche wie bisher, Stammdaten ohne Vor-/Nachname', static function () use ($show, $kunde, $headings, $matches): void {
+        foreach (['schule', 'bibliothek', 'firma'] as $typ) {
+            $html = $show($kunde($typ));
+            assertSame(['Stammdaten', 'Ansprechpartner', 'Einwilligungen', 'Notizen', 'Aufträge', 'Buchungen', 'Rechnungen', 'Änderungsprotokoll'], $headings($html), $typ);
+            preg_match('~<h2>Stammdaten</h2>(.*?)</section>~s', $html, $f);
+            assertSame(['Name', 'Status', 'E-Mail', 'Telefon', 'Adresse', 'Quelle', 'Angelegt', 'Geändert'], $matches('~<dt>(.*?)</dt>~', $f[1]), $typ);
+            preg_match('~<h2>Ansprechpartner</h2>(.*?)</section>~s', $html, $c);
+            assertSame(['Anna Muster'], $matches('~<strong>(.*?)</strong>~', $c[1]), $typ);
+        }
+    }],
+    ['Schnellansicht: Einrichtung ohne Vor-/Nachname, Eltern unverändert', static function () use ($render, $kunde, $matches): void {
+        $quick = static fn (array $k): array => $matches('~<dt>(.*?)</dt>~', explode('<h3', $render('kunden/quick', ['kunde' => $k, 'zurueck' => null]))[0]);
+        assertSame(false, in_array('Vorname', $quick($kunde('schule')), true));
+        assertSame(true, in_array('Vorname', $quick($kunde('privat')), true) && in_array('Nachname', $quick($kunde('privat')), true));
+    }],
+    ['Speichern Einrichtung: Vor-/Nachname bleiben, gesendete Felder werden übernommen', static function () use ($kunde): void {
+        $stored = $kunde('schule', ['vorname' => 'Gabi', 'nachname' => 'Lehrer']);
+        $input = ['typ' => 'schule', 'name' => 'Grundschule Neu', 'telefon' => '089 999', 'ort' => 'Pullach', 'ansprechpartner' => [['vorname' => 'Anna', 'nachname' => 'Muster']]];
+        $r = KundenValidator::keepUnsentFields(KundenValidator::validate($input, 7), $input, $stored);
+        assertSame([], $r['errors']);
+        assertSame(['Grundschule Neu', 'Gabi', 'Lehrer', '089 999', 'Pullach'], [$r['data']['name'], $r['data']['vorname'], $r['data']['nachname'], $r['data']['telefon'], $r['data']['ort']]);
     }],
     // Saving keeps what the family form does not show
     ['Speichern Eltern: Vorname, Nachname, E-Mail, Telefon bleiben erhalten', static function () use ($kunde): void {
