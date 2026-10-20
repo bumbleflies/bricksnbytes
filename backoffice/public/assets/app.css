@@ -10,6 +10,13 @@
   --ok: #1d7a46;
   --error: #b42318;
   --radius: 12px;
+  /* Status badges (customer status → colour: StatusBadge::FARBEN); text ≥ 5.9:1 on its background */
+  --status-orange-bg: #fff1e6; --status-orange-border: #f29a5c; --status-orange-text: #9a3a06;
+  --status-gelb-bg: #fff8d6;   --status-gelb-border: #e2bc1b;   --status-gelb-text: #6b5200;
+  --status-gruen-bg: #e7f5ec;  --status-gruen-border: #74c495;  --status-gruen-text: #1a6a3c;
+  --status-rot-bg: #fdeceb;    --status-rot-border: #f1a09b;    --status-rot-text: #a82820;
+  --status-lila-bg: #f3eefc;   --status-lila-border: #bba3e6;   --status-lila-text: #5a3a98;
+  --status-grau-bg: #f1f3f6;   --status-grau-border: #c3c9d3;   --status-grau-text: #4b5466;
   --font-head: 'Fredoka', system-ui, sans-serif;
   --font-body: 'DM Sans', system-ui, sans-serif;
 }
@@ -112,12 +119,13 @@ a { color: var(--orange-dark); }
 
 .table-wrap { overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
 .table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
-.table th, .table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.table th, .table td { text-align: left; padding: 10px 9px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .table th { background: var(--navy-soft); font-weight: 600; }
 .table th a { color: var(--navy); text-decoration: none; }
 .table th a:hover { text-decoration: underline; }
 .table tbody tr:hover { background: #fafbfd; }
 .table tbody tr:last-child td { border-bottom: 0; }
+.table .col-wrap { white-space: normal; min-width: 110px; max-width: 240px; }
 .row-actions { display: flex; gap: 12px; }
 a.danger { color: var(--error); }
 
@@ -327,7 +335,7 @@ details.card[open] > summary { margin-bottom: 12px; }
 
 /* Type dropdown in the customer list (saves on change) */
 .type-change { margin: 0; }
-.type-change select { font: inherit; font-size: 0.9rem; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: #fff; max-width: 150px; }
+.type-change select { font: inherit; font-size: 0.9rem; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: #fff; max-width: 140px; }
 .type-change select:focus-visible { outline: 2px solid var(--orange); border-color: var(--orange); }
 
 /* Customer list: search field and filter dropdowns in one row (wrap on narrow screens) */
@@ -348,31 +356,18 @@ details.card[open] > summary { margin-bottom: 12px; }
 .bulk-type label { font-weight: 500; font-size: 0.9rem; }
 .bulk-type select { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
 
-/* Dashboard: birthday tile – same size as the other tiles; the list scrolls inside instead of
-   growing the tile (it takes the row height the other tiles set) */
+/* Dashboard: birthday tile – same tile as the others; the 5 entries fit without scrolling */
 .kpi-birthdays { min-width: 0; }
-.kpi-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.kpi-head h2.kpi-label { margin: 0; font-family: inherit; font-weight: 400; }
-.period-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
-.period-switch button { font: inherit; font-size: 0.8rem; padding: 2px 9px; border: 0; background: #fff; color: var(--navy); cursor: pointer; }
-.period-switch button + button { border-left: 1px solid var(--line); }
-.period-switch button[aria-pressed="true"] { background: var(--navy); color: #fff; }
-.period-switch button:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
-.kpi-scroll { position: relative; flex: 1 1 auto; min-height: 50px; }
-.kpi-scroll > [data-period-list] { position: absolute; inset: 0; overflow-y: auto; }
-.kpi-scroll .kpi-empty { margin-top: 2px; }
-.birthday-list { list-style: none; margin: 0; padding: 0; font-size: 0.9rem; }
-.birthday-list li { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
-.birthday-list a { color: var(--navy); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kpi-birthdays h2.kpi-label { margin: 0; font-family: inherit; font-weight: 400; }
+.birthday-list { list-style: none; margin: 0; padding: 0; font-size: 0.85rem; line-height: 1.3; }
+.birthday-list li { display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; }
+.birthday-list a { color: var(--navy); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .birthday-list a:hover { text-decoration: underline; }
 .birthday-when { color: var(--muted); white-space: nowrap; }
 .birthday-list .is-today a, .birthday-list .is-today .birthday-when { color: var(--orange-dark); font-weight: 600; }
-.birthday-list .is-past { opacity: 0.6; }
-/* Phones: half-width tile – switch under the title, date under the name */
+/* Phones: half-width tile – date under the name */
 @media (max-width: 760px) {
-  .kpi-head { flex-wrap: wrap; gap: 4px; }
-  .kpi-scroll { min-height: 64px; }
-  .birthday-list li { flex-direction: column; gap: 0; padding: 3px 0; }
+  .birthday-list li { flex-direction: column; gap: 0; padding: 2px 0; }
   .birthday-when { font-size: 0.8rem; }
 }
 
@@ -381,3 +376,13 @@ details.card[open] > summary { margin-bottom: 12px; }
 .new-child-actions { margin: -4px 0 12px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .new-child-actions .hint { margin: 0; }
 .card-foot { margin: 12px 0 0; }
+
+/* Customer status pill: looks like a small button but is plain text (no hover, no pointer) */
+.status-badge { display: inline-block; padding: 2px 10px; border: 1px solid var(--status-grau-border); border-radius: 999px;
+  background: var(--status-grau-bg); color: var(--status-grau-text); font-size: 0.8rem; font-weight: 600; line-height: 1.4;
+  white-space: nowrap; cursor: default; }
+.status-badge--orange { background: var(--status-orange-bg); border-color: var(--status-orange-border); color: var(--status-orange-text); }
+.status-badge--gelb { background: var(--status-gelb-bg); border-color: var(--status-gelb-border); color: var(--status-gelb-text); }
+.status-badge--gruen { background: var(--status-gruen-bg); border-color: var(--status-gruen-border); color: var(--status-gruen-text); }
+.status-badge--rot { background: var(--status-rot-bg); border-color: var(--status-rot-border); color: var(--status-rot-text); }
+.status-badge--lila { background: var(--status-lila-bg); border-color: var(--status-lila-border); color: var(--status-lila-text); }

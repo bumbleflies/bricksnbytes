@@ -203,10 +203,10 @@ final class KundenRepository
         return $id === false ? null : (int) $id;
     }
 
-    /** Customers without first and last name (oldest first), for the "Namen aus E-Mail" suggestions */
+    /** Families without first and last name (oldest first), for the "Namen aus E-Mail" suggestions */
     public static function withoutNames(): array
     {
-        return Db::query(self::BASE_SELECT . ' WHERE k.vorname IS NULL AND k.nachname IS NULL ORDER BY k.id')->fetchAll();
+        return Db::query(self::BASE_SELECT . " WHERE k.typ = 'privat' AND k.vorname IS NULL AND k.nachname IS NULL ORDER BY k.id")->fetchAll();
     }
 
     /** Sets first/last name only while both are still empty (never overwrites); true when saved */
@@ -410,8 +410,10 @@ final class KundenRepository
         $q = trim($q);
         if ($q !== '') {
             $like = '%' . addcslashes($q, '%_\\') . '%';
-            $conditions[] = "(k.name LIKE ? OR k.email LIKE ? OR k.ort LIKE ? OR k.vorname LIKE ? OR k.nachname LIKE ?
-                OR CONCAT_WS(' ', k.vorname, k.nachname) LIKE ?
+            // The customer's own first/last name only for families; organisations are found by their name
+            // and their contact persons
+            $conditions[] = "(k.name LIKE ? OR k.email LIKE ? OR k.ort LIKE ?
+                OR (k.typ = 'privat' AND (k.vorname LIKE ? OR k.nachname LIKE ? OR CONCAT_WS(' ', k.vorname, k.nachname) LIKE ?))
                 OR EXISTS (SELECT 1 FROM ansprechpartner a WHERE a.kunde_id = k.id
                            AND (a.vorname LIKE ? OR a.nachname LIKE ? OR CONCAT_WS(' ', a.vorname, a.nachname) LIKE ? OR a.email LIKE ?))
                 OR EXISTS (SELECT 1 FROM kinder ki WHERE ki.kunde_id = k.id

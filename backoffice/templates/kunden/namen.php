@@ -5,7 +5,7 @@ use Backoffice\Modules\Kunden\Kundentypen;
 ?>
 <p class="breadcrumb"><a href="/kunden">← Alle Kunden</a></p>
 <h1>Namen aus E-Mail übernehmen</h1>
-<p class="hint">Kunden ohne Vor- und Nachnamen mit einem Vorschlag: der Name des Hauptkontakts, sonst aus der E-Mail-Adresse abgeleitet. Vorschläge kannst du hier noch korrigieren; gespeichert werden nur die angehakten Zeilen. Eltern sind vorausgewählt, Einrichtungen nicht (dort ist die Adresse oft die einer einzelnen Person). Namen, die inzwischen jemand eingetragen hat, werden nie überschrieben.</p>
+<p class="hint">Kunden ohne Vor- und Nachnamen mit einem Vorschlag: der Name des Hauptkontakts, sonst aus der E-Mail-Adresse abgeleitet. Vorschläge kannst du hier noch korrigieren; gespeichert werden nur die angehakten Zeilen. Nur Eltern (bei Einrichtungen stehen die Namen beim Ansprechpartner). Namen, die inzwischen jemand eingetragen hat, werden nie überschrieben.</p>
 
 <?php if (!$rows): ?>
   <p class="empty">Keine Kunden ohne Namen mit einem Vorschlag.</p>

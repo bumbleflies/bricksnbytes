@@ -5,63 +5,39 @@ namespace Backoffice\Modules\Kinder;
 
 use DateTimeImmutable;
 
-// Children's birthdays in a period (dashboard tile). Pure (no database), so it can be unit-tested.
+// Children's next birthdays (dashboard tile). Pure (no database), so it can be unit-tested.
 // Only day and month count; a 29.02. birthday falls on the 28.02. in non-leap years.
 final class Geburtstage
 {
-    // Periods of the "Woche | Monat" switch; STANDARD is shown first (and without JavaScript)
-    public const ZEITRAEUME = ['woche' => 'Woche', 'monat' => 'Monat'];
-    public const STANDARD = 'woche';
+    // How many birthdays the dashboard tile shows
+    public const ANZAHL = 5;
 
     /**
-     * First and last day of the period around $today: "woche" = calendar week Monday to Sunday,
-     * "monat" = calendar month.
-     *
-     * @return array{0: DateTimeImmutable, 1: DateTimeImmutable}
-     */
-    public static function zeitraum(string $zeitraum, DateTimeImmutable $today): array
-    {
-        $today = $today->setTime(0, 0);
-        if ($zeitraum === 'monat') {
-            return [$today->modify('first day of this month'), $today->modify('last day of this month')];
-        }
-        $monday = $today->modify('-' . ((int) $today->format('N') - 1) . ' days');
-        return [$monday, $monday->modify('+6 days')];
-    }
-
-    /**
-     * Children (rows with at least `geburtsdatum` Y-m-d) with a birthday from $from to $to (inclusive),
-     * each extended by `geburtstag` (date in the period), `alter` (age they turn) and `heute`.
-     * Order: today first, then the next ones; birthdays already passed in the period come last.
+     * The next $anzahl birthdays from $today on (today included, across the year change), each child
+     * (rows with at least `geburtsdatum` Y-m-d) extended by `geburtstag` (next date), `alter` (age they
+     * turn) and `heute`. Order: next first, same day by name. Children without a valid date are skipped.
      *
      * @return list<array>
      */
-    public static function imZeitraum(array $kinder, DateTimeImmutable $from, DateTimeImmutable $to, DateTimeImmutable $today): array
+    public static function naechste(array $kinder, DateTimeImmutable $today, int $anzahl = self::ANZAHL): array
     {
-        $from = $from->setTime(0, 0);
-        $to = $to->setTime(0, 0);
         $today = $today->setTime(0, 0);
         $found = [];
         foreach ($kinder as $kind) {
             $born = self::date($kind['geburtsdatum'] ?? null);
-            if ($born === null) {
-                continue;
+            if ($born === null || $born >= $today) {
+                continue; // no date, or born today / in the future: no birthday to come yet
             }
-            // The period may span a year change (week 29.12.–04.01.)
-            for ($year = (int) $from->format('Y'); $year <= (int) $to->format('Y'); $year++) {
-                $day = self::birthdayIn($born, $year);
-                $age = $year - (int) $born->format('Y');
-                if ($day >= $from && $day <= $to && $age > 0) {
-                    $found[] = $kind + ['geburtstag' => $day, 'alter' => $age, 'heute' => $day == $today];
-                }
+            $year = (int) $today->format('Y');
+            $day = self::birthdayIn($born, $year);
+            if ($day < $today) {
+                $day = self::birthdayIn($born, ++$year);
             }
+            $found[] = $kind + ['geburtstag' => $day, 'alter' => $year - (int) $born->format('Y'), 'heute' => $day == $today];
         }
-        usort($found, static function (array $a, array $b) use ($today): int {
-            $passedA = $a['geburtstag'] < $today;
-            $passedB = $b['geburtstag'] < $today;
-            return [$passedA, $a['geburtstag'], $a['vorname'] ?? ''] <=> [$passedB, $b['geburtstag'], $b['vorname'] ?? ''];
-        });
-        return $found;
+        $name = static fn (array $k): string => mb_strtolower(trim(($k['vorname'] ?? '') . ' ' . ($k['nachname'] ?? '')));
+        usort($found, static fn (array $a, array $b): int => [$a['geburtstag'], $name($a)] <=> [$b['geburtstag'], $name($b)]);
+        return array_slice($found, 0, max(0, $anzahl));
     }
 
     /** Birthday in the given year; 29.02. becomes 28.02. when the year has no 29.02. */
