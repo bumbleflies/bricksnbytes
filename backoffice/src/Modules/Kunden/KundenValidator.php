@@ -13,6 +13,28 @@ final class KundenValidator
         'abholberechtigte' => 1000,
     ];
 
+    // Customer fields the family form (Eltern) does not show – name and contact data are with the parents
+    public const FAMILIE_NICHT_IM_FORMULAR = ['vorname', 'nachname', 'email', 'telefon'];
+
+    /**
+     * After validate() of an existing customer: fields the form did not send keep their stored values
+     * (the family form leaves out name, e-mail and phone), so saving never clears or overwrites them.
+     */
+    public static function keepUnsentFields(array $result, array $input, array $stored): array
+    {
+        foreach (self::FAMILIE_NICHT_IM_FORMULAR as $field) {
+            if (!array_key_exists($field, $input)) {
+                $result['data'][$field] = $stored[$field] ?? null;
+                unset($result['errors'][$field]);
+            }
+        }
+        // "Elternteil oder E-Mail": the kept e-mail of the family counts too
+        if (($result['data']['email'] ?? null) !== null) {
+            unset($result['errors']['ansprechpartner']);
+        }
+        return $result;
+    }
+
     /** @return array{data: array, contacts: array, kinder: array, consents: array, errors: array} */
     public static function validate(array $input, ?int $kundeId): array
     {

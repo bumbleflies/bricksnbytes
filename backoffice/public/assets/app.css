@@ -375,3 +375,9 @@ details.card[open] > summary { margin-bottom: 12px; }
   .birthday-list li { flex-direction: column; gap: 0; padding: 3px 0; }
   .birthday-when { font-size: 0.8rem; }
 }
+
+/* Customer form: "+ Kind hinzufügen" and the discard link of a new child */
+#add-child { margin-top: 4px; }
+.new-child-actions { margin: -4px 0 12px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.new-child-actions .hint { margin: 0; }
+.card-foot { margin: 12px 0 0; }

@@ -16,7 +16,40 @@ $actionLabels = ['angelegt' => 'angelegt', 'geaendert' => 'geändert', 'geloesch
   </div>
 </div>
 
+<?php ob_start(); /* parents (families) / contact persons – placed by type below */ ?>
+  <section class="card">
+    <h2><?= $privat ? 'Eltern' : 'Ansprechpartner' ?></h2>
+    <?php if (!$kunde['ansprechpartner']): ?>
+      <p class="muted">Noch keine hinterlegt.</p>
+    <?php else: ?>
+      <ul class="plain-list">
+        <?php foreach ($kunde['ansprechpartner'] as $a): ?>
+          <li>
+            <strong><?= e(trim(($a['vorname'] ?? '') . ' ' . ($a['nachname'] ?? ''))) ?></strong>
+            <?php if ($a['rolle']): ?><span class="muted">· <?= e($a['rolle']) ?></span><?php endif; ?>
+            <?php if ($a['ist_hauptkontakt']): ?><span class="badge badge-ok">Haupt</span><?php endif; ?>
+            <?php if ($a['email'] || $a['telefon']): ?><br><span class="muted"><?= e(implode(' · ', array_filter([$a['email'], $a['telefon']]))) ?></span><?php endif; ?>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    <?php endif; ?>
+  </section>
+<?php $contactsCard = (string) ob_get_clean(); ?>
+
 <div class="detail-grid">
+  <?php if ($privat): /* families: parents, family (address, status, source), children */ ?>
+  <?= $contactsCard ?>
+
+  <section class="card">
+    <h2>Familie</h2>
+    <dl class="facts">
+      <dt>Adresse</dt><dd><?= e(trim(($kunde['adresse'] ?? '') . ', ' . trim(($kunde['plz'] ?? '') . ' ' . ($kunde['ort'] ?? '')), ', ')) ?: '–' ?></dd>
+      <dt>Status</dt><dd><?php if ($kunde['status']): ?><span<?= in_array($kunde['status'], Kundentypen::STATUS_STOP, true) ? ' class="status-stop"' : '' ?>><?= e(Kundentypen::statusLabel($kunde['status'])) ?></span><?php else: ?>–<?php endif; ?></dd>
+      <dt>Quelle</dt><dd><?= e($kunde['quelle'] ?: '–') ?></dd>
+    </dl>
+  </section>
+
+  <?php else: ?>
   <section class="card">
     <h2>Stammdaten</h2>
     <dl class="facts">
@@ -37,23 +70,9 @@ $actionLabels = ['angelegt' => 'angelegt', 'geaendert' => 'geändert', 'geloesch
     </dl>
   </section>
 
-  <section class="card">
-    <h2><?= $privat ? 'Eltern' : 'Ansprechpartner' ?></h2>
-    <?php if (!$kunde['ansprechpartner']): ?>
-      <p class="muted">Noch keine hinterlegt.</p>
-    <?php else: ?>
-      <ul class="plain-list">
-        <?php foreach ($kunde['ansprechpartner'] as $a): ?>
-          <li>
-            <strong><?= e(trim(($a['vorname'] ?? '') . ' ' . ($a['nachname'] ?? ''))) ?></strong>
-            <?php if ($a['rolle']): ?><span class="muted">· <?= e($a['rolle']) ?></span><?php endif; ?>
-            <?php if ($a['ist_hauptkontakt']): ?><span class="badge badge-ok">Haupt</span><?php endif; ?>
-            <?php if ($a['email'] || $a['telefon']): ?><br><span class="muted"><?= e(implode(' · ', array_filter([$a['email'], $a['telefon']]))) ?></span><?php endif; ?>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    <?php endif; ?>
-  </section>
+  <?= $contactsCard ?>
+
+  <?php endif; ?>
 
   <?php if ($privat): ?>
     <section class="card">
@@ -72,6 +91,7 @@ $actionLabels = ['angelegt' => 'angelegt', 'geaendert' => 'geändert', 'geloesch
           <?php endforeach; ?>
         </ul>
       <?php endif; ?>
+      <p class="card-foot"><a class="btn btn-ghost-dark" href="/kunden/bearbeiten?id=<?= e($kunde['id']) ?>&amp;kind=neu#child-rows">+ Kind hinzufügen</a></p>
     </section>
   <?php endif; ?>
 
