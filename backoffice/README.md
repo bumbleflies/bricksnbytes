@@ -210,6 +210,15 @@ erscheinen in Nicht-Schaltjahren am 28.02. Kinder mit nur einem Geburtsjahr fehl
 - Logik in `src/Modules/Kinder/Geburtstage.php` (mit Unit-Tests). Den Standard ändert
   `Geburtstage::STANDARD`; ohne Umschalter einfach `ZEITRAEUME` auf einen Eintrag kürzen.
 
+### Kundenliste: Suche und Filter
+
+Über der Liste: Suchfeld (Name, E-Mail, Ort, Vor-/Nachname, Ansprechpartner, Kinder) und die
+Auswahlfelder **Typ**, **Newsletter** (Ja/Nein), **Ort** und **Status**, jeweils mit „Alle“ als
+Standard. Typen und Orte kommen aus den vorhandenen Daten (alphabetisch, mit Anzahl). Alles gilt
+zusammen; ein Auswahlfeld wirkt sofort und lässt die übrigen Einstellungen stehen. Anzahl, Auswahl,
+E-Mail-Adressen, CSV-Export und „Typ für Auswahl ändern“ nutzen das gefilterte Ergebnis.
+Die Suchleiste oben bleibt die globale Suche (Kunden und Kinder).
+
 ### Kundenliste: Typ für Auswahl ändern
 
 - **Typ für Auswahl ändern** (im Bereich „E-Mail an Auswahl“): ausgewählte bzw. alle gefilterten
@@ -265,8 +274,8 @@ Die **Newsletter-Liste** (früher „CSV importieren“) lehnt Dateien mit den S
 
 In **Kunden** zeigt die Spalte **Newsletter** Ja/Nein; ein Klick auf den Schalter speichert sofort.
 Dahinter steht die Newsletter-Einwilligung: „Ja“ trägt sie mit dem heutigen Datum ein, „Nein“
-setzt das Widerrufsdatum (die Einwilligung bleibt dokumentiert). Filter: Alle / Newsletter Ja /
-Newsletter Nein.
+setzt das Widerrufsdatum (die Einwilligung bleibt dokumentiert). Filter: Auswahlfeld „Newsletter“
+(Alle / Ja / Nein).
 
 - **E-Mail an Auswahl**: Kunden per Checkbox auswählen („Alle auswählen“ = aktuelle Seite, danach
   „Alle N gefilterten Kunden auswählen“). Öffnet das Mailprogramm mit allen Adressen im **BCC**.

@@ -1,13 +1,15 @@
 <?php
-/** @var array $rows @var int $total @var array $counts @var string $q @var ?string $typ @var string $sort @var string $dir @var int $page @var int $pages
- *  @var ?string $newsletter @var ?string $status @var list<string> $filteredAddresses @var list<string> $newsletterAddresses @var ?string $ownEmail */
+/** @var array $rows @var int $total @var array $typeOptions @var array $places @var string $q @var ?string $typ @var string $sort @var string $dir @var int $page @var int $pages
+ *  @var ?string $newsletter @var ?string $status @var ?string $ort @var list<string> $filteredAddresses @var list<string> $newsletterAddresses @var ?string $ownEmail */
 use Backoffice\Csrf;
 use Backoffice\Modules\Kunden\KundenController;
 use Backoffice\Modules\Kunden\Kundentypen;
 use Backoffice\Modules\Kunden\Verteiler;
 
-$url = static function (array $changes) use ($q, $typ, $sort, $dir, $page, $newsletter, $status): string {
-    $params = array_filter(['typ' => $typ, 'newsletter' => $newsletter, 'status' => $status, 'q' => $q, 'sort' => $sort, 'dir' => $dir, 'seite' => $page], static fn ($v) => $v !== '' && $v !== null);
+// Search and dropdown filters of the list (also kept by sort links, paging, export and bulk actions)
+$filter = array_filter(['typ' => $typ, 'newsletter' => $newsletter, 'ort' => $ort, 'status' => $status, 'q' => $q], static fn ($v) => $v !== '' && $v !== null);
+$url = static function (array $changes) use ($filter, $sort, $dir, $page): string {
+    $params = $filter + ['sort' => $sort, 'dir' => $dir, 'seite' => $page];
     return '/kunden?' . http_build_query(array_filter(array_merge($params, $changes), static fn ($v) => $v !== null && $v !== ''));
 };
 
@@ -21,9 +23,10 @@ if ($typ === 'privat') {
     $columns = ['name' => 'Name', 'typ' => 'Typ', 'status' => 'Status', 'email' => 'E-Mail', 'newsletter' => 'Newsletter', 'telefon' => 'Telefon', 'ort' => 'Ort', 'kinder' => 'Kinder / Ansprechpartner'];
 }
 $here = $url([]);
-$newsletterTabs = [null => 'Alle', 'ja' => 'Newsletter Ja', 'nein' => 'Newsletter Nein'];
-$exportQuery = http_build_query(array_filter(['typ' => $typ, 'status' => $status, 'q' => $q]));
-$all = array_sum($counts);
+$exportQuery = http_build_query($filter);
+$all = array_sum(array_column($typeOptions, 1));
+// The place of the current filter stays selectable even if no customer has it any more
+$places += $ort !== null && !isset($places[$ort]) ? [$ort => 0] : [];
 ?>
 <div class="page-head">
   <h1>Kunden <span class="count"><?= e($total) ?></span></h1>
@@ -36,38 +39,56 @@ $all = array_sum($counts);
   </div>
 </div>
 
-<nav class="tabs" aria-label="Kundentyp">
-  <a href="<?= e($url(['typ' => null, 'seite' => null, 'sort' => null])) ?>"<?= $typ === null ? ' aria-current="page"' : '' ?>>Alle <span><?= e($all) ?></span></a>
-  <?php foreach (Kundentypen::ALLE as $key => [$singular, $plural]): ?>
-    <a href="<?= e($url(['typ' => $key, 'seite' => null, 'sort' => null])) ?>"<?= $typ === $key ? ' aria-current="page"' : '' ?>><?= e($plural) ?> <span><?= e($counts[$key] ?? 0) ?></span></a>
-  <?php endforeach; ?>
-</nav>
-
-<nav class="tabs tabs-small" aria-label="Newsletter">
-  <?php foreach ($newsletterTabs as $key => $label): $key = $key === '' ? null : $key; ?>
-    <a href="<?= e($url(['newsletter' => $key, 'seite' => null])) ?>"<?= $newsletter === $key ? ' aria-current="page"' : '' ?>><?= e($label) ?></a>
-  <?php endforeach; ?>
-</nav>
-
-<form class="search" method="get" action="/kunden" role="search">
-  <?php if ($typ !== null): ?><input type="hidden" name="typ" value="<?= e($typ) ?>"><?php endif; ?>
-  <?php if ($newsletter !== null): ?><input type="hidden" name="newsletter" value="<?= e($newsletter) ?>"><?php endif; ?>
-  <label for="q" class="visually-hidden">Suche</label>
-  <input id="q" name="q" type="search" value="<?= e($q) ?>" placeholder="Name, E-Mail, Ort, Ansprechpartner oder Kind">
-  <label for="status-filter" class="visually-hidden">Status</label>
-  <select id="status-filter" name="status" data-autosubmit>
-    <option value="">Alle Status</option>
-    <?php foreach (Kundentypen::STATUS as $key => $label): ?>
-      <option value="<?= e($key) ?>"<?= $status === $key ? ' selected' : '' ?>><?= e($label) ?></option>
-    <?php endforeach; ?>
-    <option value="ohne"<?= $status === 'ohne' ? ' selected' : '' ?>>Ohne Status</option>
-  </select>
-  <button type="submit" class="btn btn-secondary">Suchen</button>
-  <?php if ($q !== ''): ?><a href="<?= e($url(['q' => null, 'seite' => null])) ?>">Suche zurücksetzen</a><?php endif; ?>
+<form class="filters" method="get" action="/kunden" role="search" aria-label="Kunden suchen und filtern">
+  <?php if (isset($_GET['sort'])): ?><input type="hidden" name="sort" value="<?= e($sort) ?>"><input type="hidden" name="dir" value="<?= e($dir) ?>"><?php endif; ?>
+  <div class="filter filter-search">
+    <label for="q">Suche</label>
+    <input id="q" name="q" type="search" value="<?= e($q) ?>" placeholder="Name, E-Mail, Ort, Ansprechpartner oder Kind">
+  </div>
+  <div class="filter">
+    <label for="filter-typ">Typ</label>
+    <select id="filter-typ" name="typ" data-autosubmit>
+      <option value="">Alle (<?= e($all) ?>)</option>
+      <?php foreach ($typeOptions as $key => [$label, $n]): ?>
+        <option value="<?= e($key) ?>"<?= $typ === $key ? ' selected' : '' ?>><?= e($label) ?> (<?= e($n) ?>)</option>
+      <?php endforeach; ?>
+    </select>
+  </div>
+  <div class="filter">
+    <label for="filter-newsletter">Newsletter</label>
+    <select id="filter-newsletter" name="newsletter" data-autosubmit>
+      <option value="">Alle</option>
+      <option value="ja"<?= $newsletter === 'ja' ? ' selected' : '' ?>>Ja</option>
+      <option value="nein"<?= $newsletter === 'nein' ? ' selected' : '' ?>>Nein</option>
+    </select>
+  </div>
+  <div class="filter">
+    <label for="filter-ort">Ort</label>
+    <select id="filter-ort" name="ort" data-autosubmit>
+      <option value="">Alle</option>
+      <?php foreach ($places as $place => $n): ?>
+        <option value="<?= e($place) ?>"<?= $ort === (string) $place ? ' selected' : '' ?>><?= e($place) ?> (<?= e($n) ?>)</option>
+      <?php endforeach; ?>
+    </select>
+  </div>
+  <div class="filter">
+    <label for="filter-status">Status</label>
+    <select id="filter-status" name="status" data-autosubmit>
+      <option value="">Alle</option>
+      <?php foreach (Kundentypen::STATUS as $key => $label): ?>
+        <option value="<?= e($key) ?>"<?= $status === $key ? ' selected' : '' ?>><?= e($label) ?></option>
+      <?php endforeach; ?>
+      <option value="ohne"<?= $status === 'ohne' ? ' selected' : '' ?>>Ohne Status</option>
+    </select>
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-secondary">Suchen</button>
+    <?php if ($filter): ?><a href="/kunden">Zurücksetzen</a><?php endif; ?>
+  </div>
 </form>
 
 <?php if (!$rows): ?>
-  <p class="empty"><?= $q !== '' ? 'Keine Kunden gefunden.' : 'Noch keine Kunden in dieser Ansicht.' ?></p>
+  <p class="empty"><?= $filter ? 'Keine Kunden gefunden – Suche oder Filter anpassen.' : 'Noch keine Kunden.' ?></p>
 <?php endif; ?>
 
 <div class="mail-tools" id="mail-tools"
@@ -89,11 +110,11 @@ $all = array_sum($counts);
     <input type="hidden" name="zurueck" value="<?= e($here) ?>">
     <input type="hidden" name="ids" value="" id="bulk-ids">
     <input type="hidden" name="alle" value="" id="bulk-all">
-    <?php foreach (array_filter(['q' => $q, 'typ' => $typ, 'newsletter' => $newsletter, 'status' => $status], static fn ($v) => $v !== null && $v !== '') as $name => $value): ?>
+    <?php foreach ($filter as $name => $value): ?>
       <input type="hidden" name="<?= e($name) ?>" value="<?= e($value) ?>">
     <?php endforeach; ?>
     <label for="bulk-typ">Typ für Auswahl ändern</label>
-    <select id="bulk-typ" name="typ">
+    <select id="bulk-typ" name="neuer_typ">
       <?php foreach (Kundentypen::ALLE as $key => [$label]): ?>
         <option value="<?= e($key) ?>"><?= e($label) ?></option>
       <?php endforeach; ?>
