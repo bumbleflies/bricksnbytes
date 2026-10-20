@@ -1,5 +1,6 @@
 <?php
-/** @var array $counts @var int $kinder @var int $newsletter @var array $recent */
+/** @var array $counts @var int $kinder @var int $newsletter @var array $recent @var array<string, list<array>> $geburtstage */
+use Backoffice\Modules\Kinder\Geburtstage;
 use Backoffice\Modules\Kunden\KundenController;
 use Backoffice\Modules\Kunden\Kundentypen;
 
@@ -24,6 +25,35 @@ for ($i = 0; $i < 6; $i++) {
     <span class="kpi-sub"><?= e(implode(' · ', array_map(static fn ($t) => Kundentypen::plural($t) . ' ' . ($counts[$t] ?? 0), array_keys(array_filter(Kundentypen::ALLE, static fn ($v, $k) => ($counts[$k] ?? 0) > 0, ARRAY_FILTER_USE_BOTH))))) ?: 'noch keine' ?></span></a>
   <a class="kpi kpi-link" href="/kinder"><span class="kpi-label">Kinder</span><span class="kpi-value"><?= e($kinder) ?></span></a>
   <div class="kpi"><span class="kpi-label">Newsletter-Einwilligungen</span><span class="kpi-value"><?= e($newsletter) ?></span></div>
+  <!-- Birthdays: one list per period, the switch shows one (remembered in the browser) -->
+  <section class="kpi kpi-birthdays" id="birthdays" data-default="<?= e(Geburtstage::STANDARD) ?>" aria-labelledby="birthdays-title">
+    <div class="kpi-head">
+      <h2 class="kpi-label" id="birthdays-title">Geburtstage</h2>
+      <div class="period-switch" role="group" aria-label="Zeitraum" hidden>
+        <?php foreach (Geburtstage::ZEITRAEUME as $key => $label): ?>
+          <button type="button" data-period="<?= e($key) ?>" aria-pressed="<?= $key === Geburtstage::STANDARD ? 'true' : 'false' ?>"><?= e($label) ?></button>
+        <?php endforeach; ?>
+      </div>
+    </div>
+    <div class="kpi-scroll">
+      <?php foreach (Geburtstage::ZEITRAEUME as $key => $label): ?>
+        <div data-period-list="<?= e($key) ?>"<?= $key === Geburtstage::STANDARD ? '' : ' hidden' ?>>
+          <?php if (!($geburtstage[$key] ?? [])): ?>
+            <p class="kpi-empty">Keine Geburtstage in diesem Zeitraum</p>
+          <?php else: ?>
+            <ul class="birthday-list" aria-label="Geburtstage diese<?= $key === 'monat' ? 'n Monat' : ' Woche' ?>">
+              <?php foreach ($geburtstage[$key] as $g): ?>
+                <li class="<?= $g['heute'] ? 'is-today' : ($g['geburtstag'] < new DateTimeImmutable('today') ? 'is-past' : '') ?>">
+                  <a href="/kunden/ansehen?id=<?= e($g['kunde_id']) ?>"><?= e(trim($g['vorname'] . ' ' . ($g['nachname'] ?? ''))) ?></a>
+                  <span class="birthday-when"><?= $g['heute'] ? 'Heute 🎉' : e($g['geburtstag']->format('d.m.')) ?> · <?= $g['geburtstag'] < new DateTimeImmutable('today') ? 'wurde' : 'wird' ?> <?= e($g['alter']) ?></span>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          <?php endif; ?>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  </section>
 </div>
 
 <section class="card">
@@ -57,3 +87,5 @@ for ($i = 0; $i < 6; $i++) {
     <?php endif; ?>
   </section>
 </div>
+
+<script src="/assets/dashboard.js" defer></script>

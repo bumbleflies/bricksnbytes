@@ -3,7 +3,7 @@
 Internes Backoffice für BricksnBytes. PHP 8.3+ und MySQL/MariaDB, ohne Frameworks oder
 Abhängigkeiten – läuft auf normalem Strato-Webspace.
 
-**Stand Phase 1:** Login, Dashboard (Kundenzahlen; Umsatz/Forecast/Termine als Platzhalter),
+**Stand Phase 1:** Login, Dashboard (Kundenzahlen, Geburtstage; Umsatz/Forecast/Termine als Platzhalter),
 globale Suche, **Kunden** (Eltern, Schulen, Horte, Kitas, Vereine, Firmen, Bibliotheken, Partner,
 Öffentliche Träger, Sonstige) mit
 Ansprechpartnern, **Kindern**, Einwilligungen und Änderungsprotokoll, Kinder-Übersicht,
@@ -196,6 +196,19 @@ Benötigt: `E-Mail`, `Typ`; genutzt außerdem `Name`, `Telefon`, `Organisation`,
   stehen in den Notizen und werden in der Vorschau als Hinweis gelistet.
 - Notizen und Anzahl Mails kommen in die Notizen des Kunden; Newsletter-Einwilligungen werden
   nicht gesetzt.
+
+### Dashboard: Geburtstage
+
+Die Kachel **Geburtstage** (zweite Reihe rechts) zeigt die Kinder mit Geburtstag im Zeitraum: Name
+(Link zur Familie), Datum und das Alter, das sie werden. Heute steht oben („Heute 🎉“), danach die
+nächsten, schon vergangene des Zeitraums zuletzt. Nur Tag und Monat zählen; am 29.02. Geborene
+erscheinen in Nicht-Schaltjahren am 28.02. Kinder mit nur einem Geburtsjahr fehlen.
+
+- Umschalter **Woche | Monat** im Kachelkopf: Woche = aktuelle Kalenderwoche (Montag bis Sonntag),
+  Monat = aktueller Kalendermonat. Standard ist Woche; die Auswahl merkt sich der Browser.
+- Die Kachel ist so hoch wie die anderen, längere Listen scrollen in der Kachel.
+- Logik in `src/Modules/Kinder/Geburtstage.php` (mit Unit-Tests). Den Standard ändert
+  `Geburtstage::STANDARD`; ohne Umschalter einfach `ZEITRAEUME` auf einen Eintrag kürzen.
 
 ### Kundenliste: Typ für Auswahl ändern
 
