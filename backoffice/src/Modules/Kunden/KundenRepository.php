@@ -53,9 +53,9 @@ final class KundenRepository
         LEFT JOIN ansprechpartner hk ON hk.kunde_id = k.id AND hk.ist_hauptkontakt = 1";
 
     /** @return array{rows: array, total: int} */
-    public static function search(string $q, ?string $typ, string $sort, string $dir, int $page, int $perPage, ?string $newsletter = null, ?string $status = null): array
+    public static function search(string $q, ?string $typ, string $sort, string $dir, int $page, int $perPage, ?string $newsletter = null, ?string $status = null, ?string $ort = null): array
     {
-        [$where, $params] = self::filter($q, $typ, $newsletter, $status);
+        [$where, $params] = self::filter($q, $typ, $newsletter, $status, $ort);
         $expr = self::SORTS[$sort] ?? self::SORTS['name'];
         $direction = $dir === 'desc' ? 'DESC' : 'ASC';
 
@@ -74,9 +74,9 @@ final class KundenRepository
     }
 
     /** Mail address (customer, else main contact) of every customer matching the list filter */
-    public static function filteredAddresses(string $q, ?string $typ, ?string $newsletter, ?string $status = null): array
+    public static function filteredAddresses(string $q, ?string $typ, ?string $newsletter, ?string $status = null, ?string $ort = null): array
     {
-        [$where, $params] = self::filter($q, $typ, $newsletter, $status);
+        [$where, $params] = self::filter($q, $typ, $newsletter, $status, $ort);
         return Db::query(
             "SELECT COALESCE(NULLIF(k.email, ''), hk.email) FROM kunden k
              LEFT JOIN ansprechpartner hk ON hk.kunde_id = k.id AND hk.ist_hauptkontakt = 1 $where",
@@ -85,9 +85,9 @@ final class KundenRepository
     }
 
     /** Ids of every customer matching the list filter (all pages), e.g. for bulk actions */
-    public static function filteredIds(string $q, ?string $typ, ?string $newsletter, ?string $status = null): array
+    public static function filteredIds(string $q, ?string $typ, ?string $newsletter, ?string $status = null, ?string $ort = null): array
     {
-        [$where, $params] = self::filter($q, $typ, $newsletter, $status);
+        [$where, $params] = self::filter($q, $typ, $newsletter, $status, $ort);
         return array_map('intval', Db::query("SELECT k.id FROM kunden k $where ORDER BY k.id", $params)->fetchAll(\PDO::FETCH_COLUMN));
     }
 
@@ -125,6 +125,14 @@ final class KundenRepository
         }
     }
 
+    /** Places that occur in the customer data with their count, alphabetical (for the Ort filter) */
+    public static function placeCounts(): array
+    {
+        return Db::query(
+            "SELECT TRIM(ort) AS ort, COUNT(*) FROM kunden WHERE ort IS NOT NULL AND TRIM(ort) <> '' GROUP BY TRIM(ort) ORDER BY TRIM(ort)"
+        )->fetchAll(\PDO::FETCH_KEY_PAIR);
+    }
+
     /** Count per customer type, e.g. ['privat' => 12, 'schule' => 3] */
     public static function countsByType(): array
     {
@@ -137,9 +145,9 @@ final class KundenRepository
     }
 
     /** All matching customers with contacts, children and consents, for the CSV export */
-    public static function exportRows(string $q, ?string $typ, ?string $status = null): array
+    public static function exportRows(string $q, ?string $typ, ?string $status = null, ?string $newsletter = null, ?string $ort = null): array
     {
-        [$where, $params] = self::filter($q, $typ, null, $status);
+        [$where, $params] = self::filter($q, $typ, $newsletter, $status, $ort);
         $rows = Db::query(self::BASE_SELECT . " $where ORDER BY k.typ, " . self::SORTS['name'] . ', k.id', $params)->fetchAll();
         $kinder = self::groupBy(Db::query('SELECT * FROM kinder ORDER BY geburtsdatum IS NULL, geburtsdatum, geburtsjahr, id')->fetchAll());
         $einwilligungen = self::groupBy(Db::query('SELECT * FROM einwilligungen WHERE kind_id IS NULL')->fetchAll());
@@ -376,7 +384,7 @@ final class KundenRepository
     }
 
     /** @return array{0: string, 1: array} */
-    private static function filter(string $q, ?string $typ, ?string $newsletter = null, ?string $status = null): array
+    private static function filter(string $q, ?string $typ, ?string $newsletter = null, ?string $status = null, ?string $ort = null): array
     {
         $conditions = [];
         $params = [];
@@ -394,6 +402,10 @@ final class KundenRepository
             $conditions[] = 'EXISTS (' . self::NEWSLETTER_ACTIVE . ')';
         } elseif ($newsletter === 'nein') {
             $conditions[] = 'NOT EXISTS (' . self::NEWSLETTER_ACTIVE . ')';
+        }
+        if ($ort !== null) {
+            $conditions[] = 'TRIM(k.ort) = ?';
+            $params[] = $ort;
         }
         $q = trim($q);
         if ($q !== '') {

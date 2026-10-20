@@ -33,16 +33,16 @@ final class KundenController
 
     public static function index(): void
     {
-        [$q, $typ, $newsletter, $status] = self::listFilter($_GET);
+        [$q, $typ, $newsletter, $status, $ort] = self::listFilter($_GET);
         $sort = array_key_exists(self::str($_GET['sort'] ?? ''), KundenRepository::SORTS) ? self::str($_GET['sort']) : ($typ === 'privat' ? 'nachname' : 'name');
         $dir = self::str($_GET['dir'] ?? '') === 'desc' ? 'desc' : 'asc';
         $page = max(1, (int) ($_GET['seite'] ?? 1));
 
-        $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter, $status);
+        $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter, $status, $ort);
         $pages = max(1, (int) ceil($result['total'] / self::PER_PAGE));
         if ($page > $pages) {
             $page = $pages;
-            $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter, $status);
+            $result = KundenRepository::search($q, $typ, $sort, $dir, $page, self::PER_PAGE, $newsletter, $status, $ort);
         }
         $ownEmail = Verteiler::ownEmail();
 
@@ -50,7 +50,8 @@ final class KundenController
             'title' => 'Kunden',
             'rows' => $result['rows'],
             'total' => $result['total'],
-            'counts' => KundenRepository::countsByType(),
+            'typeOptions' => self::typeOptions(KundenRepository::countsByType(), $typ),
+            'places' => KundenRepository::placeCounts(),
             'q' => $q,
             'typ' => $typ,
             'sort' => $sort,
@@ -59,11 +60,31 @@ final class KundenController
             'pages' => $pages,
             'newsletter' => $newsletter,
             'status' => $status,
+            'ort' => $ort,
             // Recipients for the mail buttons: every filtered customer (all pages) and all subscribers
-            'filteredAddresses' => Verteiler::clean(KundenRepository::filteredAddresses($q, $typ, $newsletter, $status)),
+            'filteredAddresses' => Verteiler::clean(KundenRepository::filteredAddresses($q, $typ, $newsletter, $status, $ort)),
             'newsletterAddresses' => Verteiler::clean(KundenRepository::newsletterAddresses()),
             'ownEmail' => $ownEmail,
         ]);
+    }
+
+    /**
+     * Typ dropdown: the types that occur (plural label and count), alphabetical with umlauts sorted
+     * like their base letter; the current type stays listed even if no customer has it any more
+     *
+     * @return array<string, array{0: string, 1: int}>
+     */
+    private static function typeOptions(array $counts, ?string $current): array
+    {
+        $options = [];
+        foreach (Kundentypen::ALLE as $key => [, $plural]) {
+            if (($counts[$key] ?? 0) > 0 || $key === $current) {
+                $options[$key] = [$plural, (int) ($counts[$key] ?? 0)];
+            }
+        }
+        $sortKey = static fn (string $label): string => strtr(mb_strtolower($label), ['ä' => 'a', 'ö' => 'o', 'ü' => 'u', 'ß' => 'ss']);
+        uasort($options, static fn ($a, $b) => strcmp($sortKey($a[0]), $sortKey($b[0])));
+        return $options;
     }
 
     // Ja/Nein switch in the list: saves at once and returns to the same list view
@@ -110,7 +131,7 @@ final class KundenController
     public static function changeTypeBulk(): void
     {
         $back = self::listUrl($_POST['zurueck'] ?? null) ?? '/kunden';
-        $typ = self::str($_POST['typ'] ?? '');
+        $typ = self::str($_POST['neuer_typ'] ?? '');
         if (!Kundentypen::valid($typ)) {
             Session::flash('error', 'Bitte einen Typ wählen.');
             Router::redirect($back);
@@ -315,8 +336,8 @@ final class KundenController
 
     public static function export(): void
     {
-        [$q, $typ, , $status] = self::listFilter($_GET);
-        $rows = KundenRepository::exportRows($q, $typ, $status);
+        [$q, $typ, $newsletter, $status, $ort] = self::listFilter($_GET);
+        $rows = KundenRepository::exportRows($q, $typ, $status, $newsletter, $ort);
 
         $consent = static function (?array $c): string {
             if (!$c || !$c['erteilt_am']) {
@@ -428,20 +449,23 @@ final class KundenController
     }
 
     /**
-     * Filter of the customer list from URL or form parameters (search, type tab, newsletter tab, status)
+     * Filter of the customer list from URL or form parameters: search and the dropdowns
+     * Typ, Newsletter, Status, Ort ("Alle" = empty = no filter)
      *
-     * @return array{0: string, 1: ?string, 2: ?string, 3: ?string}
+     * @return array{0: string, 1: ?string, 2: ?string, 3: ?string, 4: ?string}
      */
     private static function listFilter(array $input): array
     {
         $typ = self::str($input['typ'] ?? '');
         $newsletter = self::str($input['newsletter'] ?? '');
         $status = self::str($input['status'] ?? '');
+        $ort = self::str($input['ort'] ?? '');
         return [
             self::str($input['q'] ?? ''),
             Kundentypen::valid($typ) ? $typ : null,
             in_array($newsletter, KundenRepository::NEWSLETTER_FILTER, true) ? $newsletter : null,
             $status === 'ohne' || Kundentypen::validStatus($status) ? $status : null,
+            $ort !== '' ? mb_substr($ort, 0, 100) : null,
         ];
     }
 
