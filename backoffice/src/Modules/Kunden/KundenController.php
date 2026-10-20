@@ -213,7 +213,7 @@ final class KundenController
     public static function create(): void
     {
         $r = KundenValidator::validate($_POST, null);
-        if (isset($_POST['_typ_wechseln'])) {
+        if (isset($_POST['_typ_wechseln']) || isset($_POST['_kind_neu'])) {
             self::renderForm(null, $r['data'], $r['contacts'], $r['kinder'], $r['consents'], []);
             return;
         }
@@ -243,13 +243,13 @@ final class KundenController
     {
         $kunde = self::findOr404();
         $id = (int) $kunde['id'];
-        // A type change in the select only re-renders the form for the new type
-        if (isset($_POST['_typ_wechseln'])) {
-            $r = KundenValidator::validate($_POST, $id);
+        // Fields the form does not show (family: name, e-mail, phone) keep their stored values
+        $r = KundenValidator::keepUnsentFields(KundenValidator::validate($_POST, $id), $_POST, $kunde);
+        // A type change in the select or "+ Kind hinzufügen" without JavaScript only re-renders the form
+        if (isset($_POST['_typ_wechseln']) || isset($_POST['_kind_neu'])) {
             self::renderForm($id, $r['data'] + $kunde, $r['contacts'], $r['kinder'], $r['consents'], []);
             return;
         }
-        $r = KundenValidator::validate($_POST, $id);
         if ($r['errors']) {
             self::renderForm($id, $r['data'] + $kunde, $r['contacts'], $r['kinder'], $r['consents'], $r['errors'], 422);
             return;
@@ -418,10 +418,9 @@ final class KundenController
         foreach ($kinder as $i => $k) {
             $childRows[] = $k + ['_error' => $errors["kinder.$i"] ?? null];
         }
-        if ($privat) {
-            $childRows[] = ['id' => null];
-            $childRows[] = ['id' => null];
-        }
+        // Families: only the stored children; an empty form for one more only on request
+        // ("+ Kind hinzufügen" without JavaScript, or the button on the detail page)
+        $newChild = $privat && (isset($_POST['_kind_neu']) || ($_GET['kind'] ?? null) === 'neu');
 
         View::render('kunden/form', [
             'title' => $id === null ? 'Neuer Kunde' : 'Kunde bearbeiten',
@@ -429,6 +428,7 @@ final class KundenController
             'kunde' => $kunde,
             'contacts' => $contactRows,
             'kinder' => $childRows,
+            'newChild' => $newChild,
             'consents' => $consents,
             'errors' => $errors,
             'vorschlag' => $vorschlag,

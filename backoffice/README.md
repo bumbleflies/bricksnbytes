@@ -241,6 +241,18 @@ Die Suchleiste oben bleibt die globale Suche (Kunden und Kinder).
   (Hinweis, dann über „Bearbeiten“).
 - Detailseite und die Links auf Name/E-Mail bleiben wie bisher.
 
+### Eltern: Detailseite und Formular
+
+Nur beim Typ **Eltern** (alle anderen Typen unverändert):
+
+- Reihenfolge: Kopf (Name, Typ) → **Eltern** → **Familie** → **Kinder** → übrige Bereiche.
+- **Familie** zeigt nur Adresse, Status und Quelle. Vorname, Nachname, E-Mail und Telefon des Kunden
+  stehen bei den Eltern; die gespeicherten Werte bleiben erhalten (Speichern überschreibt oder leert
+  sie nicht, auch nicht bei Kunden, die nur eine E-Mail-Adresse haben).
+- **Kinder**: nur die gespeicherten. „+ Kind hinzufügen“ öffnet ein leeres Formular (auf der
+  Detailseite: Bearbeiten mit neuem Kind); angelegt wird es erst mit „Speichern“, leere oder
+  verworfene Einträge entfallen.
+
 ### Vor- und Nachname beim Kunden
 
 Kunden haben in den Stammdaten eigene Felder **Vorname** und **Nachname** (Migration 006, für

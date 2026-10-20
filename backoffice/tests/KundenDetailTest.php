@@ -1,0 +1,138 @@
+<?php
+declare(strict_types=1);
+
+// Customer detail page and form: order of the sections for families (Eltern) and for the other types,
+// the slimmed "Familie" section, the children rows and the stored values the family form leaves out.
+// Templates are rendered directly (no database, no layout).
+
+use Backoffice\Modules\Kunden\KundenValidator;
+
+if (!defined('BACKOFFICE_ROOT')) {
+    define('BACKOFFICE_ROOT', dirname(__DIR__));
+}
+if (!function_exists('e')) {
+    function e(mixed $value): string
+    {
+        return Backoffice\View::e($value);
+    }
+}
+
+$render = static function (string $template, array $vars): string {
+    $_SESSION ??= [];
+    extract($vars, EXTR_SKIP);
+    ob_start();
+    require BACKOFFICE_ROOT . '/templates/' . $template . '.php';
+    return (string) ob_get_clean();
+};
+$matches = static function (string $pattern, string $html): array {
+    preg_match_all($pattern, $html, $m);
+    return array_map(static fn ($s) => trim(strip_tags($s)), $m[1]);
+};
+$legends = static fn (string $html): array => $matches('~<legend>(.*?)</legend>~s', $html);
+$headings = static fn (string $html): array => $matches('~<h2>(.*?)</h2>~s', $html);
+// Field names inside the fieldset with the given legend
+$fieldsIn = static function (string $html, string $legend) use ($matches): array {
+    preg_match('~<legend>' . preg_quote($legend, '~') . '</legend>(.*?)</fieldset>~s', $html, $m);
+    return $matches('~ name="([a-z_]+)"~', $m[1] ?? '');
+};
+
+$kunde = static fn (string $typ, array $extra = []): array => $extra + [
+    'id' => 7, 'typ' => $typ, 'name' => $typ === 'privat' ? null : 'Grundschule Test', 'vorname' => 'Anna', 'nachname' => 'Muster',
+    'email' => 'familie@example.de', 'telefon' => '089 123', 'adresse' => 'Weg 1', 'plz' => '80331', 'ort' => 'München',
+    'status' => null, 'quelle' => 'Website', 'notizen' => null, 'erstellt_am' => '2026-10-01 10:00:00', 'geaendert_am' => '2026-10-02 10:00:00',
+    'hk_vorname' => 'Anna', 'hk_nachname' => 'Muster',
+    'ansprechpartner' => [['id' => 1, 'vorname' => 'Anna', 'nachname' => 'Muster', 'rolle' => 'Mutter', 'email' => 'anna@example.de', 'telefon' => null, 'ist_hauptkontakt' => 1]],
+    'kinder' => $typ === 'privat' ? [
+        ['id' => 11, 'vorname' => 'Ben', 'nachname' => 'Muster', 'geburtsdatum' => '2018-05-01', 'geburtsjahr' => 2018, 'abholberechtigte' => null, 'notizen' => null],
+        ['id' => 12, 'vorname' => 'Mia', 'nachname' => 'Muster', 'geburtsdatum' => null, 'geburtsjahr' => 2020, 'abholberechtigte' => null, 'notizen' => null],
+    ] : [],
+    'einwilligungen' => [],
+];
+$form = static function (array $kunde, bool $newChild = false) use ($render): string {
+    $contacts = $kunde['ansprechpartner'];
+    $contacts[] = ['id' => null, 'ist_hauptkontakt' => 0];
+    return $render('kunden/form', [
+        'id' => $kunde['id'], 'kunde' => $kunde, 'contacts' => $contacts, 'kinder' => $kunde['kinder'], 'newChild' => $newChild,
+        'consents' => [], 'errors' => [], 'vorschlag' => null, 'zurueck' => null,
+    ]);
+};
+$show = static fn (array $kunde): string => $render('kunden/show', ['kunde' => $kunde, 'vorschlag' => null, 'protokoll' => []]);
+$childRows = static fn (string $html): array => $matches('~name="kinder\[(\d+)\]\[vorname\]" value="([^"]*)"~', $html);
+
+return [
+    // Form (Bearbeiten)
+    ['Formular Eltern: Kundentyp → Eltern → Familie → Kinder → Rest', static function () use ($form, $kunde, $legends): void {
+        assertSame(['Kundentyp', 'Eltern', 'Familie', 'Kinder', 'Einwilligungen', 'Notizen'], $legends($form($kunde('privat'))));
+    }],
+    ['Formular Eltern: „Familie“ nur Adresse, Status, Quelle', static function () use ($form, $kunde, $fieldsIn): void {
+        assertSame(['adresse', 'plz', 'ort', 'status', 'quelle'], $fieldsIn($form($kunde('privat')), 'Familie'));
+    }],
+    ['Formular Eltern: genau die gespeicherten Kinder, kein leeres Zusatzformular', static function () use ($form, $kunde, $childRows): void {
+        $html = $form($kunde('privat'));
+        assertSame(['0', '1'], $childRows($html));
+        assertSame(0, substr_count(explode('<template', $html)[0], 'data-new-child'));
+        assertSame(1, substr_count($html, 'id="add-child"'));
+    }],
+    ['Formular Eltern: „+ Kind hinzufügen“ bringt ein leeres Formular mit denselben Feldern', static function () use ($form, $kunde, $matches): void {
+        $html = $form($kunde('privat'));
+        preg_match('~<template id="child-template">(.*?)</template>~s', $html, $t);
+        $fields = static fn (string $s) => array_map(static fn ($n) => preg_replace('~^kinder\[[^\]]+\]~', '', $n), $matches('~ name="(kinder\[[^"]+)"~', $s));
+        $stored = $fields(explode('<template', $html)[0]);
+        // Template: index placeholder, same fields as a stored child (without the hidden id)
+        assertSame(array_values(array_unique(array_diff($stored, ['[id]']))), $fields($t[1]));
+        assertSame(true, str_contains($t[1], 'name="kinder[__i__][vorname]"'));
+        // Without JavaScript (or from the detail page): the form is rendered with one new empty child
+        $withNew = $form($kunde('privat'), true);
+        assertSame(1, substr_count(explode('<template', $withNew)[0], 'data-new-child'));
+        assertSame(true, str_contains($withNew, 'name="kinder[2][vorname]" value=""'));
+    }],
+    ['Formular andere Typen unverändert (Einrichtung mit Name, Kontakt, kein Kinder-Bereich)', static function () use ($form, $kunde, $legends, $fieldsIn): void {
+        $html = $form($kunde('schule'));
+        assertSame(['Kundentyp', 'Einrichtung', 'Ansprechpartner', 'Einwilligungen', 'Notizen'], $legends($html));
+        assertSame(['name', 'vorname', 'nachname', 'email', 'telefon', 'adresse', 'plz', 'ort', 'status', 'quelle'], $fieldsIn($html, 'Einrichtung'));
+        assertSame(false, str_contains($html, 'id="add-child"'));
+    }],
+    // Detail page (Ansehen)
+    ['Detailseite Eltern: Eltern → Familie → Kinder → Rest', static function () use ($show, $kunde, $headings): void {
+        assertSame(['Eltern', 'Familie', 'Kinder', 'Einwilligungen', 'Notizen', 'Aufträge', 'Buchungen', 'Rechnungen', 'Änderungsprotokoll'], $headings($show($kunde('privat'))));
+    }],
+    ['Detailseite Eltern: „Familie“ nur Adresse, Status, Quelle; Kinder genau die gespeicherten', static function () use ($show, $kunde, $matches): void {
+        $html = $show($kunde('privat'));
+        preg_match('~<h2>Familie</h2>(.*?)</section>~s', $html, $f);
+        assertSame(['Adresse', 'Status', 'Quelle'], $matches('~<dt>(.*?)</dt>~', $f[1]));
+        preg_match('~<h2>Kinder</h2>(.*?)</section>~s', $html, $k);
+        assertSame(['Ben Muster', 'Mia Muster'], $matches('~<strong>(.*?)</strong>~', $k[1]));
+        assertSame(true, str_contains($k[1], 'kind=neu'));
+    }],
+    ['Detailseite andere Typen unverändert', static function () use ($show, $kunde, $headings): void {
+        assertSame(['Stammdaten', 'Ansprechpartner', 'Einwilligungen', 'Notizen', 'Aufträge', 'Buchungen', 'Rechnungen', 'Änderungsprotokoll'], $headings($show($kunde('schule'))));
+    }],
+    // Saving keeps what the family form does not show
+    ['Speichern Eltern: Vorname, Nachname, E-Mail, Telefon bleiben erhalten', static function () use ($kunde): void {
+        $stored = $kunde('privat');
+        $input = ['typ' => 'privat', 'adresse' => 'Neuer Weg 2', 'ort' => 'München', 'ansprechpartner' => [['vorname' => 'Anna']]];
+        $r = KundenValidator::keepUnsentFields(KundenValidator::validate($input, 7), $input, $stored);
+        assertSame([], $r['errors']);
+        assertSame(['Anna', 'Muster', 'familie@example.de', '089 123', 'Neuer Weg 2'],
+            [$r['data']['vorname'], $r['data']['nachname'], $r['data']['email'], $r['data']['telefon'], $r['data']['adresse']]);
+    }],
+    ['Speichern Eltern nur mit E-Mail (ohne Elternteil): kein Fehler, E-Mail bleibt', static function () use ($kunde): void {
+        $stored = $kunde('privat', ['vorname' => null, 'nachname' => null, 'telefon' => null]);
+        $input = ['typ' => 'privat', 'quelle' => 'Import'];
+        $r = KundenValidator::keepUnsentFields(KundenValidator::validate($input, 7), $input, $stored);
+        assertSame([], $r['errors']);
+        assertSame('familie@example.de', $r['data']['email']);
+    }],
+    ['Gesendete Felder (Formular anderer Typen) gelten weiter, auch geleert', static function (): void {
+        $result = ['data' => ['vorname' => null, 'nachname' => 'Neu', 'email' => null, 'telefon' => null], 'errors' => []];
+        $input = ['vorname' => '', 'nachname' => 'Neu', 'email' => '', 'telefon' => ''];
+        $r = KundenValidator::keepUnsentFields($result, $input, ['vorname' => 'Alt', 'nachname' => 'Alt', 'email' => 'a@example.de', 'telefon' => '1']);
+        assertSame(['vorname' => null, 'nachname' => 'Neu', 'email' => null, 'telefon' => null], $r['data']);
+    }],
+    ['Ohne Elternteil und ohne gespeicherte E-Mail bleibt der Hinweis', static function () use ($kunde): void {
+        $stored = $kunde('privat', ['email' => null]);
+        $input = ['typ' => 'privat'];
+        $r = KundenValidator::keepUnsentFields(KundenValidator::validate($input, 7), $input, $stored);
+        assertSame(true, isset($r['errors']['ansprechpartner']));
+    }],
+];
