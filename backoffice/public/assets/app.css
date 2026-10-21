@@ -386,3 +386,13 @@ details.card[open] > summary { margin-bottom: 12px; }
 .status-badge--gruen { background: var(--status-gruen-bg); border-color: var(--status-gruen-border); color: var(--status-gruen-text); }
 .status-badge--rot { background: var(--status-rot-bg); border-color: var(--status-rot-border); color: var(--status-rot-text); }
 .status-badge--lila { background: var(--status-lila-bg); border-color: var(--status-lila-border); color: var(--status-lila-text); }
+
+/* Orders: title + customer in the list, status history, file lists */
+.order-title { font-weight: 600; }
+.order-customer { display: block; color: var(--muted); font-size: 0.85rem; }
+.file-date { display: block; font-size: 0.8rem; }
+.inline-row-btn { margin-top: 26px; }
+.status-log li { display: block; }
+.status-log .status-comment { margin: 4px 0 0; }
+.file-list li { flex-wrap: wrap; }
+.file-list form { margin: 0; }

@@ -58,7 +58,7 @@ $form = static function (array $kunde, bool $newChild = false) use ($render): st
         'consents' => [], 'errors' => [], 'zurueck' => null,
     ]);
 };
-$show = static fn (array $kunde): string => $render('kunden/show', ['kunde' => $kunde, 'protokoll' => []]);
+$show = static fn (array $kunde): string => $render('kunden/show', ['kunde' => $kunde, 'protokoll' => [], 'auftraege' => []]);
 $childRows = static fn (string $html): array => $matches('~name="kinder\[(\d+)\]\[vorname\]" value="([^"]*)"~', $html);
 
 return [

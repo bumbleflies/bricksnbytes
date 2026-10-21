@@ -206,6 +206,26 @@ werden. Heute steht oben („Heute 🎉“); am selben Tag sortiert der Name. Nu
 29.02. Geborene erscheinen in Nicht-Schaltjahren am 28.02. Kinder ohne Geburtsdatum fehlen. Die
 Anzahl steht in `Geburtstage::ANZAHL` (`src/Modules/Kinder/Geburtstage.php`, mit Unit-Tests).
 
+### Aufträge
+
+**Aufträge** (Seitenleiste) listet alle Aufträge, die neuesten zuerst: Name (Titel, darunter der Kunde),
+Typ, Status, Link zur neuesten Datei und die Aktionen Bearbeiten (Stift) und Schnellansicht (Auge).
+Neu anlegen über „Neuer Auftrag“ oder auf der Detailseite eines Kunden („+ Neuer Auftrag“, Kunde ist
+dann vorausgewählt); dort stehen auch alle Aufträge des Kunden.
+
+- **Felder:** Kunde und Ansprechpartner (nach einem Kundenwechsel „Kunde übernehmen“), Titel, Typ
+  (Projekttag, Hort, Workshop, Ferienkurs, Kita, Geburtstag, Sonstiges), Ort, vereinbarter Preis
+  (gesamt / pro Termin / pro Kind / pro Monat), Anzahl Klassen und Kinder, regelmäßig, Termine,
+  Zeitraum, Notizen. Die Nummer (z. B. 2026-001) wird beim Anlegen vergeben.
+- **Status** (Anfrage, Angebot verschickt, Bestätigt, Durchgeführt, Abgerechnet, Abgesagt): ein neuer
+  Status oder ein Kommentar landet mit Datum und Benutzer im Verlauf auf der Detailseite.
+- **Dateien:** beim Anlegen/Bearbeiten mehrere auf einmal; PDF, Word, Excel, PowerPoint,
+  OpenDocument, Text, JPG, PNG, je höchstens 10 MB (Endung und Inhalt werden geprüft). Gespeichert
+  in der Datenbank (Tabelle `auftrag_dateien`) – damit in jeder Datenbank-Sicherung enthalten.
+  PDF und Bilder öffnen im Browser, alles andere wird heruntergeladen. Löschen im Bearbeiten-Formular.
+- Detailseite: Kunde (Ansprechpartner, Adresse), Auftrag, Status-Verlauf, Dokumente (neueste oben).
+- Schema: Migration 008; Upload-Grenzen des Docker-Images in `docker/php-uploads.ini`.
+
 ### Kundenliste: Suche und Filter
 
 Über der Liste: Suchfeld (Name, E-Mail, Ort, Vor-/Nachname, Ansprechpartner, Kinder) und die

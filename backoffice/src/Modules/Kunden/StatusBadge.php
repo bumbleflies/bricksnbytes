@@ -37,6 +37,13 @@ final class StatusBadge
     public static function html(?string $status): string
     {
         $label = $status === null || $status === '' ? self::OHNE_STATUS : Kundentypen::statusLabel($status);
-        return '<span class="status-badge status-badge--' . self::farbe($status) . '">' . View::e($label) . '</span>';
+        return self::pill($label, self::farbe($status));
+    }
+
+    /** The same pill for any label and colour (e.g. order status) */
+    public static function pill(string $label, string $farbe): string
+    {
+        $farbe = preg_match('/^[a-z]+$/', $farbe) ? $farbe : self::NEUTRAL;
+        return '<span class="status-badge status-badge--' . $farbe . '">' . View::e($label) . '</span>';
     }
 }
