@@ -40,7 +40,7 @@ $columns = ['name' => 'Name', 'alter' => 'Alter', 'eltern' => 'Eltern', 'ort' =>
         <?php foreach ($rows as $r): ?>
           <tr>
             <td><a href="/kunden/ansehen?id=<?= e($r['kunde_id']) ?>"><?= e(trim($r['vorname'] . ' ' . ($r['nachname'] ?? ''))) ?></a></td>
-            <td><?= e(Alter::text($r['geburtsdatum'], $r['geburtsjahr'])) ?></td>
+            <td><?= e(Alter::text($r['geburtsdatum'])) ?></td>
             <?php $eltern = trim(($r['hk_vorname'] ?? '') . ' ' . ($r['hk_nachname'] ?? '')); ?>
             <td><?= e($eltern !== '' ? $eltern : ($r['kunde_email'] ?? '–')) ?></td>
             <td><?= e($r['ort']) ?></td>

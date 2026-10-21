@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Backoffice\Modules\Kunden;
 
 use Backoffice\Audit;
+use Backoffice\Modules\Auftraege\AuftragRepository;
 use Backoffice\Router;
 use Backoffice\Session;
 use Backoffice\View;
@@ -183,6 +184,7 @@ final class KundenController
         View::render('kunden/show', [
             'title' => Kundentypen::displayName($kunde),
             'kunde' => $kunde,
+            'auftraege' => AuftragRepository::forKunde((int) $kunde['id']),
             'protokoll' => Audit::forRecord('kunden', (int) $kunde['id'], 10),
         ]);
     }

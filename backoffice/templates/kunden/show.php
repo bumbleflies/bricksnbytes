@@ -1,5 +1,6 @@
 <?php
-/** @var array $kunde @var array $protokoll */
+/** @var array $kunde @var array $protokoll @var array $auftraege */
+use Backoffice\Modules\Auftraege\Auftragsdaten;
 use Backoffice\Modules\Kunden\KundenController;
 use Backoffice\Modules\Kunden\Kundentypen;
 use Backoffice\Modules\Kunden\StatusBadge;
@@ -79,9 +80,7 @@ $actionLabels = ['angelegt' => 'angelegt', 'geaendert' => 'geändert', 'geloesch
           <?php foreach ($kunde['kinder'] as $k): ?>
             <li>
               <strong><?= e(trim($k['vorname'] . ' ' . ($k['nachname'] ?? ''))) ?></strong>
-              <span class="muted">· <?= e(Alter::text($k['geburtsdatum'], $k['geburtsjahr'])) ?></span>
-              <?php if ($k['abholberechtigte']): ?><br><span class="muted">Abholberechtigt: <?= e($k['abholberechtigte']) ?></span><?php endif; ?>
-              <?php if ($k['notizen']): ?><br><span class="muted">Notiz: <?= e($k['notizen']) ?></span><?php endif; ?>
+              <span class="muted">· <?= e(Alter::text($k['geburtsdatum'])) ?></span>
             </li>
           <?php endforeach; ?>
         </ul>
@@ -114,7 +113,23 @@ $actionLabels = ['angelegt' => 'angelegt', 'geaendert' => 'geändert', 'geloesch
 </section>
 
 <div class="detail-grid">
-  <section class="card"><h2>Aufträge</h2><p class="muted">Noch keine Aufträge – das Modul kommt bald.</p></section>
+  <section class="card">
+    <div class="card-head">
+      <h2>Aufträge</h2>
+      <a class="btn btn-ghost-dark" href="/auftraege/neu?kunde=<?= e($kunde['id']) ?>">+ Neuer Auftrag</a>
+    </div>
+    <?php if (!$auftraege): ?>
+      <p class="muted">Noch keine Aufträge.</p>
+    <?php else: ?>
+      <ul class="plain-list">
+        <?php foreach ($auftraege as $au): ?>
+          <li><a href="/auftraege/ansehen?id=<?= e($au['id']) ?>"><?= e($au['titel']) ?></a>
+            <?= StatusBadge::pill(Auftragsdaten::statusLabel($au['status']), Auftragsdaten::statusFarbe($au['status'])) ?>
+            <br><span class="muted"><?= e(Auftragsdaten::typLabel($au['format'])) ?><?= $au['datei_name'] ? ' · ' . e($au['datei_name']) : '' ?></span></li>
+        <?php endforeach; ?>
+      </ul>
+    <?php endif; ?>
+  </section>
   <section class="card"><h2>Buchungen</h2><p class="muted">Noch keine Buchungen – das Modul kommt bald.</p></section>
   <section class="card"><h2>Rechnungen</h2><p class="muted">Noch keine Rechnungen – das Modul kommt bald.</p></section>
 </div>

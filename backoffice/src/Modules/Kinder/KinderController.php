@@ -13,10 +13,10 @@ final class KinderController
 {
     private const PER_PAGE = 25;
 
-    // Age sorts by birthdate, or mid-year of the birth year when only the year is known
+    // Age sorts by birthdate (children without one last)
     private const SORTS = [
         'name' => "CONCAT_WS(' ', ki.vorname, ki.nachname)",
-        'alter' => "COALESCE(ki.geburtsdatum, MAKEDATE(ki.geburtsjahr, 183))",
+        'alter' => 'ki.geburtsdatum',
         'eltern' => "CONCAT_WS(' ', hk.nachname, hk.vorname)",
         'ort' => 'k.ort',
     ];

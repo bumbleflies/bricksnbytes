@@ -169,7 +169,8 @@ CSV – in Google Sheets: Reiter öffnen → *Datei → Herunterladen → CSV*. 
   bestehende Kunden bekommen nur fehlende Kinder (gleicher Vorname = schon da), neue Adressen
   werden Privatkunden mit bis zu zwei Elternteilen aus „Name Eltern“.
 - Statt Geburtsdatum: **geschätztes Geburtsjahr** aus Alter und Buchungsdatum, mit Vermerk in den
-  Notizen; bei mehreren Kindern in einer Buchung zusätzlich „Alter bitte prüfen“.
+  Notizen; bei mehreren Kindern in einer Buchung zusätzlich „Alter bitte prüfen“. Jahr und Notizen
+  zeigt das Backoffice nicht mehr an (gespeichert bleiben sie, im CSV-Export der Kinder stehen sie).
 - Nicht importiert, sondern zum Prüfen angezeigt: Testbuchungen mit der eigenen Adresse,
   Platzhalter statt Namen, Kind mit gleichem Namen wie das Elternteil. Kinder, die unter mehreren
   E-Mail-Adressen vorkommen, werden als Hinweis gelistet.
@@ -204,6 +205,26 @@ heute, auch über den Monats- und Jahreswechsel: Name (Link zur Familie), Datum 
 werden. Heute steht oben („Heute 🎉“); am selben Tag sortiert der Name. Nur Tag und Monat zählen; am
 29.02. Geborene erscheinen in Nicht-Schaltjahren am 28.02. Kinder ohne Geburtsdatum fehlen. Die
 Anzahl steht in `Geburtstage::ANZAHL` (`src/Modules/Kinder/Geburtstage.php`, mit Unit-Tests).
+
+### Aufträge
+
+**Aufträge** (Seitenleiste) listet alle Aufträge, die neuesten zuerst: Name (Titel, darunter der Kunde),
+Typ, Status, Link zur neuesten Datei und die Aktionen Bearbeiten (Stift) und Schnellansicht (Auge).
+Neu anlegen über „Neuer Auftrag“ oder auf der Detailseite eines Kunden („+ Neuer Auftrag“, Kunde ist
+dann vorausgewählt); dort stehen auch alle Aufträge des Kunden.
+
+- **Felder:** Kunde und Ansprechpartner (nach einem Kundenwechsel „Kunde übernehmen“), Titel, Typ
+  (Projekttag, Hort, Workshop, Ferienkurs, Kita, Geburtstag, Sonstiges), Ort, vereinbarter Preis
+  (gesamt / pro Termin / pro Kind / pro Monat), Anzahl Klassen und Kinder, regelmäßig, Termine,
+  Zeitraum, Notizen. Die Nummer (z. B. 2026-001) wird beim Anlegen vergeben.
+- **Status** (Anfrage, Angebot verschickt, Bestätigt, Durchgeführt, Abgerechnet, Abgesagt): ein neuer
+  Status oder ein Kommentar landet mit Datum und Benutzer im Verlauf auf der Detailseite.
+- **Dateien:** beim Anlegen/Bearbeiten mehrere auf einmal; PDF, Word, Excel, PowerPoint,
+  OpenDocument, Text, JPG, PNG, je höchstens 10 MB (Endung und Inhalt werden geprüft). Gespeichert
+  in der Datenbank (Tabelle `auftrag_dateien`) – damit in jeder Datenbank-Sicherung enthalten.
+  PDF und Bilder öffnen im Browser, alles andere wird heruntergeladen. Löschen im Bearbeiten-Formular.
+- Detailseite: Kunde (Ansprechpartner, Adresse), Auftrag, Status-Verlauf, Dokumente (neueste oben).
+- Schema: Migration 008; Upload-Grenzen des Docker-Images in `docker/php-uploads.ini`.
 
 ### Kundenliste: Suche und Filter
 
@@ -254,6 +275,10 @@ Nur beim Typ **Eltern** (alle anderen Typen unverändert):
 - **Familie** zeigt nur Adresse, Status und Quelle. Vorname, Nachname, E-Mail und Telefon des Kunden
   stehen bei den Eltern; die gespeicherten Werte bleiben erhalten (Speichern überschreibt oder leert
   sie nicht, auch nicht bei Kunden, die nur eine E-Mail-Adresse haben).
+- **Kinder**: nur Vorname, Nachname und Geburtsdatum (Alter und Geburtstage kommen aus dem Datum).
+  Abholberechtigte, Notizen und ein separat gespeichertes Geburtsjahr werden nicht mehr angezeigt oder
+  abgefragt; vorhandene Werte bleiben gespeichert, Speichern ändert sie nicht (der CSV-Export der
+  Kinder enthält sie weiterhin). Ein Kind ohne Geburtsdatum zeigt „Alter unbekannt“.
 - **Kinder**: nur die gespeicherten. „+ Kind hinzufügen“ öffnet ein leeres Formular (auf der
   Detailseite: Bearbeiten mit neuem Kind); angelegt wird es erst mit „Speichern“, leere oder
   verworfene Einträge entfallen.

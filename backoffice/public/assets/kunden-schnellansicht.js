@@ -1,5 +1,5 @@
-// Customer list: eye icon opens a read-only quick view in a modal (<dialog>), loaded from
-// /kunden/schnellansicht. Closes via X, Escape (native) or a click on the backdrop.
+// Lists (customers, orders): eye icon opens a read-only quick view in a modal (<dialog>), loaded from
+// the dialog's data-quick-url (default /kunden/schnellansicht). Closes via X, Escape or the backdrop.
 (() => {
   const dialog = document.getElementById('quick-view');
   if (!dialog || typeof dialog.showModal !== 'function') return;
@@ -8,6 +8,7 @@
   const edit = document.getElementById('quick-edit');
   const detail = document.getElementById('quick-detail');
   const listUrl = dialog.dataset.listUrl || '/kunden';
+  const quickUrl = dialog.dataset.quickUrl || '/kunden/schnellansicht';
   let opener = null;
 
   // Action icons never count as a click on the row or its checkbox
@@ -29,7 +30,7 @@
     setLinks(false);
     dialog.showModal();
     try {
-      const res = await fetch(`/kunden/schnellansicht?id=${encodeURIComponent(id)}&zurueck=${encodeURIComponent(listUrl)}`, {
+      const res = await fetch(`${quickUrl}?id=${encodeURIComponent(id)}&zurueck=${encodeURIComponent(listUrl)}`, {
         credentials: 'same-origin',
         headers: { Accept: 'text/html' },
       });

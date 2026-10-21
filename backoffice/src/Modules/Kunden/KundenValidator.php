@@ -125,13 +125,17 @@ final class KundenValidator
             foreach (['vorname', 'nachname'] as $field) {
                 $kind[$field] = self::text($row[$field] ?? null, $field, $rowErrors);
             }
+            // Pick-up persons, notes and birth year are no longer in the form: only taken when sent
+            // (imports), otherwise left out so the stored values stay
             foreach (['abholberechtigte', 'notizen'] as $field) {
-                $kind[$field] = self::text($row[$field] ?? null, $field, $rowErrors, multiline: true);
+                if (array_key_exists($field, $row)) {
+                    $kind[$field] = self::text($row[$field], $field, $rowErrors, multiline: true);
+                }
             }
             $kind['geburtsdatum'] = self::text($row['geburtsdatum'] ?? null, 'geburtsdatum', $rowErrors);
-            $year = self::text($row['geburtsjahr'] ?? null, 'geburtsjahr', $rowErrors);
+            $year = array_key_exists('geburtsjahr', $row) ? self::text($row['geburtsjahr'], 'geburtsjahr', $rowErrors) : null;
 
-            if (count(array_filter([$kind['vorname'], $kind['nachname'], $kind['geburtsdatum'], $year, $kind['abholberechtigte'], $kind['notizen']])) === 0) {
+            if (count(array_filter([$kind['vorname'], $kind['nachname'], $kind['geburtsdatum'], $year, $kind['abholberechtigte'] ?? null, $kind['notizen'] ?? null])) === 0) {
                 continue;
             }
             if ($kind['vorname'] === null) {
@@ -147,7 +151,9 @@ final class KundenValidator
             if ($year !== null && (!ctype_digit($year) || (int) $year < 1990 || (int) $year > (int) date('Y'))) {
                 $rowErrors[] = 'Geburtsjahr bitte vierstellig (z. B. 2017).';
             }
-            $kind['geburtsjahr'] = $year === null || !ctype_digit($year) ? null : (int) $year;
+            if ($year !== null || array_key_exists('geburtsjahr', $row)) {
+                $kind['geburtsjahr'] = $year === null || !ctype_digit($year) ? null : (int) $year;
+            }
             if ($rowErrors) {
                 $errors["kinder.$i"] = implode(' ', array_unique($rowErrors));
             }

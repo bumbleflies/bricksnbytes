@@ -355,7 +355,8 @@ final class KundenRepository
         Audit::deleted('kunden', $id);
     }
 
-    // Update kept rows, add new ones, remove the ones no longer in the form
+    // Update kept rows, add new ones, remove the ones no longer in the form. A kept row only updates the
+    // fields it carries (e.g. children: pick-up persons and notes are no longer in the form and stay)
     private static function syncRows(string $table, array $fields, int $kundeId, array $rows): void
     {
         $existing = [];
@@ -367,11 +368,13 @@ final class KundenRepository
             $values = array_map(static fn ($f) => $row[$f] ?? null, $fields);
             $rowId = $row['id'] ?? null;
             if ($rowId !== null && isset($existing[$rowId])) {
+                $sent = array_values(array_filter($fields, static fn ($f) => array_key_exists($f, $row)));
+                $sentValues = array_map(static fn ($f) => $row[$f], $sent);
                 Db::query(
-                    "UPDATE $table SET " . implode(', ', array_map(static fn ($f) => "$f = ?", $fields)) . ' WHERE id = ? AND kunde_id = ?',
-                    [...$values, $rowId, $kundeId]
+                    "UPDATE $table SET " . implode(', ', array_map(static fn ($f) => "$f = ?", $sent)) . ' WHERE id = ? AND kunde_id = ?',
+                    [...$sentValues, $rowId, $kundeId]
                 );
-                Audit::changed($table, $rowId, $existing[$rowId], array_combine($fields, $values));
+                Audit::changed($table, $rowId, $existing[$rowId], array_combine($sent, $sentValues));
                 $keep[] = $rowId;
             } else {
                 Db::query(

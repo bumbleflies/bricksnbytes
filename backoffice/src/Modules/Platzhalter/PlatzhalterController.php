@@ -10,7 +10,6 @@ use Backoffice\View;
 final class PlatzhalterController
 {
     private const PAGES = [
-        '/auftraege' => ['Aufträge', 'Anfragen und Angebote für Schulen, Horte, Kitas, Geburtstage und Firmen – vom ersten Kontakt bis zur Abrechnung.'],
         '/kurse' => ['Kurse', 'Kursreihen mit Kursart, Format, Alter und Plätzen.'],
         '/termine' => ['Termine', 'Einzeltermine mit Ort, Kursleiter, Teilnehmerliste, Anwesenheit, Warteliste und Material.'],
         '/buchungen' => ['Buchungen', 'Welches Kind ist in welchem Kurs – später auch aus dem Shop übernommen.'],

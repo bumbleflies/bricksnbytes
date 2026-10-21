@@ -33,6 +33,7 @@ Modules\Dashboard\DashboardController::register($router);
 Modules\Suche\SucheController::register($router);
 Modules\Kunden\KundenController::register($router);
 Modules\Kinder\KinderController::register($router);
+Modules\Auftraege\AuftraegeController::register($router);
 Modules\Import\ImportController::register($router);
 Modules\Newsletter\AbmeldungController::register($router);
 Modules\Platzhalter\PlatzhalterController::register($router);
