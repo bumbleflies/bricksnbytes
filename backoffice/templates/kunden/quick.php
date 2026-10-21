@@ -56,7 +56,7 @@ $editHref = '/kunden/bearbeiten?id=' . $kunde['id'] . ($zurueck !== null ? '&zur
     <?php else: ?>
       <ul class="plain-list">
         <?php foreach ($kunde['kinder'] as $k): ?>
-          <li><strong><?= e(trim($k['vorname'] . ' ' . ($k['nachname'] ?? ''))) ?></strong> <span class="muted">· <?= e(Alter::text($k['geburtsdatum'], $k['geburtsjahr'])) ?></span></li>
+          <li><strong><?= e(trim($k['vorname'] . ' ' . ($k['nachname'] ?? ''))) ?></strong> <span class="muted">· <?= e(Alter::text($k['geburtsdatum'])) ?></span></li>
         <?php endforeach; ?>
       </ul>
     <?php endif; ?>

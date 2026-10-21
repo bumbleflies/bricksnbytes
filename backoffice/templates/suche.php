@@ -26,7 +26,7 @@ use Backoffice\Modules\Kunden\Kundentypen;
         <ul class="plain-list">
           <?php foreach ($kinder as $k): $eltern = trim(($k['hk_vorname'] ?? '') . ' ' . ($k['hk_nachname'] ?? '')); ?>
             <li><a href="/kunden/ansehen?id=<?= e($k['kunde_id']) ?>"><?= e(trim($k['vorname'] . ' ' . ($k['nachname'] ?? ''))) ?></a>
-              <span class="muted">· <?= e(Alter::text($k['geburtsdatum'], $k['geburtsjahr'])) ?><?= $eltern !== '' ? ' · Eltern: ' . e($eltern) : '' ?></span></li>
+              <span class="muted">· <?= e(Alter::text($k['geburtsdatum'])) ?><?= $eltern !== '' ? ' · Eltern: ' . e($eltern) : '' ?></span></li>
           <?php endforeach; ?>
         </ul>
       <?php endif; ?>

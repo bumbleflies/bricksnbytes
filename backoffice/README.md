@@ -169,7 +169,8 @@ CSV – in Google Sheets: Reiter öffnen → *Datei → Herunterladen → CSV*. 
   bestehende Kunden bekommen nur fehlende Kinder (gleicher Vorname = schon da), neue Adressen
   werden Privatkunden mit bis zu zwei Elternteilen aus „Name Eltern“.
 - Statt Geburtsdatum: **geschätztes Geburtsjahr** aus Alter und Buchungsdatum, mit Vermerk in den
-  Notizen; bei mehreren Kindern in einer Buchung zusätzlich „Alter bitte prüfen“.
+  Notizen; bei mehreren Kindern in einer Buchung zusätzlich „Alter bitte prüfen“. Jahr und Notizen
+  zeigt das Backoffice nicht mehr an (gespeichert bleiben sie, im CSV-Export der Kinder stehen sie).
 - Nicht importiert, sondern zum Prüfen angezeigt: Testbuchungen mit der eigenen Adresse,
   Platzhalter statt Namen, Kind mit gleichem Namen wie das Elternteil. Kinder, die unter mehreren
   E-Mail-Adressen vorkommen, werden als Hinweis gelistet.
@@ -254,6 +255,10 @@ Nur beim Typ **Eltern** (alle anderen Typen unverändert):
 - **Familie** zeigt nur Adresse, Status und Quelle. Vorname, Nachname, E-Mail und Telefon des Kunden
   stehen bei den Eltern; die gespeicherten Werte bleiben erhalten (Speichern überschreibt oder leert
   sie nicht, auch nicht bei Kunden, die nur eine E-Mail-Adresse haben).
+- **Kinder**: nur Vorname, Nachname und Geburtsdatum (Alter und Geburtstage kommen aus dem Datum).
+  Abholberechtigte, Notizen und ein separat gespeichertes Geburtsjahr werden nicht mehr angezeigt oder
+  abgefragt; vorhandene Werte bleiben gespeichert, Speichern ändert sie nicht (der CSV-Export der
+  Kinder enthält sie weiterhin). Ein Kind ohne Geburtsdatum zeigt „Alter unbekannt“.
 - **Kinder**: nur die gespeicherten. „+ Kind hinzufügen“ öffnet ein leeres Formular (auf der
   Detailseite: Bearbeiten mit neuem Kind); angelegt wird es erst mit „Speichern“, leere oder
   verworfene Einträge entfallen.

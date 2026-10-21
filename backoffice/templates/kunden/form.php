@@ -30,15 +30,10 @@ $sub = static fn (string $group, int|string $i, string $name): string => $group 
 $childRow = static function (int|string $i, array $k, bool $new = false) use ($sub): void { ?>
         <div class="repeat-row<?= !empty($k['_error']) ? ' has-error' : '' ?>"<?= $new ? ' data-new-child' : '' ?>>
           <?php if (!empty($k['id'])): ?><input type="hidden" name="<?= e($sub('kinder', $i, 'id')) ?>" value="<?= e($k['id']) ?>"><?php endif; ?>
-          <div class="grid-child">
+          <div class="grid-child"><?php /* name and birthdate only; stored pick-up persons, notes and birth year stay */ ?>
             <div class="field"><label for="k-<?= e($i) ?>-v">Vorname</label><input id="k-<?= e($i) ?>-v" name="<?= e($sub('kinder', $i, 'vorname')) ?>" value="<?= e($k['vorname'] ?? '') ?>"></div>
             <div class="field"><label for="k-<?= e($i) ?>-n">Nachname</label><input id="k-<?= e($i) ?>-n" name="<?= e($sub('kinder', $i, 'nachname')) ?>" value="<?= e($k['nachname'] ?? '') ?>"></div>
             <div class="field"><label for="k-<?= e($i) ?>-d">Geburtsdatum</label><input id="k-<?= e($i) ?>-d" type="date" name="<?= e($sub('kinder', $i, 'geburtsdatum')) ?>" value="<?= e($k['geburtsdatum'] ?? '') ?>" max="<?= e(date('Y-m-d')) ?>"></div>
-            <div class="field"><label for="k-<?= e($i) ?>-j">oder Jahr</label><input id="k-<?= e($i) ?>-j" inputmode="numeric" name="<?= e($sub('kinder', $i, 'geburtsjahr')) ?>" value="<?= e($k['geburtsjahr'] ?? '') ?>" placeholder="2017"></div>
-          </div>
-          <div class="grid-2">
-            <div class="field"><label for="k-<?= e($i) ?>-a">Abholberechtigte</label><textarea id="k-<?= e($i) ?>-a" rows="2" name="<?= e($sub('kinder', $i, 'abholberechtigte')) ?>"><?= e($k['abholberechtigte'] ?? '') ?></textarea></div>
-            <div class="field"><label for="k-<?= e($i) ?>-x">Notizen</label><textarea id="k-<?= e($i) ?>-x" rows="2" name="<?= e($sub('kinder', $i, 'notizen')) ?>"><?= e($k['notizen'] ?? '') ?></textarea></div>
           </div>
           <?php if (!empty($k['_error'])): ?><p class="field-error"><?= e($k['_error']) ?></p><?php endif; ?>
           <?php if ($new): ?><p class="new-child-actions"><button type="button" class="btn-link" data-discard-child>Verwerfen</button> <span class="hint">Wird erst mit „Speichern“ angelegt; leer bleibt es weg.</span></p><?php endif; ?>
@@ -136,7 +131,7 @@ $contactsFieldset = static function () use ($contacts, $errors, $privat, $sub): 
     <fieldset>
       <legend>Kinder</legend>
       <?php if (!empty($errors['kinder'])): ?><p class="field-error"><?= e($errors['kinder']) ?></p><?php endif; ?>
-      <p class="hint">Geburtsdatum oder – wenn unbekannt – nur das Geburtsjahr. Zum Entfernen alle Felder leeren.</p>
+      <p class="hint">Name und Geburtsdatum (für Alter und Geburtstage). Zum Entfernen alle Felder leeren.</p>
       <div id="child-rows" data-next-index="<?= e(count($kinder) + ($newChild ? 1 : 0)) ?>">
         <?php foreach ($kinder as $i => $k) { $childRow($i, $k); } ?>
         <?php if ($newChild) { $childRow(count($kinder), [], true); } ?>

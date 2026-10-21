@@ -79,9 +79,7 @@ $actionLabels = ['angelegt' => 'angelegt', 'geaendert' => 'geändert', 'geloesch
           <?php foreach ($kunde['kinder'] as $k): ?>
             <li>
               <strong><?= e(trim($k['vorname'] . ' ' . ($k['nachname'] ?? ''))) ?></strong>
-              <span class="muted">· <?= e(Alter::text($k['geburtsdatum'], $k['geburtsjahr'])) ?></span>
-              <?php if ($k['abholberechtigte']): ?><br><span class="muted">Abholberechtigt: <?= e($k['abholberechtigte']) ?></span><?php endif; ?>
-              <?php if ($k['notizen']): ?><br><span class="muted">Notiz: <?= e($k['notizen']) ?></span><?php endif; ?>
+              <span class="muted">· <?= e(Alter::text($k['geburtsdatum'])) ?></span>
             </li>
           <?php endforeach; ?>
         </ul>

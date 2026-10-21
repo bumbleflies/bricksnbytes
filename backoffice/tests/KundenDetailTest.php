@@ -5,6 +5,7 @@ declare(strict_types=1);
 // the slimmed "Familie" section, the children rows and the stored values the family form leaves out.
 // Templates are rendered directly (no database, no layout).
 
+use Backoffice\Modules\Kinder\Alter;
 use Backoffice\Modules\Kunden\KundenValidator;
 use Backoffice\Modules\Kunden\Kundentypen;
 
@@ -44,7 +45,7 @@ $kunde = static fn (string $typ, array $extra = []): array => $extra + [
     'hk_vorname' => 'Anna', 'hk_nachname' => 'Muster',
     'ansprechpartner' => [['id' => 1, 'vorname' => 'Anna', 'nachname' => 'Muster', 'rolle' => 'Mutter', 'email' => 'anna@example.de', 'telefon' => null, 'ist_hauptkontakt' => 1]],
     'kinder' => $typ === 'privat' ? [
-        ['id' => 11, 'vorname' => 'Ben', 'nachname' => 'Muster', 'geburtsdatum' => '2018-05-01', 'geburtsjahr' => 2018, 'abholberechtigte' => null, 'notizen' => null],
+        ['id' => 11, 'vorname' => 'Ben', 'nachname' => 'Muster', 'geburtsdatum' => '2018-05-01', 'geburtsjahr' => 2018, 'abholberechtigte' => 'Oma Inge', 'notizen' => 'Allergie: Nüsse'],
         ['id' => 12, 'vorname' => 'Mia', 'nachname' => 'Muster', 'geburtsdatum' => null, 'geburtsjahr' => 2020, 'abholberechtigte' => null, 'notizen' => null],
     ] : [],
     'einwilligungen' => [],
@@ -139,6 +140,47 @@ return [
         $r = KundenValidator::keepUnsentFields(KundenValidator::validate($input, 7), $input, $stored);
         assertSame([], $r['errors']);
         assertSame(['Grundschule Neu', 'Gabi', 'Lehrer', '089 999', 'Pullach'], [$r['data']['name'], $r['data']['vorname'], $r['data']['nachname'], $r['data']['telefon'], $r['data']['ort']]);
+    }],
+    // Children: only name and birthdate (pick-up persons, notes and birth year hidden, but kept)
+    ['Kinder im Formular: nur Vorname, Nachname, Geburtsdatum (auch beim neuen Kind)', static function () use ($form, $kunde, $matches): void {
+        $html = $form($kunde('privat'), true);
+        [$rows, $template] = explode('<template', $html, 2);
+        $fields = static fn (string $part): array => array_values(array_unique(array_map(static fn ($n) => preg_replace('~^kinder\[[^\]]+\]~', '', $n), $matches('~ name="(kinder\[[^"]+)"~', $part))));
+        assertSame(['[id]', '[vorname]', '[nachname]', '[geburtsdatum]'], $fields($rows));
+        assertSame(['[vorname]', '[nachname]', '[geburtsdatum]'], $fields($template));
+        preg_match('~<legend>Kinder</legend>(.*?)</fieldset>~s', $html, $k);
+        foreach (['Abholberechtigte', 'Notizen', 'Jahr', 'Oma Inge', 'Allergie'] as $hidden) {
+            assertSame(false, str_contains(str_replace('Geburtsdatum', '', $k[1]), $hidden), $hidden);
+        }
+        assertSame(true, str_contains($k[1], 'type="date" name="kinder[0][geburtsdatum]" value="2018-05-01"'));
+    }],
+    ['Kinder auf der Detailseite: Name und Alter aus dem Geburtsdatum, ohne Abholberechtigte, Notizen, Jahr', static function () use ($show, $kunde): void {
+        preg_match('~<h2>Kinder</h2>(.*?)</section>~s', $show($kunde('privat')), $k);
+        foreach (['Abholberechtigt', 'Oma Inge', 'Notiz', 'Allergie', 'Jg.', 'ca.'] as $hidden) {
+            assertSame(false, str_contains($k[1], $hidden), $hidden);
+        }
+        assertSame(true, str_contains($k[1], '<strong>Ben Muster</strong>') && str_contains($k[1], '(01.05.2018)'));
+        assertSame(true, str_contains($k[1], '<strong>Mia Muster</strong> ') || str_contains($k[1], 'Alter unbekannt'));
+    }],
+    ['Alter nur aus dem Geburtsdatum', static function (): void {
+        $date = (new DateTimeImmutable('today'))->modify('-7 years -3 days');
+        assertSame('7 Jahre (' . $date->format('d.m.Y') . ')', Alter::text($date->format('Y-m-d')));
+        assertSame('Alter unbekannt', Alter::text(null));
+    }],
+    ['Neues Kind nur mit Name und Geburtsdatum speicherbar', static function () use ($kunde): void {
+        $input = ['typ' => 'privat', 'ansprechpartner' => [['vorname' => 'Anna']], 'kinder' => [['vorname' => 'Lea', 'geburtsdatum' => '2021-03-04']]];
+        $r = KundenValidator::validate($input, null);
+        assertSame([], $r['errors']);
+        assertSame(['id' => null, 'vorname' => 'Lea', 'nachname' => null, 'geburtsdatum' => '2021-03-04', 'geburtsjahr' => 2021], $r['kinder'][0]);
+    }],
+    ['Bestehendes Kind speichern: Abholberechtigte, Notizen, Jahr werden nicht mitgeschrieben (bleiben)', static function () use ($kunde): void {
+        $input = ['typ' => 'privat', 'ansprechpartner' => [['vorname' => 'Anna']],
+            'kinder' => [['id' => '11', 'vorname' => 'Ben', 'nachname' => 'Muster', 'geburtsdatum' => '2018-05-01'], ['id' => '12', 'vorname' => 'Mia', 'nachname' => 'Muster', 'geburtsdatum' => '']]];
+        $r = KundenValidator::validate($input, 7);
+        assertSame([], $r['errors']);
+        // Only these columns are updated (KundenRepository::syncRows updates the fields a row carries)
+        assertSame(['id', 'vorname', 'nachname', 'geburtsdatum', 'geburtsjahr'], array_keys($r['kinder'][0]));
+        assertSame(['id', 'vorname', 'nachname', 'geburtsdatum'], array_keys($r['kinder'][1]));
     }],
     // Saving keeps what the family form does not show
     ['Speichern Eltern: Vorname, Nachname, E-Mail, Telefon bleiben erhalten', static function () use ($kunde): void {

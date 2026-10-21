@@ -14,13 +14,13 @@ final class Alter
         return $year ? (int) date('Y') - (int) $year : null;
     }
 
-    public static function text(?string $birthdate, int|string|null $year): string
+    /** Shown age: from the birthdate only (a separately stored birth year is no longer shown) */
+    public static function text(?string $birthdate): string
     {
-        $years = self::years($birthdate, $year);
-        if ($years === null) {
+        if (!$birthdate) {
             return 'Alter unbekannt';
         }
-        $label = $years === 1 ? '1 Jahr' : "$years Jahre";
-        return $birthdate ? $label . ' (' . (new \DateTimeImmutable($birthdate))->format('d.m.Y') . ')' : "ca. $label (Jg. $year)";
+        $years = (int) self::years($birthdate, null);
+        return ($years === 1 ? '1 Jahr' : "$years Jahre") . ' (' . (new \DateTimeImmutable($birthdate))->format('d.m.Y') . ')';
     }
 }
