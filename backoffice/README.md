@@ -304,6 +304,28 @@ setzt das Widerrufsdatum (die Einwilligung bleibt dokumentiert). Filter: Auswahl
 - Ungültige und doppelte Adressen werden weggelassen. Wird der Mail-Link zu lang (über 2.000 Zeichen),
   werden die Adressen stattdessen mit Semikolon in die Zwischenablage kopiert – in Outlook ins
   BCC-Feld einfügen. „Adressen kopieren“ geht immer.
+- Beim **Newsletter verschicken** steht im Mailtext schon der Abmeldelink
+  (`https://bricksnbytes.de/newsletter-abmelden`, änderbar über `newsletter.abmelde_url` bzw.
+  `NEWSLETTER_ABMELDE_URL`). Den Newsletter-Text darüber schreiben.
+
+### Newsletter-Abmeldung über die Website
+
+Auf **bricksnbytes.de/newsletter-abmelden** gibt man seine E-Mail-Adresse ein. Der Mailer der Website
+schickt sie an `POST /api/newsletter-abmelden` im Backoffice (ohne Login, geschützt durch ein
+gemeinsames Geheimnis im Header `X-Abmelde-Token`). Das Backoffice setzt bei jedem Kunden, dessen
+Newsletter-Adresse (eigene E-Mail, sonst die des Hauptkontakts) übereinstimmt, das Widerrufsdatum –
+Groß-/Kleinschreibung egal, bereits abgemeldete bleiben unverändert. Im Änderungsprotokoll steht
+„Website (Selbst-Abmeldung)“. Zusätzlich kommt eine Info-Mail an `info@`, ob das geklappt hat.
+
+Einrichtung (einmalig):
+1. Ein Geheimnis erzeugen: `php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'`
+2. Backoffice: in `config.php` unter `newsletter.abmelde_token` eintragen bzw. im Container
+   `NEWSLETTER_ABMELDE_TOKEN` setzen (danach `IBS_REGENERATE_CONFIG=1` oder `config.php` neu erzeugen).
+3. Website-Container: `BACKOFFICE_ABMELDE_TOKEN` (gleicher Wert) und `BACKOFFICE_ABMELDE_URL`
+   (`https://<Backoffice-Adresse>/api/newsletter-abmelden`) setzen – siehe `mailer/README.md`.
+
+Ohne Token ist der Endpoint aus (Antwort 403); die Abmeldeseite funktioniert trotzdem, dann kommt nur
+die Info-Mail mit der Bitte, den Kunden von Hand auszutragen.
 
 ## 3. Updates einspielen
 

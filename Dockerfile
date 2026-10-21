@@ -20,7 +20,7 @@ FROM node:24-alpine AS mailer
 WORKDIR /mailer
 COPY mailer/package*.json ./
 RUN npm ci --omit=dev
-COPY mailer/server.mjs mailer/validate.mjs ./
+COPY mailer/server.mjs mailer/validate.mjs mailer/unsubscribe.mjs ./
 
 # Runtime stage
 FROM nginx:alpine

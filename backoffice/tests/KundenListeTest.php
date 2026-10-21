@@ -97,4 +97,8 @@ return [
         assertSame(true, str_contains($html, '<option value="Pullach" selected>Pullach (1)</option>'));
         assertSame(true, str_contains($html, '<input id="q" name="q" type="search"'));
     }],
+    ['Newsletter verschicken: Abmeldelink als Mailtext', static function () use ($list, $row): void {
+        $html = $list(null, [$row('schule', 'kunde')]);
+        assertSame(true, (bool) preg_match('~data-newsletter-body="[^"]*abmelden: https://bricksnbytes.de/newsletter-abmelden~', $html));
+    }],
 ];

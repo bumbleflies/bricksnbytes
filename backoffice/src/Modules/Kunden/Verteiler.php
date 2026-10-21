@@ -36,6 +36,13 @@ final class Verteiler
         return $address !== '' ? $address : null;
     }
 
+    /** Closing lines of every mail from "Newsletter verschicken": the link to the unsubscribe page */
+    public static function newsletterFooter(): string
+    {
+        $url = (string) (Config::get('newsletter.abmelde_url') ?: 'https://bricksnbytes.de/newsletter-abmelden');
+        return "\n\n\n--\nDu möchtest keinen Newsletter mehr bekommen? Hier kannst du dich abmelden: $url\n";
+    }
+
     /** Single address for one table row, or '' when it can't receive mail */
     public static function one(?string $address): string
     {

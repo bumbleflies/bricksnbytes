@@ -86,3 +86,18 @@ export function validateNewsletter(input) {
   if (Object.keys(errors).length > 0) return { spam: false, errors };
   return { spam: false, errors: {}, data: { vorname, nachname, email, telefon } };
 }
+
+/**
+ * Newsletter unsubscribe: only the address (and the honeypot)
+ * @param {Record<string, unknown>} input raw request body
+ * @returns {{ spam: true } | { spam: false, errors: Record<string, string>, data?: { email: string } }}
+ */
+export function validateUnsubscribe(input) {
+  const body = input && typeof input === 'object' ? input : {};
+  if (str(body.website) !== '') return { spam: true };
+
+  const email = str(body.email);
+  const emailErr = emailError(email);
+  if (emailErr) return { spam: false, errors: { email: emailErr } };
+  return { spam: false, errors: {}, data: { email } };
+}

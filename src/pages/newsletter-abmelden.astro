@@ -1,0 +1,76 @@
+---
+// Newsletter unsubscribe: linked at the end of every newsletter. Posts the address to
+// /api/newsletter-abmelden; the mailer withdraws the consent in the backoffice and tells us by mail.
+// The answer is the same whether the address is known or not.
+import SubpageLayout from '../layouts/SubpageLayout.astro';
+import { EMAIL, EMAIL_HREF } from '../data/site';
+import '../styles/forms.css';
+---
+
+<SubpageLayout
+  title="Newsletter abmelden"
+  intro="Schade, dass du gehst! Gib die E-Mail-Adresse an, an die wir den Newsletter schicken – danach bekommst du keinen Newsletter mehr."
+  showCta={false}
+  noindex
+>
+  <div class="form-section unsubscribe">
+    <div class="form-card">
+      <form class="unsubscribe-form" action="/api/newsletter-abmelden" method="post" novalidate>
+        <div class="field">
+          <label for="ab-email">E-Mail <span aria-hidden="true">*</span></label>
+          <input id="ab-email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="ab-email-err" />
+          <p class="field-error" id="ab-email-err" data-error-for="email"></p>
+        </div>
+
+        <!-- Honeypot: hidden from people, bots tend to fill it -->
+        <div class="hp" aria-hidden="true">
+          <label for="ab-website">Website</label>
+          <input id="ab-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <button type="submit" class="submit-btn">Vom Newsletter abmelden</button>
+        <p class="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+
+    <p class="unsubscribe-note">
+      Du kannst dich auch jederzeit formlos abmelden – mit einer kurzen E-Mail an
+      <a href={EMAIL_HREF}>{EMAIL}</a> oder als Antwort auf einen Newsletter. Mehr dazu in der <a href="/datenschutz#newsletter">Datenschutzerklärung</a>.
+    </p>
+  </div>
+</SubpageLayout>
+
+<style>
+  /* The form card sits in the text column of the subpage, not in a full-width band */
+  .form-section.unsubscribe {
+    padding: 8px 0 0;
+    background: none;
+  }
+
+  .unsubscribe .form-card {
+    margin: 0;
+  }
+
+  .unsubscribe-note {
+    margin-top: 24px;
+    color: var(--ink-soft);
+  }
+</style>
+
+<script>
+  import { EMAIL_RE, mailerForm } from '../scripts/mailerForm';
+
+  const form = document.querySelector<HTMLFormElement>('.unsubscribe-form');
+  if (form) {
+    mailerForm(form, {
+      validate(data) {
+        const errors: Record<string, string> = {};
+        if (!EMAIL_RE.test(String(data.get('email') ?? '').trim())) errors.email = 'Bitte gib eine gültige E-Mail-Adresse an.';
+        return errors;
+      },
+      payload: (data) => ({ email: data.get('email') }),
+      success: 'Erledigt. Wenn diese Adresse in unserem Newsletter war, ist sie jetzt abgemeldet.',
+      failure: 'Deine Abmeldung konnte nicht gesendet werden. Bitte versuch es später noch einmal oder schreib an info@bricksnbytes.de.',
+    });
+  }
+</script>

@@ -19,6 +19,8 @@ interface Props {
   // 'booking': shop + e-mail; 'request': e-mail request + link to the contact form
   ctaMode?: 'booking' | 'request';
   requestSubject?: string;
+  // Keep the page out of search engines
+  noindex?: boolean;
 }
 
 const {
@@ -31,12 +33,13 @@ const {
   showCta = true,
   ctaMode = 'booking',
   requestSubject = 'Anfrage',
+  noindex = false,
 } = Astro.props;
 
 const requestHref = `${EMAIL_HREF}?subject=${encodeURIComponent(requestSubject)}`;
 ---
 
-<Layout title={title} description={description}>
+<Layout title={title} description={description} noindex={noindex}>
   <section class="page-hero">
     <div class="page-hero-inner">
       <h1>{title}</h1>

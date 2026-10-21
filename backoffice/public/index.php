@@ -21,7 +21,10 @@ header('Referrer-Policy: no-referrer');
 header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self'; font-src 'self'; script-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
 header('Cache-Control: no-store');
 
-Session::start();
+// Machine endpoints under /api/ work without a session (no cookie, no session file per call)
+if (!str_starts_with((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/api/')) {
+    Session::start();
+}
 
 $router = new Router();
 // Modules register their routes here; new modules (Aufträge, Kurse, …) replace their placeholder
@@ -31,6 +34,7 @@ Modules\Suche\SucheController::register($router);
 Modules\Kunden\KundenController::register($router);
 Modules\Kinder\KinderController::register($router);
 Modules\Import\ImportController::register($router);
+Modules\Newsletter\AbmeldungController::register($router);
 Modules\Platzhalter\PlatzhalterController::register($router);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $_SERVER['REQUEST_URI'] ?? '/');

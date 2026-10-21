@@ -100,8 +100,9 @@ final class KundenRepository
     /**
      * Switches the newsletter consent on (given today, withdrawal cleared) or off (withdrawn today).
      * The consent row is kept when switching off, so the original consent stays documented.
+     * Returns whether anything changed.
      */
-    public static function setNewsletter(int $kundeId, bool $on): void
+    public static function setNewsletter(int $kundeId, bool $on): bool
     {
         $old = Db::query(
             "SELECT * FROM einwilligungen WHERE kunde_id = ? AND kind_id IS NULL AND art = 'newsletter'",
@@ -122,7 +123,34 @@ final class KundenRepository
         } elseif (!$on && $active) {
             Db::query('UPDATE einwilligungen SET widerrufen_am = ? WHERE id = ?', [$today, $old['id']]);
             Audit::changed('einwilligungen', (int) $old['id'], $old, ['widerrufen_am' => $today]);
+        } else {
+            return false;
         }
+        return true;
+    }
+
+    /**
+     * Unsubscribe from the website: withdraws the newsletter consent of every customer whose newsletter
+     * address (own e-mail, else the main contact's – as in newsletterAddresses) is $email, ignoring case.
+     * Consents that are already withdrawn keep their date.
+     *
+     * @return array{gefunden: int, abgemeldet: int}
+     */
+    public static function withdrawNewsletterByEmail(string $email): array
+    {
+        $ids = Db::query(
+            "SELECT DISTINCT k.id FROM kunden k
+             LEFT JOIN ansprechpartner hk ON hk.kunde_id = k.id AND hk.ist_hauptkontakt = 1
+             WHERE LOWER(COALESCE(NULLIF(k.email, ''), hk.email)) = LOWER(?)",
+            [$email]
+        )->fetchAll(\PDO::FETCH_COLUMN);
+        $withdrawn = 0;
+        foreach ($ids as $id) {
+            if (self::setNewsletter((int) $id, false)) {
+                $withdrawn++;
+            }
+        }
+        return ['gefunden' => count($ids), 'abgemeldet' => $withdrawn];
     }
 
     /** Places that occur in the customer data with their count, alphabetical (for the Ort filter) */

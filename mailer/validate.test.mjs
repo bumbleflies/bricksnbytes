@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateContact, validateNewsletter, LIMITS } from './validate.mjs';
+import { validateContact, validateNewsletter, validateUnsubscribe, LIMITS } from './validate.mjs';
 
 const valid = { name: 'Anna', email: 'anna@example.de', message: 'Hallo!', privacy: true };
 
@@ -94,5 +94,21 @@ describe('validateNewsletter', () => {
 
   it('enforces length limits on the names', () => {
     expect(validateNewsletter({ ...signup, vorname: 'x'.repeat(LIMITS.name + 1) }).errors.vorname).toBeDefined();
+  });
+});
+
+describe('validateUnsubscribe', () => {
+  it('accepts a trimmed address', () => {
+    expect(validateUnsubscribe({ email: '  anna@example.de ' })).toEqual({ spam: false, errors: {}, data: { email: 'anna@example.de' } });
+  });
+
+  it('requires a valid address', () => {
+    expect(validateUnsubscribe({}).errors.email).toBeDefined();
+    expect(validateUnsubscribe({ email: 'kaputt' }).errors.email).toBeDefined();
+    expect(validateUnsubscribe({ email: 'a@b.de\r\nBcc: x@y.de' }).errors.email).toBeDefined();
+  });
+
+  it('flags a filled honeypot as spam', () => {
+    expect(validateUnsubscribe({ email: 'anna@example.de', website: 'http://spam' })).toEqual({ spam: true });
   });
 });
