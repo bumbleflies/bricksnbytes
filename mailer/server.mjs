@@ -1,16 +1,20 @@
 // Minimal mailer for the website forms (JSON) -> SMTP mail to MAIL_TO:
 //   POST /api/contact     contact form (optionally with newsletter sign-up)
 //   POST /api/newsletter  newsletter sign-up (entered in the backoffice by hand)
-// Runs next to nginx in the same container; nginx proxies /api/contact and /api/newsletter here.
+//   POST /api/newsletter-abmelden  unsubscribe: withdrawn in the backoffice automatically, info mail to us
+// Runs next to nginx in the same container; nginx proxies the /api/ paths above here.
 import http from 'node:http';
 import nodemailer from 'nodemailer';
-import { validateContact, validateNewsletter } from './validate.mjs';
+import { recordedInBackoffice, unsubscribeInBackoffice, unsubscribeMail } from './unsubscribe.mjs';
+import { validateContact, validateNewsletter, validateUnsubscribe } from './validate.mjs';
 
 const PORT = Number(process.env.MAILER_PORT || 3001);
 const HOST = process.env.MAILER_HOST || '127.0.0.1';
 const MAIL_TO = process.env.MAIL_TO || 'info@bricksnbytes.de';
 const MAIL_FROM = process.env.MAIL_FROM || process.env.SMTP_USER;
 const DRY_RUN = process.env.MAILER_DRY_RUN === '1';
+// Backoffice endpoint and shared token for the automatic unsubscribe (both unset = info mail only)
+const BACKOFFICE = { url: process.env.BACKOFFICE_ABMELDE_URL, token: process.env.BACKOFFICE_ABMELDE_TOKEN };
 const MAX_BODY = 32 * 1024;
 
 // Rate limit: per client and in total, to keep a bot from flooding the inbox
@@ -138,6 +142,17 @@ const FORMS = {
     tooMany: 'Zu viele Anmeldungen in kurzer Zeit.',
     unavailable: 'Die Newsletter-Anmeldung ist gerade nicht erreichbar.',
   },
+  '/api/newsletter-abmelden': {
+    validate: validateUnsubscribe,
+    // Withdraw the consent in the backoffice first; the mail then tells us whether that worked
+    prepare: async (data) => ({ ...data, backoffice: await unsubscribeInBackoffice(data.email, BACKOFFICE) }),
+    mail: (data) => unsubscribeMail(data.email, data.backoffice, berlinTime(new Date())),
+    // Already withdrawn in the backoffice: the visitor gets a success even if the info mail fails
+    recorded: (data) => recordedInBackoffice(data.backoffice),
+    what: 'Deine Abmeldung',
+    tooMany: 'Zu viele Anfragen in kurzer Zeit.',
+    unavailable: 'Die Newsletter-Abmeldung ist gerade nicht erreichbar.',
+  },
 };
 
 const server = http.createServer(async (req, res) => {
@@ -167,7 +182,11 @@ const server = http.createServer(async (req, res) => {
     return send(res, 429, { ok: false, error: `${form.tooMany} Bitte versuch es später noch einmal oder schreib an info@bricksnbytes.de.` });
   }
 
+  const data = form.prepare ? await form.prepare(result.data) : result.data;
+  const recorded = form.recorded?.(data) ?? false;
+
   if (!transport) {
+    if (recorded) return send(res, 200, { ok: true });
     return send(res, 503, { ok: false, error: `${form.unavailable} Bitte schreib direkt an info@bricksnbytes.de.` });
   }
 
@@ -181,14 +200,15 @@ const server = http.createServer(async (req, res) => {
   };
 
   try {
-    await deliver(form.mail(result.data));
+    await deliver(form.mail(data));
   } catch (err) {
     console.error('[mailer] send failed:', err.message);
+    if (recorded) return send(res, 200, { ok: true });
     return send(res, 502, { ok: false, error: `${form.what} konnte nicht gesendet werden. Bitte versuch es später noch einmal oder schreib an info@bricksnbytes.de.` });
   }
 
   // The message is out; a failing second mail is reported separately so the visitor can retry only that
-  const extra = form.extra?.(result.data);
+  const extra = form.extra?.(data);
   if (!extra) return send(res, 200, { ok: true });
   try {
     await deliver(extra);

@@ -27,4 +27,12 @@ return [
         'max_failures_per_ip' => 20,
         'window_minutes' => 15,
     ],
+    'newsletter' => [
+        // Abmeldeseite der Website; steht als Abmeldelink am Ende jeder Mail von „Newsletter verschicken“
+        'abmelde_url' => 'https://bricksnbytes.de/newsletter-abmelden',
+        // Gemeinsames Geheimnis mit dem Website-Mailer (dort BACKOFFICE_ABMELDE_TOKEN), mindestens 32 Zeichen,
+        // z. B. erzeugt mit: php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'
+        // Leer = automatische Abmeldung über die Website ist aus (der Mailer schickt dann nur eine Info-Mail)
+        'abmelde_token' => '',
+    ],
 ];

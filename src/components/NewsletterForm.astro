@@ -18,8 +18,9 @@ const { variant = 'teal' } = Astro.props;
     <div class="band-inner">
       <h2 class="section-heading">Newsletter abonnieren</h2>
       <p class="form-intro">
-        Erfahre als Erstes von neuen Kursen, Workshops und Terminen. Abmelden kannst du dich jederzeit mit einer
-        kurzen E-Mail an <a href={EMAIL_HREF}>{EMAIL}</a>.
+        Erfahre als Erstes von neuen Kursen, Workshops und Terminen. Abmelden kannst du dich jederzeit über den
+        Link in jedem Newsletter, auf der Seite <a href="/newsletter-abmelden">Newsletter abmelden</a> oder mit
+        einer kurzen E-Mail an <a href={EMAIL_HREF}>{EMAIL}</a>.
       </p>
 
       <form class="newsletter-form" action="/api/newsletter" method="post" novalidate>

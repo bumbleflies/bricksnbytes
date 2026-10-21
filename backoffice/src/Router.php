@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Backoffice;
 
 // Minimal router: exact paths per method. Every route needs a login unless marked public,
-// and every POST is CSRF-checked before the handler runs.
+// and every POST is CSRF-checked before the handler runs (except machine endpoints with their own token).
 final class Router
 {
     private array $routes = [];
@@ -14,9 +14,9 @@ final class Router
         $this->routes['GET'][$path] = [$handler, $public];
     }
 
-    public function post(string $path, callable $handler, bool $public = false): void
+    public function post(string $path, callable $handler, bool $public = false, bool $csrf = true): void
     {
-        $this->routes['POST'][$path] = [$handler, $public];
+        $this->routes['POST'][$path] = [$handler, $public, $csrf];
     }
 
     public function dispatch(string $method, string $uri): void
@@ -42,7 +42,7 @@ final class Router
 
         [$handler] = $route;
 
-        if ($method === 'POST' && !Csrf::verify()) {
+        if ($method === 'POST' && ($route[2] ?? true) && !Csrf::verify()) {
             View::render('error', ['title' => 'Formular abgelaufen', 'message' => 'Bitte lade die Seite neu und versuche es noch einmal.'], 400);
             return;
         }

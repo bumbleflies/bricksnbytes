@@ -99,6 +99,7 @@ $places += $ort !== null && !isset($places[$ort]) ? [$ort => 0] : [];
      data-own-email="<?= e($ownEmail ?? '') ?>"
      data-filtered="<?= e(json_encode($filteredAddresses, JSON_UNESCAPED_UNICODE)) ?>"
      data-newsletter="<?= e(json_encode($newsletterAddresses, JSON_UNESCAPED_UNICODE)) ?>"
+     data-newsletter-body="<?= e(Verteiler::newsletterFooter()) ?>"
      data-total="<?= e($total) ?>">
   <div class="mail-tools-row">
     <span class="sel-count" id="sel-count" aria-live="polite">0 ausgewählt</span>

@@ -19,6 +19,8 @@ declare(strict_types=1);
  *   LOGIN_MAX_FAILURES_PER_USER → login.max_failures_per_user
  *   LOGIN_MAX_FAILURES_PER_IP   → login.max_failures_per_ip
  *   LOGIN_WINDOW_MINUTES      → login.window_minutes
+ *   NEWSLETTER_ABMELDE_URL    → newsletter.abmelde_url (unsubscribe link in "Newsletter verschicken")
+ *   NEWSLETTER_ABMELDE_TOKEN  → newsletter.abmelde_token (shared with the website mailer; empty = endpoint off)
  */
 
 $root = getenv('APP_ROOT') ?: '/var/www/html';
@@ -59,6 +61,10 @@ $config = [
         'max_failures_per_user' => $int('LOGIN_MAX_FAILURES_PER_USER', 5),
         'max_failures_per_ip' => $int('LOGIN_MAX_FAILURES_PER_IP', 20),
         'window_minutes' => $int('LOGIN_WINDOW_MINUTES', 15),
+    ],
+    'newsletter' => [
+        'abmelde_url' => $str('NEWSLETTER_ABMELDE_URL', 'https://bricksnbytes.de/newsletter-abmelden'),
+        'abmelde_token' => $str('NEWSLETTER_ABMELDE_TOKEN', ''),
     ],
 ];
 

@@ -1,5 +1,6 @@
 // Customer list: row selection, "E-Mail an Auswahl" / "Newsletter verschicken" (mailto with
-// all recipients in BCC and the own address in To) and copying the addresses.
+// all recipients in BCC and the own address in To; the newsletter mail starts with the unsubscribe
+// link as its text) and copying the addresses.
 // Addresses arrive already cleaned (valid, de-duplicated) from the server.
 (() => {
   // Filter selects in the search form apply at once (the "Suchen" button still works without JS)
@@ -19,6 +20,7 @@
   const ownEmail = tools.dataset.ownEmail || '';
   const filtered = JSON.parse(tools.dataset.filtered || '[]');
   const newsletter = JSON.parse(tools.dataset.newsletter || '[]');
+  const newsletterBody = tools.dataset.newsletterBody || '';
   const total = Number(tools.dataset.total || 0);
 
   const rows = [...document.querySelectorAll('.row-select')];
@@ -116,10 +118,14 @@
     link.remove();
   }
 
-  async function sendMail(addresses) {
+  // Mail text for mailto: line breaks as CRLF (RFC 6068)
+  const bodyParam = (body) => (body ? `body=${encodeURIComponent(body.replace(/\r?\n/g, '\r\n'))}` : '');
+
+  async function sendMail(addresses, body = '') {
     if (!ownEmail || addresses.length === 0) return;
+    const text = bodyParam(body);
     const to = `mailto:${encode(ownEmail)}`;
-    const url = `${to}?bcc=${addresses.map(encode).join(MAILTO_SEPARATOR)}`;
+    const url = `${to}?bcc=${addresses.map(encode).join(MAILTO_SEPARATOR)}${text ? `&${text}` : ''}`;
     if (url.length <= MAX_MAILTO) {
       say(`Mailprogramm wird geöffnet – ${addresses.length} Empfänger im BCC.`);
       openMail(url);
@@ -129,7 +135,7 @@
     say(copied
       ? `Zu viele Empfänger für einen Mail-Link: ${addresses.length} Adressen kopiert – in Outlook ins BCC-Feld einfügen.`
       : 'Die Adressen konnten nicht kopiert werden. Bitte „Adressen kopieren“ verwenden.');
-    openMail(to);
+    openMail(text ? `${to}?${text}` : to);
   }
 
   async function copyButton(addresses) {
@@ -162,7 +168,7 @@
   });
   mailSelection.addEventListener('click', () => sendMail(selectedAddresses()));
   copySelection.addEventListener('click', () => copyButton(selectedAddresses()));
-  mailNewsletter.addEventListener('click', () => sendMail(newsletter));
+  mailNewsletter.addEventListener('click', () => sendMail(newsletter, newsletterBody));
   copyNewsletter.addEventListener('click', () => copyButton(newsletter));
 
   update();
