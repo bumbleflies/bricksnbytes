@@ -11,7 +11,6 @@ final class PlatzhalterController
 {
     private const PAGES = [
         '/kurse' => ['Kurse', 'Kursreihen mit Kursart, Format, Alter und Plätzen.'],
-        '/termine' => ['Termine', 'Einzeltermine mit Ort, Kursleiter, Teilnehmerliste, Anwesenheit, Warteliste und Material.'],
         '/buchungen' => ['Buchungen', 'Welches Kind ist in welchem Kurs – später auch aus dem Shop übernommen.'],
         '/rechnungen' => ['Rechnungen', 'Rechnungen aus Aufträgen und Buchungen, PDF, fortlaufende Nummern, Zahlungen und Mahnungen.'],
         '/forecast' => ['Forecast', 'Umsatz pro Monat: fix (bezahlt und bestätigt) plus gewichtete offene Angebote.'],
