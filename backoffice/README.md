@@ -206,6 +206,25 @@ werden. Heute steht oben („Heute 🎉“); am selben Tag sortiert der Name. Nu
 29.02. Geborene erscheinen in Nicht-Schaltjahren am 28.02. Kinder ohne Geburtsdatum fehlen. Die
 Anzahl steht in `Geburtstage::ANZAHL` (`src/Modules/Kinder/Geburtstage.php`, mit Unit-Tests).
 
+### Termine
+
+**Termine** zeigt alle Termine in vier Ansichten: **Monat** (Kalenderblatt Mo–So), **3 Monate**,
+**6 Monate** und **Jahr** (wie die Planer-Tabelle: Monate als Spalten, Tage 1–31, Wochenende grau);
+blättern mit ‹ ›, „Heute“ springt zurück. Zusammengeführt werden:
+
+- **eigene Termine** (auch private; Tabelle `kalender_eintraege`): „+ Termin“ oder „+“ an einem Tag;
+  Datum, optional bis (mehrtägig), Uhrzeit von–bis, Notizen; Klick auf den Termin zum Bearbeiten.
+- **Kurstermine** (Tabelle `termine`, sobald es die Kurse-Seite gibt),
+- **Aufträge mit Zeitraum** (abgesagte nicht; regelmäßige nur am ersten und letzten Tag),
+- **Geburtstage der Kinder** (🎂, wie auf dem Dashboard).
+
+**Planer übernehmen:** den Jahres-Reiter der Planer-Tabelle in Google Sheets als CSV herunterladen
+(*Datei → Herunterladen → .csv*) und hochladen. Jede Zeile einer Zelle wird ein Termin; Uhrzeiten am
+Anfang werden erkannt („14-16 …“, „8:00 - 9:00 …“, „9-16.30 …“; eine Zahl ohne Doppelpunkt bleibt
+Text). Erst Vorschau, dann „Übernehmen“; eine erneute Übernahme desselben Jahres ersetzt die frühere
+(von Hand eingetragene Termine bleiben). Schema: Migration 009. Die Spalte `art` ist für die
+Farbkodierung nach Terminart vorgesehen (nächster Schritt).
+
 ### Aufträge
 
 **Aufträge** (Seitenleiste) listet alle Aufträge, die neuesten zuerst: Name (Titel, darunter der Kunde),
