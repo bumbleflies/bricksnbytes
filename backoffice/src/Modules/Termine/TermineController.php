@@ -72,7 +72,6 @@ final class TermineController
     {
         $entry = self::findOr404((int) ($_GET['id'] ?? 0));
         $r = TerminValidator::validate($_POST);
-        $r['data']['art'] = $entry['art'];
         if ($r['errors']) {
             self::renderForm((int) $entry['id'], $r['data'], $r['errors'], 422);
             return;

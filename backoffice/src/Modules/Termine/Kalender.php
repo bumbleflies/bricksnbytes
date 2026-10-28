@@ -14,6 +14,10 @@ final class Kalender
     public const ANSICHTEN = ['monat' => ['Monat', 1], 'quartal' => ['3 Monate', 3], 'halbjahr' => ['6 Monate', 6], 'jahr' => ['Jahr', 12]];
     public const MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
     public const WOCHENTAGE = ['Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.', 'So.'];
+    // Type of an own entry ('' = plain own entry); course dates and orders count as "kurs"
+    public const ARTEN = ['' => 'Eigener Termin', 'kurs' => 'Kurs', 'schule' => 'Schule'];
+    // Colour per kind (CSS .cal-entry--<farbe>), with the legend label
+    public const FARBEN = ['eigen' => 'Eigener Termin', 'kurs' => 'Kurs / Auftrag', 'schule' => 'Schule', 'geburtstag' => '🎂 Geburtstag'];
     // Regular orders (e.g. weekly in the Hort) only show their first and last day
     private const MAX_TAGE_AUFTRAG = 31;
 
@@ -140,6 +144,29 @@ final class Kalender
         }
         ksort($days);
         return $days;
+    }
+
+    /**
+     * Already over: every entry of an earlier day; today the ones whose end (or start, without end)
+     * has passed. All-day entries of today are not over yet. $now as "HH:MM".
+     */
+    public static function vorbei(string $date, array $entry, string $today, string $now): bool
+    {
+        if ($date !== $today) {
+            return $date < $today;
+        }
+        $until = $entry['ende'] ?? $entry['beginn'] ?? null;
+        return $until !== null && $until <= $now;
+    }
+
+    /** Colour of an entry: own entries by their type, course dates and orders blue, birthdays lilac */
+    public static function farbe(array $entry): string
+    {
+        return match ($entry['quelle']) {
+            'kurs', 'auftrag' => 'kurs',
+            'geburtstag' => 'geburtstag',
+            default => isset(self::ARTEN[$entry['art'] ?? '']) && ($entry['art'] ?? '') !== '' ? $entry['art'] : 'eigen',
+        };
     }
 
     /** "14:00–16:00", "11:00", '' */

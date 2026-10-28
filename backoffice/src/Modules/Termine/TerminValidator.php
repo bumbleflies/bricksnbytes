@@ -45,7 +45,7 @@ final class TerminValidator
         } elseif ($data['beginn'] !== null && $data['ende'] !== null && $data['bis_datum'] === null && $data['ende'] < $data['beginn']) {
             $errors['ende'] = 'Das Ende liegt vor dem Beginn.';
         }
-        $data['art'] = null; // colour coding comes later
+        $data['art'] = $str('art') !== '' && isset(Kalender::ARTEN[$str('art')]) ? $str('art') : null;
         $notes = $str('notizen');
         $data['notizen'] = $notes !== '' ? mb_substr($notes, 0, 5000) : null;
         return ['data' => $data, 'errors' => $errors];

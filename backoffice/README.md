@@ -222,8 +222,15 @@ blättern mit ‹ ›, „Heute“ springt zurück. Zusammengeführt werden:
 (*Datei → Herunterladen → .csv*) und hochladen. Jede Zeile einer Zelle wird ein Termin; Uhrzeiten am
 Anfang werden erkannt („14-16 …“, „8:00 - 9:00 …“, „9-16.30 …“; eine Zahl ohne Doppelpunkt bleibt
 Text). Erst Vorschau, dann „Übernehmen“; eine erneute Übernahme desselben Jahres ersetzt die frühere
-(von Hand eingetragene Termine bleiben). Schema: Migration 009. Die Spalte `art` ist für die
-Farbkodierung nach Terminart vorgesehen (nächster Schritt).
+(von Hand eingetragene Termine bleiben). Schema: Migration 009.
+
+**Farben:** eigener Termin grau-blau, **Kurs** (und Aufträge, Kurstermine) im Website-Blau, **Schule**
+orange, Geburtstage lila. Den Typ eines eigenen Termins (Eigener Termin / Kurs / Schule) wählst du im
+Termin (Spalte `art`; übernommene Planer-Termine starten als „Eigener Termin“). Zuordnung in
+`Kalender::farbe()`, Farben in `app.css` (`.cal-entry--…`).
+
+**Vorbei:** Tage vor heute sind grau hinterlegt und ihre Termine durchgestrichen; heute werden
+Termine durchgestrichen, sobald ihr Ende (ohne Ende: ihr Beginn) vorbei ist – ganztägige erst morgen.
 
 ### Aufträge
 
