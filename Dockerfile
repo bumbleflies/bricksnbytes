@@ -1,5 +1,5 @@
 # Build stage
-FROM node:24-alpine AS builder
+FROM node:26-alpine AS builder
 
 WORKDIR /build
 
@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # Mailer dependencies (contact form)
-FROM node:24-alpine AS mailer
+FROM node:26-alpine AS mailer
 WORKDIR /mailer
 COPY mailer/package*.json ./
 RUN npm ci --omit=dev
