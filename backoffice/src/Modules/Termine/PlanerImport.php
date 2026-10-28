@@ -10,10 +10,19 @@ namespace Backoffice\Modules\Termine;
 final class PlanerImport
 {
     private const T = '\d{1,2}(?:[:.]\d{2})?';
-    // Type by title (Kalender::ARTEN), first match wins; migration 010 uses the same patterns
+    // Category by title (Kalender::ARTEN), first match wins; migration 011 uses the same patterns
     public const ART_MUSTER = [
-        'kurs' => '(?i)programmierkurs|ferienkurs|\bPEP\b|\bDGhK\b|\(P\)|\(A\)',
-        'schule' => '(?i)festkreis|elternabend|monatsfeier',
+        'bibliothek' => '(?i)bibli',
+        'bnb-schule' => '(?i)\bGS\b|\bEDV\b',
+        'bnb-pep' => '(?i)\bPEP\b',
+        'bnb-dghk' => '(?i)\bDGhK\b',
+        'bnb-allach' => '(?i)allach|\(A\)',
+        'bnb-pasing' => '(?i)pasing|\(P\)',
+        'tw' => '(?i)\bTW\b|ipma|report',
+        'schule' => '(?i)fest?kreis|elter\w*abend|monatsfeier|cafeteria|\bschul',
+        'bricksnbytes' => '(?i)programmier|minecraft|medienführerschein|kurs|pictoblox|workshop|lego|train the trainer|schnuppern|game design',
+        'max' => '(?i)\bmaxi?\b',
+        'zara' => '(?i)\bzara\b|yoga|tischtennis|arzt',
     ];
 
     /**
@@ -79,7 +88,7 @@ final class PlanerImport
         return ['beginn' => null, 'ende' => null, 'titel' => mb_substr($line, 0, 255)];
     }
 
-    /** Type of a planner entry from its title ("kurs", "schule"), null = plain own entry */
+    /** Category of a planner entry from its title (key of Kalender::ARTEN), null = none */
     public static function art(string $titel): ?string
     {
         foreach (self::ART_MUSTER as $art => $pattern) {

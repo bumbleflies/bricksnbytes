@@ -77,24 +77,36 @@ return [
         assertSame(1, count($r['probleme']));
         assertSame(2026, PlanerImport::year($rows));
     }],
-    ['Planer-Typ: Kurs- und Schul-Termine am Titel erkannt, Rest eigener Termin', static function (): void {
-        foreach (['Programmierkurs Grundschule', 'ferienkurs Robotik', 'PEP Gruppe 2', 'DGhK Treffen', 'Scratch (P)', 'Calliope (A)'] as $t) {
-            assertSame('kurs', PlanerImport::art($t), $t);
+    ['Planer-Kategorie: am Titel erkannt, erster Treffer zählt, Rest ohne Kategorie', static function (): void {
+        $cases = [
+            'bibliothek' => ['10:00 - 12:00 Stadtbibliothek Pasing', 'Biblitohek Mitte'],
+            'bnb-schule' => ['GS Musterstraße 3-4', 'EDV 10. Klasse (A)', 'EDV 11. Klasse', 'Projekttag GS Beispielweg (P)'],
+            'bnb-pep' => ['Minecraft Programmierkurs (PEP) (3/7)', 'Ferienkurs PEP', 'Elternabend PEP'],
+            'bnb-dghk' => ['Programmierkurs LEGO (DGhK)', 'Ganztagesworkshop (DGHK)'],
+            'bnb-allach' => ['Ferienkurs Allach 3/12', 'Medienführerschein (A) 6-10J'],
+            'bnb-pasing' => ['Programmierworkshop (P) 0/10', '10:00 Pasing - Termin'],
+            'tw' => ['TW Weihnachtsfeier', 'IPMA Prüfung', 'Deadline Reportabgabe'],
+            'schule' => ['Festkreissitzung', 'Feskreistreffen', 'Elterabend', 'Elternabende', 'Öffentliche Monatsfeier', 'Cafeteriadienst', 'Keine Schule !!!'],
+            'bricksnbytes' => ['Schnuppern: Programmieren mit Minecraft', 'Pictoblox (Online)', 'Geburtstag - LEGO', 'WERBUNG FÜR KURSE', 'Train the trainer'],
+            'max' => ['Max abholen', 'Maxi Training', 'Zara Max Arzt'],
+            'zara' => ['Zara Friseur', 'Yoga', '11:00 - 12:15 Yoga', 'Tischtennis ?!', 'Zahnarzt'],
+        ];
+        foreach ($cases as $art => $titles) {
+            foreach ($titles as $t) {
+                assertSame($art, PlanerImport::art($t), $t);
+            }
         }
-        foreach (['Festkreis', 'Elternabend 3b', 'MONATSFEIER'] as $t) {
-            assertSame('schule', PlanerImport::art($t), $t);
-        }
-        foreach (['Yoga', 'Pepperoni essen', '(B) Zahnarzt', 'Kurs', ''] as $t) {
+        foreach (['Pepperoni essen', '(B) Friseur', 'Maximilian', 'Twitter', ''] as $t) {
             assertSame(null, PlanerImport::art($t), $t);
         }
-        assertSame('kurs', PlanerImport::art('Elternabend PEP'), 'erster Treffer zählt');
+        assertSame(array_keys($cases), array_keys(PlanerImport::ART_MUSTER), 'Reihenfolge');
         foreach (PlanerImport::ART_MUSTER as $art => $pattern) {
             assertSame(true, isset(Kalender::ARTEN[$art]), $art);
         }
     }],
-    ['Migration 010: gleiche Muster wie der Import, nur Einträge ohne Typ aus dem Planer', static function (): void {
-        $sql = (string) file_get_contents(dirname(__DIR__) . '/migrations/010_planer_arten.sql');
-        preg_match_all("/SET art = '(\\w+)'\\s+WHERE art IS NULL AND import_lauf LIKE 'planer-%'\\s+AND titel REGEXP '((?:[^'\\\\]|\\\\.)*)';/", $sql, $m);
+    ['Migration 011: gleiche Muster in gleicher Reihenfolge wie der Import', static function (): void {
+        $sql = (string) file_get_contents(dirname(__DIR__) . '/migrations/011_kategorien.sql');
+        preg_match_all("/SET art = '([\\w-]+)'\\s+WHERE import_lauf LIKE 'planer-%' AND \\(art IS NULL OR art LIKE 'alt:%'\\)\\s+AND titel REGEXP '((?:[^'\\\\]|\\\\.)*)';/", $sql, $m);
         assertSame(PlanerImport::ART_MUSTER, array_combine($m[1], array_map('stripslashes', $m[2])));
     }],
     ['CSV: Komma oder Semikolon, mehrzeilige Zellen, BOM', static function (): void {
@@ -161,8 +173,8 @@ return [
             [$from] = Kalender::zeitraum($view, $today->modify('-1 day'));
             [, $to] = Kalender::zeitraum($view, $today->modify('+1 day'));
             $html = $render(['ansicht' => $view, 'from' => $from, 'to' => $to, 'tage' => $tage]);
-            assertSame(1, preg_match('~class="cal-entry cal-entry--eigen is-past" title="Gestern-Termin \(vorbei\)"~', $html), $view . ' gestern');
-            assertSame(true, str_contains($html, 'class="cal-entry cal-entry--eigen" title="Heute-ganztags"'), $view . ' heute ganztags');
+            assertSame(1, preg_match('~class="cal-entry cal-entry--ohne is-past" title="Gestern-Termin \(vorbei\)"~', $html), $view . ' gestern');
+            assertSame(true, str_contains($html, 'class="cal-entry cal-entry--ohne" title="Heute-ganztags"'), $view . ' heute ganztags');
             assertSame(true, str_contains($html, 'is-past') && !str_contains($html, 'Morgen-Termin (vorbei)'), $view . ' morgen');
         }
         $month = $render(['ansicht' => 'monat', 'from' => $today->modify('first day of this month'), 'to' => $today->modify('last day of this month'), 'tage' => $tage]);
@@ -171,23 +183,79 @@ return [
         assertSame(true, count($m[0]) >= $pastDays, 'alle früheren Tage des Monats grau');
         assertSame(false, (bool) preg_match('~<td class="[^"]*is-past[^"]*is-today~', $month), 'heute nicht grau');
     }],
-    ['Farben: eigener Termin nach Typ, Kurse und Aufträge blau, Schule orange, Geburtstage lila', static function (): void {
-        assertSame('eigen', Kalender::farbe(['quelle' => 'eigen', 'art' => null]));
-        assertSame('kurs', Kalender::farbe(['quelle' => 'eigen', 'art' => 'kurs']));
-        assertSame('schule', Kalender::farbe(['quelle' => 'eigen', 'art' => 'schule']));
-        assertSame('eigen', Kalender::farbe(['quelle' => 'eigen', 'art' => 'unbekannt']));
-        assertSame('kurs', Kalender::farbe(['quelle' => 'kurs']));
-        assertSame('kurs', Kalender::farbe(['quelle' => 'auftrag']));
-        assertSame('geburtstag', Kalender::farbe(['quelle' => 'geburtstag']));
-        assertSame(['eigen', 'kurs', 'schule', 'geburtstag'], array_keys(Kalender::FARBEN));
+    ['Kategorien und Farben: BricksnBytes alle dunkelblau, Kurse und Aufträge dazu, ohne Kategorie grau', static function (): void {
+        $kat = static fn (string $quelle, ?string $art = null) => Kalender::kategorie(['quelle' => $quelle, 'art' => $art]);
+        assertSame('', $kat('eigen'));
+        assertSame('', $kat('eigen', 'unbekannt'));
+        assertSame('bnb-pep', $kat('eigen', 'bnb-pep'));
+        assertSame('zara', $kat('eigen', 'zara'));
+        assertSame('bricksnbytes', $kat('kurs'));
+        assertSame('bricksnbytes', $kat('auftrag', 'zara'));
+        assertSame('geburtstag', $kat('geburtstag'));
+        $farben = [];
+        foreach (array_keys(Kalender::ARTEN) as $art) {
+            $farben[$art] = Kalender::farbe($art);
+        }
+        assertSame(['' => 'ohne', 'bricksnbytes' => 'bricksnbytes', 'bnb-allach' => 'bricksnbytes', 'bnb-pasing' => 'bricksnbytes', 'bnb-pep' => 'bricksnbytes',
+            'bnb-dghk' => 'bricksnbytes', 'bnb-schule' => 'bricksnbytes', 'tw' => 'tw', 'schule' => 'schule', 'zara' => 'zara', 'max' => 'max', 'bibliothek' => 'bibliothek'], $farben);
         $css = (string) file_get_contents(BACKOFFICE_ROOT . '/public/assets/app.css');
-        assertSame(true, str_contains($css, '.cal-entry--kurs { border-left-color: #4299dc; background: #d9eeff; }') && str_contains($css, '.cal-entry--schule {'));
+        foreach (array_unique([...array_values($farben), Kalender::farbe('geburtstag'), ...array_map([Kalender::class, 'farbe'], array_keys(Kalender::FILTER))]) as $farbe) {
+            assertSame(true, str_contains($css, ".cal-entry--$farbe {"), $farbe);
+        }
+        assertSame(true, str_contains($css, '.cal-entry--bricksnbytes { border-left-color: #232b3d; background: #232b3d; color: #fff; }'), 'dunkelblau wie --ink der Website');
     }],
-    ['Termin-Formular: Typ Eigener Termin / Kurs / Schule', static function (): void {
+    ['Filter: BricksnBytes nimmt alle BnB-Kategorien, sonst genau die Kategorie; leere Tage fallen weg', static function (): void {
+        $e = static fn (string $quelle, ?string $art, string $titel) => ['quelle' => $quelle, 'art' => $art, 'titel' => $titel];
+        $tage = [
+            '2026-11-02' => [$e('eigen', 'bnb-pep', 'PEP'), $e('kurs', null, 'Kurs'), $e('eigen', 'zara', 'Yoga')],
+            '2026-11-03' => [$e('eigen', null, 'Ohne'), $e('geburtstag', null, 'Ben wird 8'), $e('auftrag', null, 'Auftrag')],
+            '2026-11-04' => [$e('eigen', 'schule', 'Elternabend'), $e('eigen', 'bricksnbytes', 'Werbung')],
+        ];
+        $titles = static fn (array $t) => array_map(static fn ($list) => array_column($list, 'titel'), $t);
+        assertSame($titles($tage), $titles(Kalender::filtern($tage, '')));
+        assertSame(['2026-11-02' => ['PEP', 'Kurs'], '2026-11-03' => ['Auftrag'], '2026-11-04' => ['Werbung']], $titles(Kalender::filtern($tage, 'bricksnbytes')));
+        assertSame(['2026-11-02' => ['PEP']], $titles(Kalender::filtern($tage, 'bnb-pep')));
+        assertSame(['2026-11-02' => ['Yoga']], $titles(Kalender::filtern($tage, 'zara')));
+        assertSame(['2026-11-03' => ['Ohne']], $titles(Kalender::filtern($tage, 'ohne')));
+        assertSame(['2026-11-03' => ['Ben wird 8']], $titles(Kalender::filtern($tage, 'geburtstag')));
+        assertSame([], Kalender::filtern($tage, 'tw'));
+        assertSame(array_diff_key(Kalender::ARTEN, ['' => true]), array_intersect_key(Kalender::ARTEN, Kalender::FILTER), 'jede Kategorie hat einen Filter');
+    }],
+    ['Ansicht: Filter statt Legende, gewählter Filter markiert und in allen Links behalten', static function (): void {
+        $render = static function (array $vars): string {
+            extract($vars, EXTR_SKIP);
+            ob_start();
+            require BACKOFFICE_ROOT . '/templates/termine/index.php';
+            return (string) ob_get_clean();
+        };
+        $from = new DateTimeImmutable('2026-11-01');
+        $to = new DateTimeImmutable('2026-11-30');
+        $tage = ['2026-11-02' => [['quelle' => 'eigen', 'art' => 'zara', 'titel' => 'Yoga', 'beginn' => null, 'ende' => null, 'link' => null, 'id' => null]]];
+        $html = $render(['ansicht' => 'monat', 'from' => $from, 'to' => $to, 'tage' => $tage, 'kategorie' => 'zara']);
+        assertSame(false, str_contains($html, 'cal-legend'));
+        preg_match_all('~<nav class="cal-filter".*?</nav>~s', $html, $nav);
+        preg_match_all('~<a(?: class="([^"]*)")? href="([^"]*)"( aria-current="true")?>([^<]*)</a>~', $nav[0][0] ?? '', $m, PREG_SET_ORDER);
+        assertSame(['Alle', ...array_values(Kalender::FILTER)], array_map(static fn ($x) => html_entity_decode($x[4]), $m));
+        assertSame(['Zara'], array_values(array_map(static fn ($x) => $x[4], array_filter($m, static fn ($x) => ($x[3] ?? '') !== ''))));
+        assertSame('/termine?ansicht=monat&amp;ab=2026-11', $m[0][2], 'Alle ohne Filter');
+        assertSame('/termine?ansicht=monat&amp;ab=2026-11&amp;kategorie=bnb-pep', $m[4][2]);
+        assertSame('cal-entry--bricksnbytes', $m[4][1]);
+        assertSame(true, str_contains($html, 'href="/termine?ansicht=quartal&amp;ab=2026-11&amp;kategorie=zara"'), 'Ansicht wechseln behält Filter');
+        assertSame(true, str_contains($html, 'href="/termine?ansicht=monat&amp;ab=2026-12&amp;kategorie=zara"'), 'Blättern behält Filter');
+        assertSame(true, str_contains($html, 'class="cal-entry cal-entry--zara'), 'Termin rosa');
+        $empty = $render(['ansicht' => 'monat', 'from' => $from, 'to' => $to, 'tage' => [], 'kategorie' => 'tw']);
+        assertSame(true, str_contains($empty, 'Keine Termine „TW“ in diesem Zeitraum.'));
+        $all = $render(['ansicht' => 'jahr', 'from' => new DateTimeImmutable('2026-01-01'), 'to' => new DateTimeImmutable('2026-12-31'), 'tage' => [], 'kategorie' => '']);
+        assertSame(true, str_contains($all, '<a href="/termine?ansicht=jahr&amp;ab=2026-01" aria-current="true">Alle</a>'));
+        assertSame(true, str_contains($all, 'href="/termine?ansicht=monat&amp;ab=2026-03"') && !str_contains($all, 'Keine Termine'));
+    }],
+    ['Termin-Formular: Kategorie aus der Liste, Unbekanntes wird ohne Kategorie', static function (): void {
         $base = ['titel' => 'Elternabend', 'datum' => '2026-10-21'];
         assertSame(null, TerminValidator::validate($base)['data']['art']);
-        assertSame('schule', TerminValidator::validate($base + ['art' => 'schule'])['data']['art']);
-        assertSame('kurs', TerminValidator::validate($base + ['art' => 'kurs'])['data']['art']);
+        foreach (array_keys(array_diff_key(Kalender::ARTEN, ['' => true])) as $art) {
+            assertSame($art, TerminValidator::validate($base + ['art' => $art])['data']['art'], $art);
+        }
+        assertSame(null, TerminValidator::validate($base + ['art' => 'kurs'])['data']['art'], 'alter Typ');
         assertSame(null, TerminValidator::validate($base + ['art' => 'privat<script>'])['data']['art']);
     }],
     ['Termin-Formular: Pflichtfelder, Zeiten, mehrtägig', static function (): void {

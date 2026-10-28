@@ -14,10 +14,37 @@ final class Kalender
     public const ANSICHTEN = ['monat' => ['Monat', 1], 'quartal' => ['3 Monate', 3], 'halbjahr' => ['6 Monate', 6], 'jahr' => ['Jahr', 12]];
     public const MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
     public const WOCHENTAGE = ['Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.', 'So.'];
-    // Type of an own entry ('' = plain own entry); course dates and orders count as "kurs"
-    public const ARTEN = ['' => 'Eigener Termin', 'kurs' => 'Kurs', 'schule' => 'Schule'];
-    // Colour per kind (CSS .cal-entry--<farbe>), with the legend label
-    public const FARBEN = ['eigen' => 'Eigener Termin', 'kurs' => 'Kurs / Auftrag', 'schule' => 'Schule', 'geburtstag' => '🎂 Geburtstag'];
+    // Category of an own entry ('' = none); course dates and orders count as "bricksnbytes"
+    public const ARTEN = [
+        '' => 'Ohne Kategorie',
+        'bricksnbytes' => 'BricksnBytes',
+        'bnb-allach' => 'BricksnBytes-Allach',
+        'bnb-pasing' => 'BricksnBytes-Pasing',
+        'bnb-pep' => 'BricksnBytes-PEP',
+        'bnb-dghk' => 'BricksnBytes-DGhK',
+        'bnb-schule' => 'BricksnBytes-Schule',
+        'tw' => 'TW',
+        'schule' => 'Schule',
+        'zara' => 'Zara',
+        'max' => 'Max',
+        'bibliothek' => 'Bibliothek',
+    ];
+    // Filters above the calendar: "bricksnbytes" takes all BricksnBytes categories (and course dates, orders)
+    public const FILTER = [
+        'bricksnbytes' => 'BricksnBytes',
+        'bnb-allach' => 'Allach',
+        'bnb-pasing' => 'Pasing',
+        'bnb-pep' => 'PEP',
+        'bnb-dghk' => 'DGhK',
+        'bnb-schule' => 'BnB-Schule',
+        'tw' => 'TW',
+        'schule' => 'Schule',
+        'zara' => 'Zara',
+        'max' => 'Max',
+        'bibliothek' => 'Bibliothek',
+        'geburtstag' => '🎂 Geburtstage',
+        'ohne' => 'Ohne Kategorie',
+    ];
     // Regular orders (e.g. weekly in the Hort) only show their first and last day
     private const MAX_TAGE_AUFTRAG = 31;
 
@@ -159,14 +186,49 @@ final class Kalender
         return $until !== null && $until <= $now;
     }
 
-    /** Colour of an entry: own entries by their type, course dates and orders blue, birthdays lilac */
-    public static function farbe(array $entry): string
+    /** Category of an entry: own entries by their choice ('' = none), course dates and orders BricksnBytes */
+    public static function kategorie(array $entry): string
     {
         return match ($entry['quelle']) {
-            'kurs', 'auftrag' => 'kurs',
+            'kurs', 'auftrag' => 'bricksnbytes',
             'geburtstag' => 'geburtstag',
-            default => isset(self::ARTEN[$entry['art'] ?? '']) && ($entry['art'] ?? '') !== '' ? $entry['art'] : 'eigen',
+            default => isset(self::ARTEN[$entry['art'] ?? '']) ? (string) ($entry['art'] ?? '') : '',
         };
+    }
+
+    /** Colour (CSS .cal-entry--<farbe>) of a category or filter: all BricksnBytes ones dark blue, none grey */
+    public static function farbe(string $kategorie): string
+    {
+        return match (true) {
+            $kategorie === '' || $kategorie === 'ohne' => 'ohne',
+            str_starts_with($kategorie, 'bnb-') => 'bricksnbytes',
+            default => $kategorie,
+        };
+    }
+
+    /** Does the entry belong to the filter ('' = all)? */
+    public static function passt(array $entry, string $filter): bool
+    {
+        $kategorie = self::kategorie($entry);
+        return match ($filter) {
+            '' => true,
+            'bricksnbytes' => self::farbe($kategorie) === 'bricksnbytes',
+            'ohne' => $kategorie === '',
+            default => $kategorie === $filter,
+        };
+    }
+
+    /** Only the entries of the filter; days without any left out */
+    public static function filtern(array $tage, string $filter): array
+    {
+        $result = [];
+        foreach ($tage as $date => $entries) {
+            $kept = array_values(array_filter($entries, static fn ($e) => self::passt($e, $filter)));
+            if ($kept) {
+                $result[$date] = $kept;
+            }
+        }
+        return $result;
     }
 
     /** "14:00–16:00", "11:00", '' */

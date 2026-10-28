@@ -25,12 +25,13 @@ final class TermineController
         $router->post('/termine/import/uebernehmen', [self::class, 'importSave']);
     }
 
-    // Overview: ?ansicht=monat|quartal|halbjahr|jahr&ab=YYYY-MM (default: this month)
+    // Overview: ?ansicht=monat|quartal|halbjahr|jahr&ab=YYYY-MM (default: this month)&kategorie=<Kalender::FILTER>
     public static function index(): void
     {
         $ansicht = isset(Kalender::ANSICHTEN[$_GET['ansicht'] ?? '']) ? $_GET['ansicht'] : 'monat';
         $ab = is_string($_GET['ab'] ?? null) && preg_match('/^(\d{4})-(\d{2})$/', $_GET['ab'], $m) && checkdate((int) $m[2], 1, (int) $m[1])
             ? new DateTimeImmutable($_GET['ab'] . '-01') : new DateTimeImmutable('today');
+        $kategorie = is_string($_GET['kategorie'] ?? null) && isset(Kalender::FILTER[$_GET['kategorie']]) ? $_GET['kategorie'] : '';
         [$from, $to] = Kalender::zeitraum($ansicht, $ab);
         $f = $from->format('Y-m-d');
         $t = $to->format('Y-m-d');
@@ -39,8 +40,9 @@ final class TermineController
             'ansicht' => $ansicht,
             'from' => $from,
             'to' => $to,
-            'tage' => Kalender::tage($from, $to, TermineRepository::eigene($f, $t), TermineRepository::kursTermine($f, $t),
-                TermineRepository::auftraege($f, $t), TermineRepository::kinder()),
+            'kategorie' => $kategorie,
+            'tage' => Kalender::filtern(Kalender::tage($from, $to, TermineRepository::eigene($f, $t), TermineRepository::kursTermine($f, $t),
+                TermineRepository::auftraege($f, $t), TermineRepository::kinder()), $kategorie),
         ]);
     }
 
