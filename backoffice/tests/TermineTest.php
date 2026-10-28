@@ -77,6 +77,26 @@ return [
         assertSame(1, count($r['probleme']));
         assertSame(2026, PlanerImport::year($rows));
     }],
+    ['Planer-Typ: Kurs- und Schul-Termine am Titel erkannt, Rest eigener Termin', static function (): void {
+        foreach (['Programmierkurs Grundschule', 'ferienkurs Robotik', 'PEP Gruppe 2', 'DGhK Treffen', 'Scratch (P)', 'Calliope (A)'] as $t) {
+            assertSame('kurs', PlanerImport::art($t), $t);
+        }
+        foreach (['Festkreis', 'Elternabend 3b', 'MONATSFEIER'] as $t) {
+            assertSame('schule', PlanerImport::art($t), $t);
+        }
+        foreach (['Yoga', 'Pepperoni essen', '(B) Zahnarzt', 'Kurs', ''] as $t) {
+            assertSame(null, PlanerImport::art($t), $t);
+        }
+        assertSame('kurs', PlanerImport::art('Elternabend PEP'), 'erster Treffer zählt');
+        foreach (PlanerImport::ART_MUSTER as $art => $pattern) {
+            assertSame(true, isset(Kalender::ARTEN[$art]), $art);
+        }
+    }],
+    ['Migration 010: gleiche Muster wie der Import, nur Einträge ohne Typ aus dem Planer', static function (): void {
+        $sql = (string) file_get_contents(dirname(__DIR__) . '/migrations/010_planer_arten.sql');
+        preg_match_all("/SET art = '(\\w+)'\\s+WHERE art IS NULL AND import_lauf LIKE 'planer-%'\\s+AND titel REGEXP '((?:[^'\\\\]|\\\\.)*)';/", $sql, $m);
+        assertSame(PlanerImport::ART_MUSTER, array_combine($m[1], array_map('stripslashes', $m[2])));
+    }],
     ['CSV: Komma oder Semikolon, mehrzeilige Zellen, BOM', static function (): void {
         $rows = PlanerImport::csvRows("\xEF\xBB\xBF,,2026\nJanuar,,\n1,Do.,\"14-16 Kurs\n18:00 Essen\"\n");
         assertSame(['1', 'Do.', "14-16 Kurs\n18:00 Essen"], $rows[2]);
