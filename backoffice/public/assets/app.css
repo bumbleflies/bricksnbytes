@@ -406,15 +406,27 @@ details.card[open] > summary { margin-bottom: 12px; }
 .cal-nav { display: flex; align-items: center; gap: 8px; }
 .cal-nav .icon-btn { text-decoration: none; font-size: 1.3rem; line-height: 1; }
 .cal-title { margin: 0; font-size: 1.15rem; min-width: 10ch; text-align: center; }
-.cal-legend { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; font-size: 0.8rem; }
-.cal-legend .cal-entry { display: inline-block; }
+/* Filters by category: a pill per category in its colour, the chosen one outlined */
+.cal-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.cal-filter a { padding: 3px 10px; border-radius: 999px; font-size: 0.82rem; text-decoration: none; color: var(--ink);
+  border-style: solid; border-width: 1px 1px 1px 5px; border-top-color: var(--line); border-right-color: var(--line); border-bottom-color: var(--line); }
+.cal-filter a:not([class]) { border-left-color: var(--navy); background: #fff; }
+.cal-filter a:hover { text-decoration: underline; }
+.cal-filter a[aria-current="true"] { outline: 2px solid var(--orange); outline-offset: 1px; font-weight: 600; }
 .cal-entry { display: block; font-size: 0.78rem; line-height: 1.3; padding: 1px 4px; margin: 1px 0; border-radius: 4px; border-left: 3px solid var(--navy);
   background: var(--navy-soft); color: var(--ink); text-decoration: none; overflow-wrap: anywhere; }
 a.cal-entry:hover { text-decoration: underline; }
-/* Kurs / Auftrag in the website blue (--blue / --blue-soft of the website), Schule orange, birthdays lilac */
-.cal-entry--kurs { border-left-color: #4299dc; background: #d9eeff; }
+/* Colour per category: BricksnBytes (all, with course dates and orders) dark blue like the website (--ink),
+   TW red, Schule orange, Zara pink, Max black, libraries light blue (website --blue), birthdays lilac, none grey */
+.cal-entry--bricksnbytes { border-left-color: #232b3d; background: #232b3d; color: #fff; }
+.cal-filter a.cal-entry--bricksnbytes { border-color: #232b3d; color: #fff; }
+.cal-entry--tw { border-left-color: #d92d20; background: var(--status-rot-bg); }
 .cal-entry--schule { border-left-color: var(--status-orange-border); background: var(--status-orange-bg); }
+.cal-entry--zara { border-left-color: #e05aa6; background: #fde7f3; }
+.cal-entry--max { border-left-color: #000; background: #fff; color: #000; box-shadow: inset 0 0 0 1px #000; }
+.cal-entry--bibliothek { border-left-color: #4299dc; background: #d9eeff; }
 .cal-entry--geburtstag { border-left-color: var(--status-lila-border); background: var(--status-lila-bg); }
+.cal-entry--ohne { border-left-color: var(--status-grau-border); background: var(--status-grau-bg); }
 .cal-time { font-weight: 600; white-space: nowrap; }
 
 .cal-month { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 700px; }
@@ -442,7 +454,7 @@ a.cal-entry:hover { text-decoration: underline; }
 /* Already over: earlier days greyed, their entries (and today's finished ones) struck through */
 .cal-month td.is-past, .cal-plan td.is-past { background: #eceef2; }
 .cal-month td.is-past .cal-daynum, .cal-plan td.is-past .cal-daylabel { color: var(--muted); font-weight: 400; }
-.cal-entry.is-past { background: transparent; border-left-color: var(--line); color: var(--muted); text-decoration: line-through; }
+.cal-entry.is-past { background: transparent; border-left-color: var(--line); color: var(--muted); text-decoration: line-through; box-shadow: none; }
 a.cal-entry.is-past:hover { text-decoration: line-through underline; }
 .cal-entry.is-past .cal-time { font-weight: 500; }
 .delete-row { margin-top: 12px; }

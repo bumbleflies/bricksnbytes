@@ -22,13 +22,13 @@ $back = '/termine?ansicht=monat&ab=' . substr($v('datum') ?: date('Y-m-d'), 0, 7
     <?= $err('titel') ?>
   </div>
   <div class="field">
-    <label for="f-art">Typ</label>
+    <label for="f-art">Kategorie</label>
     <select id="f-art" name="art">
       <?php foreach (Kalender::ARTEN as $key => $label): ?>
         <option value="<?= e($key) ?>"<?= $key === $v('art') ? ' selected' : '' ?>><?= e($label) ?></option>
       <?php endforeach; ?>
     </select>
-    <p class="hint">Bestimmt die Farbe im Kalender: Kurs blau, Schule orange.</p>
+    <p class="hint">Bestimmt Farbe und Filter im Kalender: BricksnBytes dunkelblau, TW rot, Schule orange, Zara rosa, Max schwarz, Bibliothek hellblau.</p>
   </div>
   <div class="grid-2">
     <div class="<?= $cls('datum') ?>">

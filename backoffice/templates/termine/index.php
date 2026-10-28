@@ -1,19 +1,25 @@
 <?php
-/** Dates overview. @var string $ansicht @var DateTimeImmutable $from @var DateTimeImmutable $to @var array<string, list<array>> $tage */
+/**
+ * Dates overview. @var string $ansicht @var DateTimeImmutable $from @var DateTimeImmutable $to
+ * @var array<string, list<array>> $tage (already filtered) @var string $kategorie filter ('' = all)
+ */
 use Backoffice\Modules\Termine\Kalender;
 
-$url = static fn (string $view, DateTimeImmutable $d): string => '/termine?ansicht=' . $view . '&ab=' . $d->format('Y-m');
+$kategorie = $kategorie ?? '';
+// Links keep the view's filter unless another one is given
+$url = static fn (string $view, DateTimeImmutable $d, ?string $filter = null): string => '/termine?ansicht=' . $view . '&ab=' . $d->format('Y-m')
+    . (($filter ?? $kategorie) !== '' ? '&kategorie=' . urlencode($filter ?? $kategorie) : '');
 $today = date('Y-m-d');
 $now = date('H:i');
 $labels = ['kurs' => 'Kurs', 'auftrag' => 'Auftrag', 'geburtstag' => 'Geburtstag'];
-$arten = array_diff_key(Kalender::ARTEN, ['' => true]);   // the types shown as a prefix (Kurs, Schule)
+$arten = array_diff_key(Kalender::ARTEN, ['' => true]);   // the categories shown as a prefix
 // One entry as a small line: time, title; own entries open the form, the others their page
 $entry = static function (array $e, bool $past = false) use ($labels, $arten): string {
     $time = Kalender::zeit($e['beginn'], $e['ende']);
     $text = ($e['quelle'] === 'geburtstag' ? '🎂 ' : '') . $e['titel'];
     $label = isset($labels[$e['quelle']]) ? $labels[$e['quelle']] . ': ' : (isset($arten[$e['art'] ?? '']) ? $arten[$e['art'] ?? ''] . ': ' : '');
     $inner = ($time !== '' ? '<span class="cal-time">' . e($time) . '</span> ' : '') . '<span class="cal-text">' . e($text) . '</span>';
-    $attrs = ' class="cal-entry cal-entry--' . e(Kalender::farbe($e)) . ($past ? ' is-past' : '') . '" title="' . e($label . trim($time . ' ' . $e['titel']) . ($past ? ' (vorbei)' : '')) . '"';
+    $attrs = ' class="cal-entry cal-entry--' . e(Kalender::farbe(Kalender::kategorie($e))) . ($past ? ' is-past' : '') . '" title="' . e($label . trim($time . ' ' . $e['titel']) . ($past ? ' (vorbei)' : '')) . '"';
     return $e['link'] !== null ? '<a href="' . e($e['link']) . '"' . $attrs . '>' . $inner . '</a>' : '<span' . $attrs . '>' . $inner . '</span>';
 };
 ?>
@@ -37,8 +43,16 @@ $entry = static function (array $e, bool $past = false) use ($labels, $arten): s
     <a class="icon-btn" href="<?= e($url($ansicht, Kalender::blaettern($ansicht, $from, 1))) ?>" aria-label="Weiter" title="Weiter">›</a>
     <a class="btn-link" href="<?= e($url($ansicht, new DateTimeImmutable('today'))) ?>">Heute</a>
   </div>
-  <p class="cal-legend"><?php foreach (Kalender::FARBEN as $farbe => $label): ?><span class="cal-entry cal-entry--<?= e($farbe) ?>"><?= e($label) ?></span> <?php endforeach; ?></p>
 </div>
+<nav class="cal-filter" aria-label="Kategorie">
+  <a href="<?= e($url($ansicht, $from, '')) ?>"<?= $kategorie === '' ? ' aria-current="true"' : '' ?>>Alle</a>
+  <?php foreach (Kalender::FILTER as $key => $label): ?>
+    <a class="cal-entry--<?= e(Kalender::farbe($key)) ?>" href="<?= e($url($ansicht, $from, $key)) ?>"<?= $key === $kategorie ? ' aria-current="true"' : '' ?>><?= e($label) ?></a>
+  <?php endforeach; ?>
+</nav>
+<?php if ($kategorie !== '' && !$tage): ?>
+  <p class="muted">Keine Termine „<?= e(Kalender::FILTER[$kategorie]) ?>“ in diesem Zeitraum.</p>
+<?php endif; ?>
 
 <?php if ($ansicht === 'monat'): ?>
   <div class="table-wrap">

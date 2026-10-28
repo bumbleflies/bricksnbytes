@@ -224,12 +224,17 @@ Anfang werden erkannt („14-16 …“, „8:00 - 9:00 …“, „9-16.30 …“
 Text). Erst Vorschau, dann „Übernehmen“; eine erneute Übernahme desselben Jahres ersetzt die frühere
 (von Hand eingetragene Termine bleiben). Schema: Migration 009.
 
-**Farben:** eigener Termin grau-blau, **Kurs** (und Aufträge, Kurstermine) im Website-Blau, **Schule**
-orange, Geburtstage lila. Den Typ eines eigenen Termins (Eigener Termin / Kurs / Schule) wählst du im
-Termin (Spalte `art`). Übernommene Planer-Termine bekommen den Typ am Titel: „Programmierkurs“, „Ferienkurs“,
-„PEP“, „DGhK“, „(P)“, „(A)“ → Kurs; „Festkreis“, „Elternabend“, „Monatsfeier“ → Schule; sonst eigener Termin
-(`PlanerImport::ART_MUSTER`; Migration 010 ordnet die schon übernommenen ohne Typ einmalig so zu). Zuordnung in
-`Kalender::farbe()`, Farben in `app.css` (`.cal-entry--…`).
+**Kategorien und Filter:** Jeder eigene Termin hat eine Kategorie (Spalte `art`, `Kalender::ARTEN`):
+BricksnBytes sowie BricksnBytes-Allach, -Pasing, -PEP, -DGhK und -Schule (alle dunkelblau wie die Website),
+TW rot, Schule orange, Zara rosa, Max schwarz, Bibliothek hellblau, sonst „Ohne Kategorie“ grau. Kurstermine
+und Aufträge zählen zu BricksnBytes, Kinder-Geburtstage sind lila. Über dem Kalender steht je Kategorie ein
+Filter (`?kategorie=…`, `Kalender::FILTER`); „BricksnBytes“ zeigt alle BricksnBytes-Kategorien zusammen. Der
+Filter bleibt beim Blättern und beim Wechsel der Ansicht erhalten.
+Übernommene Planer-Termine bekommen die Kategorie am Titel (`PlanerImport::ART_MUSTER`, erster Treffer zählt),
+z. B. „Bibliothek“ → Bibliothek, „GS …“/„EDV“ → BricksnBytes-Schule, „PEP“, „DGhK“, „(A)“/„Allach“,
+„(P)“/„Pasing“, „TW“/„IPMA“ → TW, „Festkreis“/„Elternabend“/„Monatsfeier“ → Schule, „Programmier…“/„Minecraft“/„Kurs“ →
+BricksnBytes, „Max“, „Zara“/Yoga/Tischtennis/Arzt → Zara. Migration 011 ordnet die schon übernommenen Termine einmalig so neu zu (ohne
+Treffer: „kurs“ → BricksnBytes, „schule“ bleibt). Farben in `app.css` (`.cal-entry--…`).
 
 **Vorbei:** Tage vor heute sind grau hinterlegt und ihre Termine durchgestrichen; heute werden
 Termine durchgestrichen, sobald ihr Ende (ohne Ende: ihr Beginn) vorbei ist – ganztägige erst morgen.
