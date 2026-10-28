@@ -4,14 +4,16 @@ use Backoffice\Modules\Termine\Kalender;
 
 $url = static fn (string $view, DateTimeImmutable $d): string => '/termine?ansicht=' . $view . '&ab=' . $d->format('Y-m');
 $today = date('Y-m-d');
+$now = date('H:i');
 $labels = ['kurs' => 'Kurs', 'auftrag' => 'Auftrag', 'geburtstag' => 'Geburtstag'];
+$arten = array_diff_key(Kalender::ARTEN, ['' => true]);   // the types shown as a prefix (Kurs, Schule)
 // One entry as a small line: time, title; own entries open the form, the others their page
-$entry = static function (array $e) use ($labels): string {
+$entry = static function (array $e, bool $past = false) use ($labels, $arten): string {
     $time = Kalender::zeit($e['beginn'], $e['ende']);
     $text = ($e['quelle'] === 'geburtstag' ? '🎂 ' : '') . $e['titel'];
-    $label = isset($labels[$e['quelle']]) ? $labels[$e['quelle']] . ': ' : '';
+    $label = isset($labels[$e['quelle']]) ? $labels[$e['quelle']] . ': ' : (isset($arten[$e['art'] ?? '']) ? $arten[$e['art'] ?? ''] . ': ' : '');
     $inner = ($time !== '' ? '<span class="cal-time">' . e($time) . '</span> ' : '') . '<span class="cal-text">' . e($text) . '</span>';
-    $attrs = ' class="cal-entry cal-entry--' . e($e['quelle']) . '" title="' . e($label . trim($time . ' ' . $e['titel'])) . '"';
+    $attrs = ' class="cal-entry cal-entry--' . e(Kalender::farbe($e)) . ($past ? ' is-past' : '') . '" title="' . e($label . trim($time . ' ' . $e['titel']) . ($past ? ' (vorbei)' : '')) . '"';
     return $e['link'] !== null ? '<a href="' . e($e['link']) . '"' . $attrs . '>' . $inner . '</a>' : '<span' . $attrs . '>' . $inner . '</span>';
 };
 ?>
@@ -35,8 +37,7 @@ $entry = static function (array $e) use ($labels): string {
     <a class="icon-btn" href="<?= e($url($ansicht, Kalender::blaettern($ansicht, $from, 1))) ?>" aria-label="Weiter" title="Weiter">›</a>
     <a class="btn-link" href="<?= e($url($ansicht, new DateTimeImmutable('today'))) ?>">Heute</a>
   </div>
-  <p class="cal-legend"><span class="cal-entry cal-entry--eigen">Eigener Termin</span> <span class="cal-entry cal-entry--kurs">Kurs</span>
-    <span class="cal-entry cal-entry--auftrag">Auftrag</span> <span class="cal-entry cal-entry--geburtstag">🎂 Geburtstag</span></p>
+  <p class="cal-legend"><?php foreach (Kalender::FARBEN as $farbe => $label): ?><span class="cal-entry cal-entry--<?= e($farbe) ?>"><?= e($label) ?></span> <?php endforeach; ?></p>
 </div>
 
 <?php if ($ansicht === 'monat'): ?>
@@ -48,12 +49,12 @@ $entry = static function (array $e) use ($labels): string {
           <tr>
             <?php foreach ($week as $i => $date):
                 $out = substr($date, 0, 7) !== $from->format('Y-m'); ?>
-              <td class="<?= trim(($out ? 'is-out ' : '') . ($i >= 5 ? 'is-weekend ' : '') . ($date === $today ? 'is-today' : '')) ?>">
+              <td class="<?= trim(($out ? 'is-out ' : '') . ($i >= 5 ? 'is-weekend ' : '') . ($date < $today ? 'is-past ' : '') . ($date === $today ? 'is-today' : '')) ?>">
                 <div class="cal-day">
                   <span class="cal-daynum"><?= e((int) substr($date, 8)) ?>.</span>
                   <a class="cal-add" href="/termine/neu?datum=<?= e($date) ?>" aria-label="Termin am <?= e(date('d.m.Y', strtotime($date))) ?> eintragen" title="Termin eintragen">+</a>
                 </div>
-                <?php foreach ($tage[$date] ?? [] as $e) { echo $entry($e); } ?>
+                <?php foreach ($tage[$date] ?? [] as $e) { echo $entry($e, Kalender::vorbei($date, $e, $today, $now)); } ?>
               </td>
             <?php endforeach; ?>
           </tr>
@@ -80,9 +81,9 @@ $entry = static function (array $e) use ($labels): string {
               <?php else:
                 $date = sprintf('%04d-%02d-%02d', $y, $mo, $day);
                 $wd = (int) date('N', strtotime($date)); ?>
-                <td class="<?= trim(($wd >= 6 ? 'is-weekend ' : '') . ($date === $today ? 'is-today' : '')) ?>">
+                <td class="<?= trim(($wd >= 6 ? 'is-weekend ' : '') . ($date < $today ? 'is-past ' : '') . ($date === $today ? 'is-today' : '')) ?>">
                   <a class="cal-daylabel" href="/termine/neu?datum=<?= e($date) ?>" title="Termin am <?= e(date('d.m.Y', strtotime($date))) ?> eintragen"><?= e($day) ?> <?= e(Kalender::WOCHENTAGE[$wd - 1]) ?></a>
-                  <?php foreach ($tage[$date] ?? [] as $e) { echo $entry($e); } ?>
+                  <?php foreach ($tage[$date] ?? [] as $e) { echo $entry($e, Kalender::vorbei($date, $e, $today, $now)); } ?>
                 </td>
               <?php endif; ?>
             <?php endforeach; ?>

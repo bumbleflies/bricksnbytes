@@ -116,6 +116,60 @@ return [
         assertSame(['2026-09-15'], array_keys($sept), 'regelmäßig: nur Start (und Ende)');
         assertSame('Start: Hort-AG – Hort', $sept['2026-09-15'][0]['titel']);
     }],
+    ['Vorbei: frühere Tage ganz, heute nach Ende (oder Beginn), ganztägig heute nicht', static function (): void {
+        $e = static fn (?string $b, ?string $en): array => ['beginn' => $b, 'ende' => $en];
+        assertSame(true, Kalender::vorbei('2026-10-27', $e(null, null), '2026-10-28', '08:00'));
+        assertSame(false, Kalender::vorbei('2026-10-29', $e('07:00', '08:00'), '2026-10-28', '23:00'));
+        assertSame(true, Kalender::vorbei('2026-10-28', $e('09:00', '10:30'), '2026-10-28', '10:30'));
+        assertSame(false, Kalender::vorbei('2026-10-28', $e('09:00', '10:30'), '2026-10-28', '10:29'), 'läuft noch');
+        assertSame(true, Kalender::vorbei('2026-10-28', $e('11:00', null), '2026-10-28', '12:00'), 'nur Beginn');
+        assertSame(false, Kalender::vorbei('2026-10-28', $e(null, null), '2026-10-28', '23:59'), 'ganztägig heute');
+    }],
+    ['Ansicht: vergangene Tage grau, ihre Termine durchgestrichen; kommende normal', static function () use ($d): void {
+        $render = static function (array $vars): string {
+            extract($vars, EXTR_SKIP);
+            ob_start();
+            require BACKOFFICE_ROOT . '/templates/termine/index.php';
+            return (string) ob_get_clean();
+        };
+        $today = new DateTimeImmutable('today');
+        $mk = static fn (string $t) => ['quelle' => 'eigen', 'titel' => $t, 'beginn' => null, 'ende' => null, 'link' => null, 'id' => null];
+        $tage = [$today->modify('-1 day')->format('Y-m-d') => [$mk('Gestern-Termin')], $today->modify('+1 day')->format('Y-m-d') => [$mk('Morgen-Termin')],
+            $today->format('Y-m-d') => [$mk('Heute-ganztags')]];
+        foreach (['quartal', 'jahr'] as $view) {
+            // From the period of yesterday to the end of tomorrow's period (spans the change of period)
+            [$from] = Kalender::zeitraum($view, $today->modify('-1 day'));
+            [, $to] = Kalender::zeitraum($view, $today->modify('+1 day'));
+            $html = $render(['ansicht' => $view, 'from' => $from, 'to' => $to, 'tage' => $tage]);
+            assertSame(1, preg_match('~class="cal-entry cal-entry--eigen is-past" title="Gestern-Termin \(vorbei\)"~', $html), $view . ' gestern');
+            assertSame(true, str_contains($html, 'class="cal-entry cal-entry--eigen" title="Heute-ganztags"'), $view . ' heute ganztags');
+            assertSame(true, str_contains($html, 'is-past') && !str_contains($html, 'Morgen-Termin (vorbei)'), $view . ' morgen');
+        }
+        $month = $render(['ansicht' => 'monat', 'from' => $today->modify('first day of this month'), 'to' => $today->modify('last day of this month'), 'tage' => $tage]);
+        $pastDays = (int) $today->format('j') - 1;
+        preg_match_all('~<td class="[^"]*is-past[^"]*"~', $month, $m);
+        assertSame(true, count($m[0]) >= $pastDays, 'alle früheren Tage des Monats grau');
+        assertSame(false, (bool) preg_match('~<td class="[^"]*is-past[^"]*is-today~', $month), 'heute nicht grau');
+    }],
+    ['Farben: eigener Termin nach Typ, Kurse und Aufträge blau, Schule orange, Geburtstage lila', static function (): void {
+        assertSame('eigen', Kalender::farbe(['quelle' => 'eigen', 'art' => null]));
+        assertSame('kurs', Kalender::farbe(['quelle' => 'eigen', 'art' => 'kurs']));
+        assertSame('schule', Kalender::farbe(['quelle' => 'eigen', 'art' => 'schule']));
+        assertSame('eigen', Kalender::farbe(['quelle' => 'eigen', 'art' => 'unbekannt']));
+        assertSame('kurs', Kalender::farbe(['quelle' => 'kurs']));
+        assertSame('kurs', Kalender::farbe(['quelle' => 'auftrag']));
+        assertSame('geburtstag', Kalender::farbe(['quelle' => 'geburtstag']));
+        assertSame(['eigen', 'kurs', 'schule', 'geburtstag'], array_keys(Kalender::FARBEN));
+        $css = (string) file_get_contents(BACKOFFICE_ROOT . '/public/assets/app.css');
+        assertSame(true, str_contains($css, '.cal-entry--kurs { border-left-color: #4299dc; background: #d9eeff; }') && str_contains($css, '.cal-entry--schule {'));
+    }],
+    ['Termin-Formular: Typ Eigener Termin / Kurs / Schule', static function (): void {
+        $base = ['titel' => 'Elternabend', 'datum' => '2026-10-21'];
+        assertSame(null, TerminValidator::validate($base)['data']['art']);
+        assertSame('schule', TerminValidator::validate($base + ['art' => 'schule'])['data']['art']);
+        assertSame('kurs', TerminValidator::validate($base + ['art' => 'kurs'])['data']['art']);
+        assertSame(null, TerminValidator::validate($base + ['art' => 'privat<script>'])['data']['art']);
+    }],
     ['Termin-Formular: Pflichtfelder, Zeiten, mehrtägig', static function (): void {
         assertSame(['titel', 'datum'], array_keys(TerminValidator::validate([])['errors']));
         $ok = TerminValidator::validate(['titel' => 'Yoga', 'datum' => '2026-10-21', 'bis_datum' => '2026-10-21', 'beginn' => '11:00', 'ende' => '12:15']);

@@ -1,6 +1,7 @@
 <?php
 /** Own calendar entry. @var ?int $id @var array $eintrag @var array $errors */
 use Backoffice\Csrf;
+use Backoffice\Modules\Termine\Kalender;
 
 $v = static fn (string $k): string => (string) ($eintrag[$k] ?? '');
 $time = static fn (string $k): string => substr($v($k), 0, 5);
@@ -19,6 +20,15 @@ $back = '/termine?ansicht=monat&ab=' . substr($v('datum') ?: date('Y-m-d'), 0, 7
     <label for="f-titel">Was</label>
     <input id="f-titel" name="titel" value="<?= e($v('titel')) ?>" maxlength="255" placeholder="z. B. Yoga, Elternabend, Urlaub"<?= $inv('titel') ?>>
     <?= $err('titel') ?>
+  </div>
+  <div class="field">
+    <label for="f-art">Typ</label>
+    <select id="f-art" name="art">
+      <?php foreach (Kalender::ARTEN as $key => $label): ?>
+        <option value="<?= e($key) ?>"<?= $key === $v('art') ? ' selected' : '' ?>><?= e($label) ?></option>
+      <?php endforeach; ?>
+    </select>
+    <p class="hint">Bestimmt die Farbe im Kalender: Kurs blau, Schule orange.</p>
   </div>
   <div class="grid-2">
     <div class="<?= $cls('datum') ?>">
