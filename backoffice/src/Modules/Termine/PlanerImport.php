@@ -10,6 +10,11 @@ namespace Backoffice\Modules\Termine;
 final class PlanerImport
 {
     private const T = '\d{1,2}(?:[:.]\d{2})?';
+    // Type by title (Kalender::ARTEN), first match wins; migration 010 uses the same patterns
+    public const ART_MUSTER = [
+        'kurs' => '(?i)programmierkurs|ferienkurs|\bPEP\b|\bDGhK\b|\(P\)|\(A\)',
+        'schule' => '(?i)festkreis|elternabend|monatsfeier',
+    ];
 
     /**
      * @param list<list<string>> $rows CSV rows
@@ -72,6 +77,17 @@ final class PlanerImport
             }
         }
         return ['beginn' => null, 'ende' => null, 'titel' => mb_substr($line, 0, 255)];
+    }
+
+    /** Type of a planner entry from its title ("kurs", "schule"), null = plain own entry */
+    public static function art(string $titel): ?string
+    {
+        foreach (self::ART_MUSTER as $art => $pattern) {
+            if (preg_match('/' . $pattern . '/u', $titel)) {
+                return $art;
+            }
+        }
+        return null;
     }
 
     // "14" → 14:00, "8:10" / "16.30" → 08:10 / 16:30, "18-45" (typo for 18:45) → 18:45; null if invalid

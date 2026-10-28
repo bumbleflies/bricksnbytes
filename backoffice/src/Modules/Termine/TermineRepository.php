@@ -100,7 +100,8 @@ final class TermineRepository
             }
             $run = 'planer-' . $year . '-' . date('YmdHis');
             foreach ($entries as $e) {
-                self::create(['datum' => $e['datum'], 'beginn' => $e['beginn'], 'ende' => $e['ende'], 'titel' => $e['titel']], $run, false);
+                self::create(['datum' => $e['datum'], 'beginn' => $e['beginn'], 'ende' => $e['ende'], 'titel' => $e['titel'],
+                    'art' => PlanerImport::art($e['titel'])], $run, false);
             }
             Audit::created('kalender_eintraege', 0, ['import_lauf' => $run, 'eintraege' => count($entries), 'ersetzt' => $removed], 'importiert');
             $pdo->commit();

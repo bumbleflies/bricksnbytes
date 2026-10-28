@@ -226,7 +226,9 @@ Text). Erst Vorschau, dann „Übernehmen“; eine erneute Übernahme desselben 
 
 **Farben:** eigener Termin grau-blau, **Kurs** (und Aufträge, Kurstermine) im Website-Blau, **Schule**
 orange, Geburtstage lila. Den Typ eines eigenen Termins (Eigener Termin / Kurs / Schule) wählst du im
-Termin (Spalte `art`; übernommene Planer-Termine starten als „Eigener Termin“). Zuordnung in
+Termin (Spalte `art`). Übernommene Planer-Termine bekommen den Typ am Titel: „Programmierkurs“, „Ferienkurs“,
+„PEP“, „DGhK“, „(P)“, „(A)“ → Kurs; „Festkreis“, „Elternabend“, „Monatsfeier“ → Schule; sonst eigener Termin
+(`PlanerImport::ART_MUSTER`; Migration 010 ordnet die schon übernommenen ohne Typ einmalig so zu). Zuordnung in
 `Kalender::farbe()`, Farben in `app.css` (`.cal-entry--…`).
 
 **Vorbei:** Tage vor heute sind grau hinterlegt und ihre Termine durchgestrichen; heute werden
