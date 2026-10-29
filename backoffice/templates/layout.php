@@ -35,13 +35,15 @@ $signedIn = Auth::check();
     </form>
   </aside>
   <div class="main">
-    <header class="topbar">
-      <form class="global-search" method="get" action="/suche" role="search">
-        <label for="global-q" class="visually-hidden">Suche</label>
-        <input id="global-q" name="q" type="search" placeholder="Kunde oder Kind suchen" value="<?= e($current === '/suche' ? ($_GET['q'] ?? '') : '') ?>">
-      </form>
-      <a class="btn" href="/kunden/neu">+ Neu</a>
-    </header>
+    <?php if (Navigation::kundensuche($current)): ?>
+      <header class="topbar">
+        <form class="global-search" method="get" action="/suche" role="search">
+          <label for="global-q" class="visually-hidden">Suche</label>
+          <input id="global-q" name="q" type="search" placeholder="Kunde oder Kind suchen" value="<?= e($current === '/suche' ? ($_GET['q'] ?? '') : '') ?>">
+        </form>
+        <a class="btn" href="/kunden/neu">+ Neu</a>
+      </header>
+    <?php endif; ?>
     <main class="page">
       <?php if (!empty($flash)): ?>
         <p class="flash flash-<?= e($flash['type']) ?>" role="status"><?= e($flash['text']) ?></p>

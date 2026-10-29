@@ -5,6 +5,7 @@ declare(strict_types=1);
 // form validation and the views. Made-up data only.
 
 use Backoffice\Modules\Termine\Kalender;
+use Backoffice\Navigation;
 use Backoffice\Modules\Termine\PlanerImport;
 use Backoffice\Modules\Termine\TerminValidator;
 
@@ -257,6 +258,16 @@ return [
         }
         assertSame(null, TerminValidator::validate($base + ['art' => 'kurs'])['data']['art'], 'alter Typ');
         assertSame(null, TerminValidator::validate($base + ['art' => 'privat<script>'])['data']['art']);
+    }],
+    ['Termine ohne Kundensuche oben, alle anderen Seiten mit', static function (): void {
+        foreach (['/termine', '/termine/neu', '/termine/bearbeiten', '/termine/import'] as $path) {
+            assertSame(false, Navigation::kundensuche($path), $path);
+        }
+        foreach (['/', '/kunden', '/kunden/ansehen', '/suche', '/auftraege', '/termineX'] as $path) {
+            assertSame(true, Navigation::kundensuche($path), $path);
+        }
+        $layout = (string) file_get_contents(BACKOFFICE_ROOT . '/templates/layout.php');
+        assertSame(1, preg_match('~<\?php if \(Navigation::kundensuche\(\$current\)\): \?>\s*<header class="topbar">~', $layout), 'Layout nutzt die Regel');
     }],
     ['Termin-Formular: Pflichtfelder, Zeiten, mehrtägig', static function (): void {
         assertSame(['titel', 'datum'], array_keys(TerminValidator::validate([])['errors']));
