@@ -1,6 +1,6 @@
 # BricksnBytes Office (IBS) — PHP 8.5 + Apache, MariaDB client included.
 # Build context is backoffice/ (see .github/workflows/backoffice.yml).
-FROM php:8.5-apache
+FROM php:8.6-apache
 
 # opcache is a required, built-in extension since PHP 8.5 (RFC make_opcache_required)
 # and is enabled by default in the official images — do NOT pass it to
