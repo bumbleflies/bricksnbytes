@@ -1,4 +1,4 @@
-# BricksnBytes Office (IBS) — PHP 8.5 + Apache, MariaDB client included.
+# BricksnBytes Office (IBS) — PHP 8.6 + Apache, MariaDB client included.
 # Build context is backoffice/ (see .github/workflows/backoffice.yml).
 FROM php:8.6-apache
 
@@ -9,7 +9,8 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       default-mysql-client \
       curl \
- && docker-php-ext-install pdo_mysql \
+      libonig-dev \
+ && docker-php-ext-install pdo_mysql mbstring \
  && rm -rf /var/lib/apt/lists/*
 
 # App root: public/ is the web root, everything else stays non-readable.
