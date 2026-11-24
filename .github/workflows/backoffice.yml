@@ -78,6 +78,9 @@ jobs:
       contents: read
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
       - name: Download Docker image artifact
         uses: actions/download-artifact@v8
         with:
@@ -88,6 +91,11 @@ jobs:
         run: |
           docker load --input /tmp/ibs.tar
           docker image ls -a
+
+      - name: Test first boot with MariaDB and admin seed
+        # Exercises the entrypoint chain the no-DB healthcheck skips:
+        # extension check -> DB wait -> migrations -> seed-admin.php -> Apache.
+        run: bash backoffice/tests/image-smoke.sh bumblecode/ibs:latest
 
       - name: Test Docker image healthcheck
         run: |
