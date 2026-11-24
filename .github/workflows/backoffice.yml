@@ -78,6 +78,9 @@ jobs:
       contents: read
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
       - name: Download Docker image artifact
         uses: actions/download-artifact@v8
         with:
