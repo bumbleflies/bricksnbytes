@@ -41,6 +41,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          no-cache: ${{ github.event_name == 'schedule' }}
 
       - name: Upload Docker image artifact
         uses: actions/upload-artifact@v7

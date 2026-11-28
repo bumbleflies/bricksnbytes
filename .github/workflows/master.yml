@@ -15,6 +15,9 @@ on:
       - "nginx.conf"
       - ".github/workflows/master.yml"
   workflow_dispatch:
+  schedule:
+    # Weekly rebuild so patched base images are not held hostage by the GHA layer cache.
+    - cron: '0 4 * * 1'
 
 jobs:
   pr-tests:

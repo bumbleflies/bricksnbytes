@@ -12,6 +12,10 @@ on:
       - "backoffice/**"
       - ".github/workflows/backoffice.yml"
   workflow_dispatch:
+  schedule:
+    # Re-resolve FROM php:8.6-apache weekly: a base patch alone never changes app files,
+    # so without this the cached apt layer keeps shipping old Debian packages.
+    - cron: '0 4 * * 1'
 
 env:
   REGISTRY: docker.io
@@ -63,6 +67,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Scheduled builds must replay apt-get update/install against the current base.
+          no-cache: ${{ github.event_name == 'schedule' }}
 
       - name: Upload Docker image artifact
         uses: actions/upload-artifact@v7
